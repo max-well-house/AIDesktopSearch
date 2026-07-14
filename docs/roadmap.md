@@ -4,6 +4,8 @@ Foundation
 
 Repo, board, docs, folder structure
 
+Status: done (repo layout, GitHub board/milestones/issues, core docs)
+
 ---
 
 # Version 0.0.2
@@ -11,6 +13,15 @@ Repo, board, docs, folder structure
 Architecture Spike
 
 Prove React → Electron → FastAPI → hello → UI (Ollama optional)
+
+Status: in progress (2026-07-14)
+
+- [x] Electron desktop window boots (`npm start`)
+- [x] FastAPI hello endpoint (`GET /` → Hello World)
+- [x] Electron main process calls local FastAPI and shows result or connection error in UI
+- [ ] React in the renderer
+- [ ] Material UI
+- [ ] Ollama optional / health (nice-to-have for this spike)
 
 ---
 

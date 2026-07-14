@@ -24,6 +24,12 @@ Cross platform
 
 See Decision #001 (Electron + React + Python + FastAPI)
 
+In repo now:
+
+- Entry: `package.json` → `"main": "frontend/main.js"`, script `npm start`
+- Main / preload / renderer spike under `frontend/`
+- Desktop → API call uses Electron `net.fetch` to local FastAPI (avoids renderer CORS for this spike)
+
 ---
 
 ## Material UI
@@ -31,6 +37,8 @@ See Decision #001 (Electron + React + Python + FastAPI)
 Why?
 
 Ready-made components for a consistent React UI
+
+Status: not installed yet (planned for shell / home screen work)
 
 # Backend
 
@@ -47,6 +55,12 @@ AI ecosystem
 Why?
 
 Simple local API for the desktop app backend
+
+In repo now:
+
+- `backend/main.py` with `GET /` hello
+- Dev server: `python -m uvicorn main:app --reload` from `backend/` (use project `.venv`)
+- Default URL: `http://127.0.0.1:8000`
 
 ---
 

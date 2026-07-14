@@ -1,0 +1,35 @@
+{
+  "name": "aidesktopsearch",
+  "version": "1.0.0",
+  "description": "Local-first desktop search that finds files by meaning and keyword",
+  "keywords": [
+    "electron",
+    "desktop",
+    "search",
+    "local-first",
+    "ai"
+  ],
+  "homepage": "https://github.com/max-well-house/AIDesktopSearch#readme",
+  "bugs": {
+    "url": "https://github.com/max-well-house/AIDesktopSearch/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/max-well-house/AIDesktopSearch.git"
+  },
+  "license": "ISC",
+  "author": "maxwell-house",
+  "type": "commonjs",
+  "main": "frontend/main.js",
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "scripts": {
+    "start": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "electron": "^43.1.1"
+  }
+}
