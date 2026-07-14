@@ -12,20 +12,30 @@ ehthumbs.db
 *~
 .cursor/
 
-# Env & secrets
+# Env & secrets (never commit real secrets; keep !.env.example)
 .env
 .env.*
 !.env.example
 *.pem
 *.key
+*.p12
+*.pfx
+*.keystore
+*.jks
 credentials.json
+serviceAccount*.json
+token.json
+oauth*.json
 secrets/
+.secrets/
+*.secret
 
-# Node / frontend
+# Node / frontend / Electron
 node_modules/
 dist/
 dist-ssr/
 build/
+out/
 .vite/
 .turbo/
 .next/
@@ -53,6 +63,7 @@ env/
 htmlcov/
 .tox/
 .nox/
+__pypackages__/
 
 # Rust / Tauri
 target/
@@ -65,10 +76,17 @@ indexes/
 .index/
 *.db
 *.db-journal
+*.db-wal
+*.db-shm
 *.sqlite
 *.sqlite3
+*.sqlite-wal
+*.sqlite-shm
 *.faiss
 *.lance/
+.chroma/
+chroma/
+chroma_data/
 models/
 *.onnx
 *.gguf
