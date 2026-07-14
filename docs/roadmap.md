@@ -6,17 +6,25 @@ Repo, board, docs, folder structure
 
 ---
 
+# Version 0.0.2
+
+Architecture Spike
+
+Prove React → Electron → FastAPI → hello → UI (Ollama optional)
+
+---
+
 # Version 0.1.0
 
-Hello Desktop
+Desktop Shell
 
-Native window + React UI
+Native window, React UI, FastAPI lifecycle
 
 ---
 
 # Version 0.2.0
 
-Launcher
+Search Launcher
 
 Global shortcut, tray, Escape
 
@@ -26,7 +34,7 @@ Global shortcut, tray, Escape
 
 File Indexer
 
-Filename search via SQLite
+Opt-in folders, SQLite filename search, hybrid routing stub
 
 ---
 
@@ -58,7 +66,7 @@ DOCX / TXT / Markdown
 
 Semantic Search
 
-Embeddings / meaning search
+Embeddings / meaning search (defaults fit 16GB + 8GB VRAM)
 
 ---
 
@@ -66,7 +74,7 @@ Embeddings / meaning search
 
 Local AI
 
-RAG answers + citations
+RAG answers + citations (GPU-preferred; AI optional if Ollama down)
 
 ---
 

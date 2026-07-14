@@ -1,3 +1,11 @@
+# Roles
+
+- Electron: dumb desktop shell (window, tray, shortcuts, packaging)
+- React + Material UI: UI
+- FastAPI: brain (index, search, AI)
+- Ollama: separate process for local models (never inside Electron)
+- Defaults sized for the primary profile (16GB system RAM + 8GB VRAM). Exact models chosen later against Decision #003.
+
 # Frontend
 
 ## React
@@ -14,7 +22,7 @@ Why?
 
 Cross platform
 
-See Decision #001 (chose Electron over Tauri)
+See Decision #001 (Electron + React + Python + FastAPI)
 
 ---
 
@@ -57,6 +65,8 @@ No server required
 Why?
 
 Local models
+
+Separate process; prefer GPU on the primary machine
 
 ---
 
