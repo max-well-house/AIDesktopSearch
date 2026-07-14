@@ -22,3 +22,9 @@ Why it matters: Helping me start this project organized, and set up for success.
 What I learned: Electron vs Tauri is not the make-or-break choice for an AI desktop search app. System RAM, GPU VRAM, hybrid search routing, and opt-in indexing matter more for daily usability on a 16GB machine.
 
 Why it matters: Keeps us from rewriting shells later instead of shipping a tool Max can actually run.
+
+### 07/14/2026 — Electron main / preload / renderer
+
+What I learned: Electron has three layers that matter for talking to FastAPI. The main process owns the window and can `net.fetch` localhost. Preload uses `contextBridge` to expose a tiny safe API. The renderer only displays results — it should not get Node/filesystem access. Also: `loadFile` on a `.py` file is not an API call; uvicorn must be running and you hit `http://127.0.0.1:8000/`.
+
+Why it matters: This is the pattern we’ll reuse when React replaces the spike HTML — same main/preload bridge, nicer UI on top.
