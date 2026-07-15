@@ -4,33 +4,13 @@
     <meta charset="UTF-8" />
     <meta
       http-equiv="Content-Security-Policy"
-      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'"
+      content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; connect-src 'self' http://127.0.0.1:5173 ws://127.0.0.1:5173"
     />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AI Desktop Search</title>
-    <style>
-      body {
-        font-family: system-ui, sans-serif;
-        margin: 2rem;
-        line-height: 1.4;
-      }
-      pre {
-        padding: 1rem;
-        background: #f4f4f4;
-        border-radius: 6px;
-        white-space: pre-wrap;
-      }
-      .ok {
-        color: #0a7a32;
-      }
-      .err {
-        color: #a40000;
-      }
-    </style>
   </head>
   <body>
-    <h1>AI Desktop Search</h1>
-    <p>Architecture spike: Electron → FastAPI hello</p>
-    <pre id="status">Calling FastAPI…</pre>
-    <script src="renderer.js"></script>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

@@ -22,44 +22,67 @@
   Filesystem
 ```
 
-Electron is a dumb shell (window, tray, shortcuts, packaging).
+Electron is a dumb shell (window, tray, shortcuts, packaging) and the **API gatekeeper**.
 FastAPI is the brain (indexing, search, AI).
 Ollama is a separate process — never parented directly under Electron.
 
 ---
 
-## Current spike (v0.0.2 progress)
+## Endpoint framework (v0.0.2+)
 
-Proven path today: **Electron → FastAPI hello → UI** (React still next).
+All UI → backend traffic uses this round-trip. Only the FastAPI path and payload change later.
 
 ```
-User
+React
+  ↓
+Electron (IPC in, net.fetch out)
+  ↓
+FastAPI
+  ↓
+Electron (IPC result)
+  ↓
+React
+```
+
+React never calls FastAPI with `fetch`.
+
+---
+
+## Current spike (v0.0.2 progress)
+
+Proven path today: **React → Electron → FastAPI → Electron → React** (Backend Connection Test).
+
+```
+User clicks Test Backend
  |
-Electron window (index.html + renderer.js)
+React UI (frontend/)
  |
-preload.js  (contextBridge → window.api.getHello)
+preload.js  (contextBridge → window.api.checkBackend)
  |
 main.js     (ipcMain + net.fetch)
  |
 http://127.0.0.1:8000/   FastAPI GET /
  |
-{"message": "Hello World"}
+{ status, version, timestamp, message }
+ |
+IPC result → React status UI
 ```
 
 | Piece | Location | Role |
 |-------|----------|------|
-| Main process | `frontend/main.js` | Window lifecycle; HTTP call to local FastAPI |
-| Preload | `frontend/preload.js` | Exposes a minimal API to the renderer |
-| Renderer UI | `frontend/index.html`, `frontend/renderer.js` | Shows hello JSON or a connection error |
-| Backend | `backend/main.py` | FastAPI app with `GET /` hello |
+| Main process | `electron/main.js` | Window lifecycle; HTTP call to local FastAPI |
+| Preload | `electron/preload.js` | Exposes `checkBackend` to the renderer |
+| Renderer UI | `frontend/` (Vite + React) | Backend Connection Test button + status |
+| Backend | `backend/main.py` | FastAPI app with enriched `GET /` status |
 
 Rules for this wiring:
 
 - Use the local URL only (`http://127.0.0.1:8000/`).
 - Call FastAPI from main (or preload), not by loading `main.py` as a file.
 - Connection failures must be visible in the UI (debuggable).
+- Renderer must not `fetch` FastAPI directly.
 
-Still open for the full v0.0.2 spike: React in the renderer, Material UI, optional Ollama health check.
+Still open for the full v0.0.2 spike: Material UI, optional Ollama health check (#95).
 
 ---
 
@@ -118,9 +141,9 @@ See Decision #003.
 
 ## Frontend
 
-Electron (shell — in place for hello spike)
+Electron (shell + gatekeeper — in place)
 
-React (planned; not wired yet)
+React (Backend Connection Test wired via Vite)
 
 Material UI (planned)
 
@@ -128,7 +151,7 @@ Material UI (planned)
 
 Python
 
-FastAPI (hello endpoint live)
+FastAPI (status endpoint live)
 
 SQLite (planned)
 

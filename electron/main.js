@@ -2,8 +2,9 @@ const { app, BrowserWindow, ipcMain, net } = require('electron')
 const path = require('node:path')
 
 const API_URL = 'http://127.0.0.1:8000/'
+const RENDERER_DEV_URL = process.env.ELECTRON_RENDERER_URL || 'http://127.0.0.1:5173'
 
-ipcMain.handle('api:hello', async () => {
+ipcMain.handle('api:backend-status', async () => {
   try {
     const response = await net.fetch(API_URL)
     if (!response.ok) {
@@ -35,7 +36,11 @@ function createWindow() {
     },
   })
 
-  win.loadFile(path.join(__dirname, 'index.html'))
+  if (!app.isPackaged && process.env.ELECTRON_RENDERER_URL) {
+    win.loadURL(RENDERER_DEV_URL)
+  } else {
+    win.loadFile(path.join(__dirname, '../frontend/dist/index.html'))
+  }
 }
 
 app.whenReady().then(() => {

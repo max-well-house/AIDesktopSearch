@@ -45,3 +45,20 @@ Solution:
 
 Next:
 Finish v0.0.2 leftovers (React + MUI in the renderer; Ollama optional), then Desktop Shell (v0.1).
+
+## 2026-07-14 — React ↔ Electron ↔ FastAPI pipeline
+
+Goal:
+Prove the lasting endpoint framework with a Backend Connection Test UI.
+
+What I did:
+- Split `electron/` (main + preload) from `frontend/` (Vite + React)
+- Enriched FastAPI `GET /` with status / version / timestamp / message
+- Wired React → `window.api.checkBackend` → Electron `net.fetch` → FastAPI → UI
+- `npm run dev` runs Vite + Electron together
+
+What I learned:
+The spike is not “can React call HTTP?” — it is proving React never talks to FastAPI directly so later endpoints reuse the same Electron gatekeeper.
+
+Next:
+Material UI + optional Ollama health (#95), then Desktop Shell (v0.1).

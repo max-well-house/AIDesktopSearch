@@ -1,0 +1,113 @@
+:root {
+  color: #1a1a1a;
+  background: #f7f5f1;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  line-height: 1.45;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+.page {
+  max-width: 28rem;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem;
+}
+
+h1 {
+  margin: 0 0 1.25rem;
+  font-size: 1.5rem;
+  font-weight: 650;
+}
+
+.status {
+  margin: 0 0 1rem;
+  font-size: 1.05rem;
+}
+
+.status-label {
+  font-weight: 600;
+}
+
+.status-idle {
+  color: #555;
+}
+
+.status-loading {
+  color: #6b5b2e;
+}
+
+.status-online {
+  color: #0a7a32;
+}
+
+.status-error {
+  color: #a40000;
+}
+
+.details {
+  margin: 0 0 1.25rem;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.details div {
+  display: grid;
+  grid-template-columns: 7rem 1fr;
+  gap: 0.5rem;
+}
+
+.details dt {
+  margin: 0;
+  color: #555;
+  font-weight: 600;
+}
+
+.details dd {
+  margin: 0;
+}
+
+.error-box {
+  margin: 0 0 1.25rem;
+  padding: 0.85rem 1rem;
+  background: #f8ecec;
+  border-left: 3px solid #a40000;
+}
+
+.error-box p {
+  margin: 0 0 0.75rem;
+}
+
+.error-box p:last-child {
+  margin-bottom: 0;
+}
+
+code {
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 0.9em;
+}
+
+button {
+  appearance: none;
+  border: 1px solid #2c2c2c;
+  background: #2c2c2c;
+  color: #fff;
+  padding: 0.55rem 1rem;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+button:not(:disabled):hover {
+  background: #111;
+}

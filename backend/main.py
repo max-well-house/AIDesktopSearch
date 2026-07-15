@@ -1,3 +1,5 @@
+from datetime import datetime, timezone
+
 from fastapi import FastAPI
 
 app = FastAPI()
@@ -5,4 +7,9 @@ app = FastAPI()
 
 @app.get("/")
 async def root():
-    return {"message": "Hello World"}
+    return {
+        "status": "online",
+        "version": "0.0.2",
+        "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+        "message": "Hello from FastAPI!",
+    }

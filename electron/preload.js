@@ -1,5 +1,5 @@
 const { contextBridge, ipcRenderer } = require('electron')
 
 contextBridge.exposeInMainWorld('api', {
-  getHello: () => ipcRenderer.invoke('api:hello'),
+  checkBackend: () => ipcRenderer.invoke('api:backend-status'),
 })

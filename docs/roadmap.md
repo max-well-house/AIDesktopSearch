@@ -16,10 +16,10 @@ Prove React → Electron → FastAPI → hello → UI (Ollama optional)
 
 Status: in progress (2026-07-14)
 
-- [x] Electron desktop window boots (`npm start`)
-- [x] FastAPI hello endpoint (`GET /` → Hello World)
-- [x] Electron main process calls local FastAPI and shows result or connection error in UI
-- [ ] React in the renderer
+- [x] Electron desktop window boots (`npm start` / `npm run dev`)
+- [x] FastAPI status endpoint (`GET /` → status, version, timestamp, message)
+- [x] Electron main process calls local FastAPI and surfaces result or connection error
+- [x] React in the renderer (Vite) — Backend Connection Test via Electron IPC
 - [ ] Material UI
 - [ ] Ollama optional / health (nice-to-have for this spike)
 
