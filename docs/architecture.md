@@ -48,41 +48,65 @@ React never calls FastAPI with `fetch`.
 
 ---
 
-## Current spike (v0.0.2 progress)
+## Current path (v0.0.3)
 
-Proven path today: **React → Electron → FastAPI → Electron → React** (Backend Connection Test).
+Proven path: **React → Electron → FastAPI → Electron → React** (System Status / capabilities).
 
 ```
-User clicks Test Backend
+User clicks Check System Status
  |
 React UI (frontend/)
  |
-preload.js  (contextBridge → window.api.checkBackend)
+preload.js  (contextBridge → window.api.checkHealth)
  |
 main.js     (ipcMain + net.fetch)
  |
-http://127.0.0.1:8000/   FastAPI GET /
+http://127.0.0.1:8000/health   FastAPI GET /health
  |
-{ status, version, timestamp, message }
+{ status, version, timestamp, capabilities: { ollama, gpu, models } }
  |
-IPC result → React status UI
+IPC result → React System Status UI
 ```
 
 | Piece | Location | Role |
 |-------|----------|------|
-| Main process | `electron/main.js` | Window lifecycle; HTTP call to local FastAPI |
-| Preload | `electron/preload.js` | Exposes `checkBackend` to the renderer |
-| Renderer UI | `frontend/` (Vite + React) | Backend Connection Test button + status |
-| Backend | `backend/main.py` | FastAPI app with enriched `GET /` status |
+| Main process | `electron/main.js` | Window lifecycle; HTTP call to local FastAPI `/health` |
+| Preload | `electron/preload.js` | Exposes `checkHealth` to the renderer |
+| Renderer UI | `frontend/` (Vite + React) | System Status (API + Ollama) |
+| Backend | `backend/main.py` + `backend/capabilities/` | Health + capability detection |
+
+### `GET /health` contract
+
+Always **200** when the API process is up. Ollama missing/stopped never becomes a 5xx.
+
+```json
+{
+  "status": "healthy",
+  "version": "0.0.3",
+  "timestamp": "...Z",
+  "capabilities": {
+    "ollama": {
+      "available": false,
+      "status": "not_installed",
+      "version": null,
+      "base_url": "http://127.0.0.1:11434"
+    },
+    "gpu": { "available": null, "name": null, "note": "..." },
+    "models": { "chat": false, "embedding": false }
+  }
+}
+```
+
+Ollama `status`: `available` | `unavailable` | `not_installed`. Clients ignore unknown capability keys so future fields (`storage`, etc.) do not break older UIs.
+
+`GET /` returns the same payload (compatibility shim).
 
 Rules for this wiring:
 
-- Use the local URL only (`http://127.0.0.1:8000/`).
+- Use the local URL only (`http://127.0.0.1:8000/health`).
 - Call FastAPI from main (or preload), not by loading `main.py` as a file.
 - Connection failures must be visible in the UI (debuggable).
 - Renderer must not `fetch` FastAPI directly.
-
-Still open for the full v0.0.2 spike: Material UI, optional Ollama health check (#95).
 
 ---
 
@@ -143,18 +167,18 @@ See Decision #003.
 
 Electron (shell + gatekeeper — in place)
 
-React (Backend Connection Test wired via Vite)
+React (System Status via Vite + IPC)
 
-Material UI (planned)
+Material UI (planned for Desktop Shell)
 
 ## Backend
 
 Python
 
-FastAPI (status endpoint live)
+FastAPI (`GET /health` capability endpoint live)
 
 SQLite (planned)
 
-Ollama (optional; not required for hello)
+Ollama (optional; detected via `/health`, never required for classic path)
 
 Chroma (planned)

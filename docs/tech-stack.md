@@ -17,7 +17,7 @@ Already familiar
 In repo now:
 
 - Vite + React under `frontend/` (`src/main.jsx`, `src/App.jsx`)
-- Backend Connection Test UI talks to FastAPI only via Electron IPC (`window.api.checkBackend`)
+- System Status UI talks to FastAPI only via Electron IPC (`window.api.checkHealth`)
 - Dev: `npm run dev` · built assets: `frontend/dist` via `npm run build` / `npm start`
 
 ---
@@ -34,9 +34,9 @@ In repo now:
 
 - Entry: `package.json` → `"main": "electron/main.js"`
 - Shell: `electron/main.js`, `electron/preload.js`
-- UI: `frontend/` (Vite + React) — Backend Connection Test
+- UI: `frontend/` (Vite + React) — System Status
 - Scripts: `npm run dev` (Vite + Electron), `npm start` (build then Electron)
-- Desktop → API call uses Electron `net.fetch` to local FastAPI; React only uses IPC (`window.api.checkBackend`)
+- Desktop → API call uses Electron `net.fetch` to local FastAPI `/health`; React only uses IPC (`window.api.checkHealth`)
 
 ---
 
@@ -66,9 +66,11 @@ Simple local API for the desktop app backend
 
 In repo now:
 
-- `backend/main.py` with `GET /` status payload (`status`, `version`, `timestamp`, `message`)
+- `backend/main.py` with `GET /health` (and `GET /` shim) — `status`, `version`, `timestamp`, `capabilities`
+- `backend/capabilities/` — Ollama probe + extensible schema (gpu/models stubs)
+- Deps: `backend/requirements.txt` (`fastapi`, `uvicorn`, `httpx`, `pydantic`)
 - Dev server: `python -m uvicorn main:app --reload` from `backend/` (use project `.venv`)
-- Default URL: `http://127.0.0.1:8000`
+- Default URL: `http://127.0.0.1:8000/health`
 
 ---
 
@@ -89,6 +91,8 @@ Why?
 Local models
 
 Separate process; prefer GPU on the primary machine
+
+Detected via `/health` (`available` / `unavailable` / `not_installed`). Missing Ollama never crashes the API.
 
 ---
 

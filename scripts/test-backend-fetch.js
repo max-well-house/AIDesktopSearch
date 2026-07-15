@@ -1,10 +1,10 @@
 /**
- * Smoke-test the same net.fetch path Electron uses for checkBackend.
+ * Smoke-test the same net.fetch path Electron uses for checkHealth.
  * Usage: electron scripts/test-backend-fetch.js
  */
 const { app, net } = require('electron')
 
-const API_URL = 'http://127.0.0.1:8000/'
+const API_URL = 'http://127.0.0.1:8000/health'
 
 async function probe(label) {
   try {
@@ -23,6 +23,6 @@ async function probe(label) {
 }
 
 app.whenReady().then(async () => {
-  const ok = await probe('backend-status')
+  const ok = await probe('health')
   app.exit(ok ? 0 : 1)
 })

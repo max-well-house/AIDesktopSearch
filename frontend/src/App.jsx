@@ -7,18 +7,35 @@ function formatCheckedAt(iso) {
   return date.toLocaleString()
 }
 
+function ollamaLabel(ollama) {
+  if (!ollama) return 'Unknown'
+  if (ollama.status === 'available') {
+    return ollama.version ? `Available (${ollama.version})` : 'Available'
+  }
+  if (ollama.status === 'unavailable') return 'Unavailable'
+  if (ollama.status === 'not_installed') return 'Not installed'
+  return 'Unknown'
+}
+
+function ollamaTone(ollama) {
+  if (!ollama) return 'idle'
+  if (ollama.status === 'available') return 'online'
+  if (ollama.status === 'unavailable') return 'loading'
+  return 'idle'
+}
+
 export default function App() {
   const [phase, setPhase] = useState('idle')
   const [payload, setPayload] = useState(null)
   const [error, setError] = useState(null)
   const [url, setUrl] = useState(null)
 
-  async function testBackend() {
+  async function checkSystemStatus() {
     setPhase('loading')
     setError(null)
     setPayload(null)
 
-    const result = await window.api.checkBackend()
+    const result = await window.api.checkHealth()
     setUrl(result.url)
 
     if (result.ok) {
@@ -31,34 +48,43 @@ export default function App() {
     setPhase('error')
   }
 
-  let statusLabel = 'Not connected'
-  if (phase === 'loading') statusLabel = 'Loading...'
-  if (phase === 'online') statusLabel = 'Online'
-  if (phase === 'error') statusLabel = 'Unable to reach backend'
+  let apiLabel = 'Not checked'
+  if (phase === 'loading') apiLabel = 'Checking...'
+  if (phase === 'online') apiLabel = 'Online'
+  if (phase === 'error') apiLabel = 'Unable to reach backend'
+
+  const ollama = payload?.capabilities?.ollama
+  const gpu = payload?.capabilities?.gpu
 
   return (
     <main className="page">
-      <h1>Backend Connection Test</h1>
+      <h1>System Status</h1>
 
       <p className={`status status-${phase}`}>
-        <span className="status-label">Status:</span> {statusLabel}
+        <span className="status-label">Backend:</span> {apiLabel}
       </p>
 
       {phase === 'online' && payload && (
-        <dl className="details">
-          <div>
-            <dt>Version</dt>
-            <dd>{payload.version}</dd>
-          </div>
-          <div>
-            <dt>Last checked</dt>
-            <dd>{formatCheckedAt(payload.timestamp)}</dd>
-          </div>
-          <div>
-            <dt>Message</dt>
-            <dd>{payload.message}</dd>
-          </div>
-        </dl>
+        <>
+          <p className={`status status-${ollamaTone(ollama)}`}>
+            <span className="status-label">Ollama:</span> {ollamaLabel(ollama)}
+          </p>
+
+          <dl className="details">
+            <div>
+              <dt>API version</dt>
+              <dd>{payload.version}</dd>
+            </div>
+            <div>
+              <dt>Last checked</dt>
+              <dd>{formatCheckedAt(payload.timestamp)}</dd>
+            </div>
+            <div>
+              <dt>GPU</dt>
+              <dd>{gpu?.note || 'Not detected yet'}</dd>
+            </div>
+          </dl>
+        </>
       )}
 
       {phase === 'error' && (
@@ -74,8 +100,8 @@ export default function App() {
         </div>
       )}
 
-      <button type="button" onClick={testBackend} disabled={phase === 'loading'}>
-        Test Backend
+      <button type="button" onClick={checkSystemStatus} disabled={phase === 'loading'}>
+        Check System Status
       </button>
     </main>
   )

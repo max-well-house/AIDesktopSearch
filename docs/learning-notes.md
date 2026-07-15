@@ -33,4 +33,24 @@ Why it matters: This is the pattern we reuse with React in `frontend/` — same 
 
 What I learned: For the architecture spike, “does React work?” is the wrong test. The right test is React → Electron → FastAPI → Electron → React. A renderer `fetch` to localhost would skip the gatekeeper we need for search / query / ask-ai later.
 
-Why it matters: One IPC shape (`checkBackend` today) stays stable while FastAPI endpoints change.
+Why it matters: One IPC shape (`checkHealth` today) stays stable while FastAPI endpoints change.
+
+### 07/14/2026 — System capability detection
+
+What I learned: The app should ask "what can I do right now?" instead of assuming Ollama/GPU/models exist. `/health` always means "API is up"; Ollama missing is a capability signal (`not_installed` / `unavailable`), not a crash.
+
+Why it matters: Classic search stays usable on machines without AI. Same architecture scales via capabilities, not forks (Decision #003).
+
+### 07/14/2026 — GPU detection research (deferred)
+
+Question: How should the app detect hardware acceleration without baking in "RTX 5060 Ti"?
+
+Approaches to evaluate later:
+
+1. **nvidia-smi / NVML** — good for NVIDIA presence + VRAM; Windows-friendly if the driver tools are installed; vendor-specific.
+2. **Ollama runner reports** — once Ollama is up, ask what backend it used (GPU vs CPU); reflects real inference path, not just hardware presence.
+3. **Capability flag only** — expose `gpu.available` / optional `name` for display; never `if device_name == "..."`. Feature gates check capability, not model SKU (Decision #003 rule 9).
+
+Chosen for now: stub `gpu.available: null` in `/health`; implement after Ollama path is real.
+
+Why it matters: AMD/Intel/CPU-only machines must share the same code path.

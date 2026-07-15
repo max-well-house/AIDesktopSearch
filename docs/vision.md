@@ -19,6 +19,7 @@ People who live in large local file trees - knowledge workers, students, researc
 3. **Trustworthy results** - Every answer cites paths (and ideally snippets/pages) so you can open and verify the file.
 4. **Stay out of the way** - Fast cold start for common queries; background indexing that doesn't thrash the machine.
 5. **You control the corpus** - Choose folders, exclude noise, pause/wipe the index anytime.
+6. **Capability Principle** - Always provide value regardless of available hardware. AI acceleration improves the experience but is never required for basic functionality. The system detects capabilities (API, Ollama, later GPU/models) and adapts automatically — including when Ollama is missing.
 
 ## What success looks like (MVP)
 

@@ -98,6 +98,7 @@ July 2026
 6. Post-index latency: classic search feels instant; RAG under 1 minute on this machine, aiming for seconds with a VRAM-fitting quantized model.
 7. Model size is configurable / machine-tiered. Defaults fit 16GB system RAM + 8GB VRAM beside OS + app + index.
 8. Same architecture on weaker/stronger machines via settings — not forks.
+9. Never assume a specific GPU vendor or device name. Hardware detection is **capability-based** (`gpu.available`), not device-name-based (`if RTX 5060 Ti`). Prefer GPU on this profile; the same feature gates must work for AMD, Intel, CPU-only, and future hardware.
 
 ## Why
 

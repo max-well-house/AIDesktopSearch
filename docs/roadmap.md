@@ -12,16 +12,32 @@ Status: done (repo layout, GitHub board/milestones/issues, core docs)
 
 Architecture Spike
 
-Prove React → Electron → FastAPI → UI (Ollama optional)
+Prove React → Electron → FastAPI → UI
 
-Status: in progress (2026-07-14)
+Status: done (2026-07-14) — Material UI deferred to Desktop Shell
 
 - [x] Electron desktop window boots (`npm start` / `npm run dev`)
 - [x] FastAPI status endpoint (`GET /` → status, version, timestamp, message)
 - [x] Electron main process calls local FastAPI and surfaces result or connection error
 - [x] React in the renderer (Vite) — Backend Connection Test via Electron IPC
-- [ ] Material UI
-- [ ] Ollama optional / health (nice-to-have for this spike)
+- [ ] Material UI (moved to v0.1.0)
+
+---
+
+# Version 0.0.3
+
+System Capability Detection
+
+Backend reports what the machine can do; missing Ollama is OK (Decision #003)
+
+Status: in progress (2026-07-14)
+
+- [x] `GET /health` returns healthy API status + version
+- [x] Detect Ollama available / unavailable / not_installed without crashing
+- [x] Extensible `capabilities` schema (ollama, gpu stub, models stub)
+- [x] React System Status screen shows API + Ollama
+- [x] Capability Principle in vision; Decision #003 capability-based hardware rule
+- [ ] Manual verification matrix (Ollama up / stopped / missing) — live `/health` + Electron smoke verified here with Ollama `not_installed`; finish UI matrix before closing
 
 ---
 
@@ -29,7 +45,7 @@ Status: in progress (2026-07-14)
 
 Desktop Shell
 
-Native window, React UI, FastAPI lifecycle
+Native window, React UI, FastAPI lifecycle, Material UI
 
 ---
 

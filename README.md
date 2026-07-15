@@ -55,7 +55,7 @@ python -m uvicorn main:app --reload
 
 Leave this running. You should see uvicorn listening on `http://127.0.0.1:8000`.
 
-Quick sanity check in a browser: open http://127.0.0.1:8000/ — you should get JSON with `status`, `version`, `timestamp`, `message`. API docs: http://127.0.0.1:8000/docs
+Quick sanity check in a browser: open http://127.0.0.1:8000/health — you should get JSON with `status`, `version`, `timestamp`, and `capabilities`. API docs: http://127.0.0.1:8000/docs
 
 ### Terminal 2 — desktop UI
 
@@ -68,9 +68,9 @@ That starts Vite and then opens the Electron window.
 
 ### What to click
 
-1. In the window, click **Test Backend**.
-2. With the backend up → **Online**, plus version / last checked / message.
-3. Stop Terminal 1 (`Ctrl+C`), click **Test Backend** again → **Unable to reach backend**.
+1. In the window, click **Check System Status**.
+2. With the backend up → **Backend: Online**, plus Ollama status (Available / Unavailable / Not installed).
+3. Stop Terminal 1 (`Ctrl+C`), click **Check System Status** again → **Unable to reach backend**.
 
 ### Other commands
 
@@ -81,13 +81,13 @@ That starts Vite and then opens the Electron window.
 ## How Electron talks to FastAPI
 
 ```
-React (Test Backend)
-  → preload.js (IPC: window.api.checkBackend)
+React (Check System Status)
+  → preload.js (IPC: window.api.checkHealth)
   → electron/main.js (net.fetch)
-  → http://127.0.0.1:8000/
+  → http://127.0.0.1:8000/health
   → IPC result back to React
 ```
 
 - `electron/main.js` — Electron main process; creates the window; calls FastAPI
-- `electron/preload.js` — safe bridge (`window.api.checkBackend`)
-- `frontend/` — React Backend Connection Test UI
+- `electron/preload.js` — safe bridge (`window.api.checkHealth`)
+- `frontend/` — React System Status UI

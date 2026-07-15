@@ -1,10 +1,10 @@
 const { app, BrowserWindow, ipcMain, net } = require('electron')
 const path = require('node:path')
 
-const API_URL = 'http://127.0.0.1:8000/'
+const API_URL = 'http://127.0.0.1:8000/health'
 const RENDERER_DEV_URL = process.env.ELECTRON_RENDERER_URL || 'http://127.0.0.1:5173'
 
-ipcMain.handle('api:backend-status', async () => {
+ipcMain.handle('api:health', async () => {
   try {
     // Chromium caches GET by default; without no-store, a killed backend
     // can still look "online" from a stale cache hit.

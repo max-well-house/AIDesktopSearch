@@ -38,7 +38,7 @@ What I learned:
 Loading `backend/main.py` via `loadFile` does not call the API — it just opens the source file. The API must be requested over HTTP at `http://127.0.0.1:8000/`. Calling from the Electron main process (`net.fetch`) keeps CORS out of the way for this spike.
 
 Problem:
-Early scaffold mixed “show a page” with “talk to the backend.”
+Early scaffold mixed "show a page" with "talk to the backend."
 
 Solution:
 `index.html` + `renderer.js` for UI; `preload.js` bridge; `main.js` owns the FastAPI request and surfaces errors.
@@ -58,7 +58,20 @@ What I did:
 - `npm run dev` runs Vite + Electron together
 
 What I learned:
-The spike is not “can React call HTTP?” — it is proving React never talks to FastAPI directly so later endpoints reuse the same Electron gatekeeper.
+The spike is not "can React call HTTP?" — it is proving React never talks to FastAPI directly so later endpoints reuse the same Electron gatekeeper.
 
 Next:
-Material UI + optional Ollama health (#95), then Desktop Shell (v0.1).
+v0.0.3 System Capability Detection, then Desktop Shell (v0.1).
+
+## 2026-07-14 — System Capability Detection (v0.0.3)
+
+Goal:
+Report what the machine can do without crashing when Ollama is missing.
+
+What I did:
+- `GET /health` with extensible `capabilities` (ollama probe, gpu/models stubs)
+- Electron IPC → `/health`; React System Status UI
+- Capability Principle in vision; Decision #003 capability-based GPU rule
+
+Next:
+Manual verification matrix, then Desktop Shell (v0.1) + Material UI.
