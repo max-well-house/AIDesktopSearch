@@ -6,7 +6,9 @@ const RENDERER_DEV_URL = process.env.ELECTRON_RENDERER_URL || 'http://127.0.0.1:
 
 ipcMain.handle('api:backend-status', async () => {
   try {
-    const response = await net.fetch(API_URL)
+    // Chromium caches GET by default; without no-store, a killed backend
+    // can still look "online" from a stale cache hit.
+    const response = await net.fetch(API_URL, { cache: 'no-store' })
     if (!response.ok) {
       return {
         ok: false,
