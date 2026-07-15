@@ -14,6 +14,12 @@ Why?
 
 Already familiar
 
+In repo now:
+
+- Vite + React under `frontend/` (`src/main.jsx`, `src/App.jsx`)
+- Backend Connection Test UI talks to FastAPI only via Electron IPC (`window.api.checkBackend`)
+- Dev: `npm run dev` · built assets: `frontend/dist` via `npm run build` / `npm start`
+
 ---
 
 ## Electron

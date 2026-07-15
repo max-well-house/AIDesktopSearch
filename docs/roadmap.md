@@ -12,7 +12,7 @@ Status: done (repo layout, GitHub board/milestones/issues, core docs)
 
 Architecture Spike
 
-Prove React → Electron → FastAPI → hello → UI (Ollama optional)
+Prove React → Electron → FastAPI → UI (Ollama optional)
 
 Status: in progress (2026-07-14)
 
