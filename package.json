@@ -21,16 +21,14 @@
   "author": "maxwell-house",
   "type": "commonjs",
   "main": "electron/main.js",
-  "directories": {
-    "doc": "docs",
-    "test": "tests"
-  },
   "scripts": {
     "dev": "concurrently -k -n vite,electron -c blue,magenta \"npm run dev:vite\" \"npm run dev:electron\"",
     "dev:vite": "vite --config frontend/vite.config.js",
     "dev:electron": "wait-on http://127.0.0.1:5173 && cross-env ELECTRON_RENDERER_URL=http://127.0.0.1:5173 electron .",
     "build": "vite build --config frontend/vite.config.js",
     "start": "npm run build && electron .",
+    "package": "npm run build && electron-builder --dir",
+    "package:portable": "npm run build && electron-builder --win portable",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "devDependencies": {
@@ -38,6 +36,7 @@
     "concurrently": "^9.2.1",
     "cross-env": "^7.0.3",
     "electron": "^43.1.1",
+    "electron-builder": "^26.15.3",
     "vite": "^7.1.2",
     "wait-on": "^8.0.5"
   },

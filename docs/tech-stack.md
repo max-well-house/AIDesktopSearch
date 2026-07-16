@@ -1,6 +1,6 @@
 # Roles
 
-- Electron: dumb desktop shell (window, tray, shortcuts, packaging) and API gatekeeper (React never talks to FastAPI directly)
+- Electron: dumb desktop shell (window, packaging today; tray and shortcuts later) and API gatekeeper (React never talks to FastAPI directly)
 - React + Material UI: UI
 - FastAPI: brain (index, search, AI)
 - Ollama: separate process for local models (never inside Electron)
@@ -16,9 +16,10 @@ Already familiar
 
 In repo now:
 
-- Vite + React under `frontend/` (`src/main.jsx`, `src/App.jsx`)
+- Vite + React under `frontend/` (`src/main.jsx`, `src/App.jsx`, `src/theme.js`)
 - System Status UI talks to FastAPI only via Electron IPC (`window.api.checkHealth`)
 - Dev: `npm run dev` · built assets: `frontend/dist` via `npm run build` / `npm start`
+- Package: `npm run package` / `npm run package:portable` → `release/`
 
 ---
 
@@ -34,9 +35,11 @@ In repo now:
 
 - Entry: `package.json` → `"main": "electron/main.js"`
 - Shell: `electron/main.js`, `electron/preload.js`
-- UI: `frontend/` (Vite + React) — System Status
-- Scripts: `npm run dev` (Vite + Electron), `npm start` (build then Electron)
+- UI: `frontend/` (Vite + React + MUI) — System Status
+- Scripts: `npm run dev` (Vite + Electron), `npm start` (build then Electron), `npm run package` / `npm run package:portable` (electron-builder → `release/`)
 - Desktop → API call uses Electron `net.fetch` to local FastAPI `/health`; React only uses IPC (`window.api.checkHealth`)
+- Packaging: electron-builder (`electron-builder.yml`) — Windows portable / unpacked dir; does not bundle Python
+- FastAPI lifecycle: still manual (second terminal); Electron spawn/stop is #96
 
 ---
 
@@ -46,7 +49,10 @@ Why?
 
 Ready-made components for a consistent React UI
 
-Status: not installed yet (planned for shell / home screen work)
+In repo now:
+
+- `@mui/material` + Emotion + Roboto (`@fontsource/roboto`)
+- Theme in `frontend/src/theme.js`; System Status uses MUI `Button` / `Typography` / `CssBaseline`
 
 # Backend
 

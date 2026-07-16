@@ -2,17 +2,18 @@
 
 Local-first desktop search that finds your files by meaning and keyword.
 
-See [vision.md](./docs/vision.md) for the one-page product vision, [architecture.md](./docs/architecture.md) for the architecture design, [decisions.md](./docs/decisions.md) for the decisions I made and why, [ideas.md](./docs/ideas.md) for the future implementation ideas, [roadmap.md](./docs/roadmap.md) for the project roadmap, and [tech-stack.md](./docs/tech-stack.md) for the tech stack used in this project.
+See [vision.md](./docs/vision.md) for the one-page product vision, [architecture.md](./docs/architecture.md) for the architecture design, [decisions.md](./docs/decisions.md) for the decisions I made and why, [ideas.md](./docs/ideas.md) for the future implementation ideas, [roadmap.md](./docs/roadmap.md) for the project roadmap, [tech-stack.md](./docs/tech-stack.md) for the tech stack used in this project, and [audit-2026-07-15.md](./docs/audit-2026-07-15.md) for the latest board/milestone audit.
 
 ## Layout
 
 ```
 docs/        Project documentation
 electron/    Electron shell (main, preload) — gatekeeper to FastAPI
-frontend/    React UI (Vite)
+frontend/    React + Material UI (Vite)
 backend/     FastAPI app
 data/        Local data (gitignored when real indexes land)
 tests/       Tests
+release/     Packaged builds (gitignored; from npm run package*)
 ```
 
 ## Prerequisites
@@ -28,15 +29,15 @@ From the repo root in PowerShell:
 # Python env + FastAPI
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
-pip install fastapi uvicorn
+pip install -r backend/requirements.txt
 
-# Node deps (Electron, Vite, React)
+# Node deps (Electron, Vite, React, MUI, electron-builder)
 npm install
 ```
 
 ## Spin up to test (every time)
 
-You need **two terminals**. FastAPI and Electron are separate processes for now.
+You need **two terminals**. FastAPI and Electron are separate processes until Electron manages the backend (#96).
 
 Endpoint framework (every API call follows this — React never hits FastAPI directly):
 
@@ -64,7 +65,7 @@ cd .
 npm run dev
 ```
 
-That starts Vite and then opens the Electron window.
+That starts Vite and then opens the Electron window (hot reload).
 
 ### What to click
 
@@ -74,9 +75,23 @@ That starts Vite and then opens the Electron window.
 
 ### Other commands
 
-- `npm run dev` — Vite + Electron (hot reload; preferred while developing)
-- `npm start` — build React to `frontend/dist`, then open Electron against that build
-- Stop either process with `Ctrl+C` in its terminal
+| Command | What it does |
+|---------|----------------|
+| `npm run dev` | Vite + Electron (hot reload; preferred while developing) |
+| `npm start` | Build React to `frontend/dist`, then open Electron against that build |
+| `npm run package` | Build React, then write an unpacked app under `release/win-unpacked/` |
+| `npm run package:portable` | Same, plus a double-clickable Windows portable `.exe` in `release/` |
+
+Stop dev processes with `Ctrl+C` in their terminals.
+
+### Packaged app
+
+After `npm run package:portable`, launch:
+
+- `release\AI Desktop Search 1.0.0.exe`, or
+- `release\win-unpacked\AI Desktop Search.exe`
+
+The window opens with the React UI. FastAPI is still started separately (Terminal 1) for System Status to show Online.
 
 ## How Electron talks to FastAPI
 
@@ -90,4 +105,5 @@ React (Check System Status)
 
 - `electron/main.js` — Electron main process; creates the window; calls FastAPI
 - `electron/preload.js` — safe bridge (`window.api.checkHealth`)
-- `frontend/` — React System Status UI
+- `frontend/` — React + Material UI System Status screen
+- `electron-builder.yml` — packaging config

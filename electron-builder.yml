@@ -1,0 +1,13 @@
+appId: com.maxwellhouse.aidesktopsearch
+productName: AI Desktop Search
+directories:
+  output: release
+files:
+  - electron/**/*
+  - frontend/dist/**/*
+  - package.json
+  - "!**/node_modules/**"
+asar: true
+win:
+  target:
+    - portable

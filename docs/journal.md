@@ -75,3 +75,33 @@ What I did:
 
 Next:
 Manual verification matrix, then Desktop Shell (v0.1) + Material UI.
+
+## 2026-07-15 — Desktop Shell (v0.1.0)
+
+Goal:
+Land a real desktop shell: React + MUI window, hot reload, packaged build, docs in sync.
+
+What I did:
+- Material UI System Status screen; `npm run dev` Vite + Electron hot reload
+- electron-builder packaging (`npm run package` / `package:portable` → `release/`)
+- Updated `docs/architecture.md` (and README / tech-stack / roadmap) to match the process model
+
+What I learned:
+Packaging the shell is separate from shipping Python. Freezing FastAPI into the `.exe` is heavier than spawning the repo `.venv` later (#96).
+
+Next:
+#96 — Electron starts/stops FastAPI for one-command testing; then v0.2.0 Search Launcher (shortcut, tray, Escape).
+
+## 2026-07-15 — Board audit (pre-forward)
+
+Goal:
+Clean milestones/issues after Desktop Shell so the next work is obvious.
+
+What I did:
+- Closed finished milestones v0.0.1 and v0.0.2; created **v0.1.1 Backend Lifecycle** for #96
+- Closed #97 as duplicate of #40; cross-linked #98↔#69, #65↔#95/#70, shortcut note on #30
+- Added gap issues #111 (ship Python with package) and #112 (GPU detection beyond stub)
+- Wrote `docs/audit-2026-07-15.md`; synced roadmap, ideas, learning notes
+
+Next:
+Implement #96 (v0.1.1), then start v0.2.0 Search Launcher.

@@ -39,7 +39,19 @@ Why it matters: One IPC shape (`checkHealth` today) stays stable while FastAPI e
 
 What I learned: The app should ask "what can I do right now?" instead of assuming Ollama/GPU/models exist. `/health` always means "API is up"; Ollama missing is a capability signal (`not_installed` / `unavailable`), not a crash.
 
-Why it matters: Classic search stays usable on machines without AI. Same architecture scales via capabilities, not forks (Decision #003).
+Why it matters: Classic search can ship without AI. The UI and API stay useful on every machine.
+
+### 07/15/2026 — Packaging vs backend lifecycle
+
+What I learned: electron-builder can ship a double-clickable Electron + React app without bundling Python. Freezing FastAPI into the installer is a separate, heavier problem from spawning the project `.venv` from Electron.
+
+Why it matters: We can close the Desktop Shell milestone with a real packaged UI, then add FastAPI start/stop (#96) for one-command testing before Search Launcher work.
+
+### 07/15/2026 — Board audit vs duplicate issues
+
+What I learned: Early planning created parallel issues for the same product rule (e.g. opt-in folders as both #40 and #97) and left finished milestones open. A short audit pass — close empty milestones, fold duplicates, park carry-overs on a bridge milestone (v0.1.1), link nice-to-haves from `ideas.md` — makes "what next" obvious without deleting roadmap ambition.
+
+Why it matters: Stops thrashing on Phase 3 noise and keeps #96 from floating without a home after leaving v0.1.0.
 
 ### 07/14/2026 — GPU detection research (deferred)
 

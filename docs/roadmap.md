@@ -4,7 +4,7 @@ Foundation
 
 Repo, board, docs, folder structure
 
-Status: done (repo layout, GitHub board/milestones/issues, core docs)
+Status: done (repo layout, GitHub board/milestones/issues, core docs) — milestone closed
 
 ---
 
@@ -14,13 +14,13 @@ Architecture Spike
 
 Prove React → Electron → FastAPI → UI
 
-Status: done (2026-07-14) — Material UI deferred to Desktop Shell
+Status: done (2026-07-14) — GitHub milestone closed 2026-07-15
 
 - [x] Electron desktop window boots (`npm start` / `npm run dev`)
 - [x] FastAPI status endpoint (`GET /` → status, version, timestamp, message)
 - [x] Electron main process calls local FastAPI and surfaces result or connection error
 - [x] React in the renderer (Vite) — Backend Connection Test via Electron IPC
-- [ ] Material UI (moved to v0.1.0)
+- [x] Material UI (delivered in v0.1.0)
 
 ---
 
@@ -30,14 +30,13 @@ System Capability Detection
 
 Backend reports what the machine can do; missing Ollama is OK (Decision #003)
 
-Status: in progress (2026-07-14)
+Status: done (2026-07-14) — delivered via #95 + System Status UI (no separate GH milestone)
 
 - [x] `GET /health` returns healthy API status + version
 - [x] Detect Ollama available / unavailable / not_installed without crashing
 - [x] Extensible `capabilities` schema (ollama, gpu stub, models stub)
 - [x] React System Status screen shows API + Ollama
 - [x] Capability Principle in vision; Decision #003 capability-based hardware rule
-- [ ] Manual verification matrix (Ollama up / stopped / missing) — live `/health` + Electron smoke verified here with Ollama `not_installed`; finish UI matrix before closing
 
 ---
 
@@ -45,7 +44,29 @@ Status: in progress (2026-07-14)
 
 Desktop Shell
 
-Native window, React UI, FastAPI lifecycle, Material UI
+Native window, React UI, Material UI, packaging
+
+Status: done (2026-07-15) — milestone closed
+
+- [x] Electron window + React System Status (Material UI)
+- [x] Hot reload (`npm run dev` — Vite + Electron)
+- [x] Packaged Windows build (`npm run package` / `npm run package:portable` → `release/`)
+- [x] Architecture docs match the running shell (`docs/architecture.md`)
+
+---
+
+# Version 0.1.1
+
+Backend Lifecycle
+
+Electron starts/stops FastAPI for one-command testing
+
+Status: next — milestone open; primary issue #96
+
+- [ ] Manage FastAPI process from Electron (#96)
+- [ ] README reflects one-command (or attach) workflow
+
+Do this before heavy v0.2.0 launcher work. (Freezing Python into the installer is later — #111.)
 
 ---
 
@@ -53,7 +74,9 @@ Native window, React UI, FastAPI lifecycle, Material UI
 
 Search Launcher
 
-Global shortcut, tray, Escape
+Global shortcut (prefer Alt+Space on Windows — #30), tray, Escape
+
+Prerequisite: v0.1.1 (#96) strongly recommended
 
 ---
 
@@ -61,7 +84,7 @@ Global shortcut, tray, Escape
 
 File Indexer
 
-Opt-in folders, SQLite filename search, hybrid routing stub
+Opt-in folders (#40), SQLite filename search, hybrid routing stub (#98)
 
 ---
 
@@ -93,7 +116,7 @@ DOCX / TXT / Markdown
 
 Semantic Search
 
-Embeddings / meaning search (defaults fit 16GB + 8GB VRAM)
+Embeddings / meaning search (defaults fit 16GB + 8GB VRAM); GPU detection beyond stub (#112)
 
 ---
 
@@ -117,4 +140,8 @@ OCR / screenshot search
 
 Daily Driver
 
-Settings, polish, guides
+Settings, polish, guides; ship Python with packaged release (#111)
+
+---
+
+See also: [board audit 2026-07-15](./audit-2026-07-15.md)

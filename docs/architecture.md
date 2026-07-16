@@ -8,6 +8,7 @@
         --------------------
         |                  |
      React UI          Node Main
+     (MUI + Vite)      (gatekeeper)
         |                  |
         --------------------
                   |
@@ -22,9 +23,40 @@
   Filesystem
 ```
 
-Electron is a dumb shell (window, tray, shortcuts, packaging) and the **API gatekeeper**.
+Electron is a dumb shell (window, packaging today; tray and shortcuts later) and the **API gatekeeper**.
 FastAPI is the brain (indexing, search, AI).
 Ollama is a separate process — never parented directly under Electron.
+
+---
+
+## Process model (v0.1.0 Desktop Shell)
+
+Today the app is **three cooperating processes** (plus optional Ollama):
+
+| Process | How it starts | Role |
+|---------|---------------|------|
+| Electron main | `npm run dev` / `npm start` / packaged `.exe` | Window, IPC, `net.fetch` to FastAPI |
+| React renderer | Vite (dev) or `frontend/dist` (start / package) | System Status UI (Material UI) |
+| FastAPI (uvicorn) | **Manual** second terminal for now | `GET /health` + future API |
+| Ollama (optional) | User / OS; never required | Local models when present |
+
+```
+Terminal A (required for API):  uvicorn → :8000
+Terminal B (or double-click):   Electron → React UI
+Optional:                       Ollama → :11434
+```
+
+Electron does **not** yet spawn or stop FastAPI (tracked as #96). Packaged builds open the React UI only; the backend must already be running for System Status to show Online.
+
+### Dev vs packaged
+
+| Mode | Command | UI source | Backend |
+|------|---------|-----------|---------|
+| Hot reload | `npm run dev` | Vite at `http://127.0.0.1:5173` | Manual uvicorn |
+| Built in-repo | `npm start` | `frontend/dist` via `loadFile` | Manual uvicorn |
+| Packaged | `npm run package` / `package:portable` | asar `frontend/dist` | Manual uvicorn |
+
+Packaging: electron-builder → `release/win-unpacked/` or portable `release/AI Desktop Search 1.0.0.exe`. Config: `electron-builder.yml`. Does not bundle Python.
 
 ---
 
@@ -48,18 +80,18 @@ React never calls FastAPI with `fetch`.
 
 ---
 
-## Current path (v0.0.3)
+## Current path (v0.1.0)
 
 Proven path: **React → Electron → FastAPI → Electron → React** (System Status / capabilities).
 
 ```
 User clicks Check System Status
  |
-React UI (frontend/)
+React UI (frontend/ — MUI ThemeProvider + System Status)
  |
 preload.js  (contextBridge → window.api.checkHealth)
  |
-main.js     (ipcMain + net.fetch)
+main.js     (ipcMain + net.fetch, cache: no-store)
  |
 http://127.0.0.1:8000/health   FastAPI GET /health
  |
@@ -70,10 +102,12 @@ IPC result → React System Status UI
 
 | Piece | Location | Role |
 |-------|----------|------|
-| Main process | `electron/main.js` | Window lifecycle; HTTP call to local FastAPI `/health` |
+| Main process | `electron/main.js` | Window lifecycle; HTTP to local FastAPI `/health`; loads Vite URL (dev) or `frontend/dist` (built/packaged) |
 | Preload | `electron/preload.js` | Exposes `checkHealth` to the renderer |
-| Renderer UI | `frontend/` (Vite + React) | System Status (API + Ollama) |
+| Renderer UI | `frontend/src/` (Vite + React + MUI) | System Status (API + Ollama) |
+| Theme | `frontend/src/theme.js` | MUI theme |
 | Backend | `backend/main.py` + `backend/capabilities/` | Health + capability detection |
+| Packaging | `electron-builder.yml` | Windows portable / unpacked dir under `release/` |
 
 ### `GET /health` contract
 
@@ -110,7 +144,32 @@ Rules for this wiring:
 
 ---
 
+## High-level component layout
+
+```
+AIDesktopSearch/
+  electron/           Main + preload (gatekeeper)
+  frontend/           Vite + React + MUI
+    src/App.jsx       System Status screen
+    dist/             Production UI assets
+  backend/            FastAPI app
+    main.py           /health (+ / shim)
+    capabilities/     Ollama probe, schema stubs
+  release/            Packaged builds (gitignored)
+  docs/               Vision, architecture, decisions, roadmap
+```
+
+**In place (v0.1.0):** native window, React + Material UI, hot reload, electron-builder packaging, System Status over IPC.
+
+**Next (v0.1.1):** Electron-managed FastAPI lifecycle (#96).
+
+**Later:** global shortcut / tray / Escape (v0.2.0), indexer / search (v0.3.0+), GPU detection beyond stub (#112), freeze Python into installer (#111).
+
+---
+
 ## Query routing (Decision #002)
+
+Planned product behavior — not implemented in the UI yet. Still the target design.
 
 ```
 Question comes in
@@ -133,6 +192,8 @@ Ask LLM (with citations)
 ---
 
 ## Operability modes (Decision #003)
+
+Still accurate. `/health` already reports Ollama so the UI can degrade; search modes arrive with the indexer.
 
 | Mode | When | Capabilities |
 |------|------|----------------|
@@ -165,17 +226,15 @@ See Decision #003.
 
 ## Frontend
 
-Electron (shell + gatekeeper — in place)
+Electron (shell + gatekeeper — window, IPC, packaging in place; tray/shortcuts later)
 
-React (System Status via Vite + IPC)
-
-Material UI (planned for Desktop Shell)
+React + Material UI (System Status via Vite + IPC)
 
 ## Backend
 
 Python
 
-FastAPI (`GET /health` capability endpoint live)
+FastAPI (`GET /health` capability endpoint live; process still started manually)
 
 SQLite (planned)
 

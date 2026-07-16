@@ -44,7 +44,8 @@ function createWindow() {
   if (!app.isPackaged && process.env.ELECTRON_RENDERER_URL) {
     win.loadURL(RENDERER_DEV_URL)
   } else {
-    win.loadFile(path.join(__dirname, '../frontend/dist/index.html'))
+    // Packaged + `npm start`: load built assets from the app root (works with asar).
+    win.loadFile(path.join(app.getAppPath(), 'frontend/dist/index.html'))
   }
 }
 
