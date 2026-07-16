@@ -8,7 +8,10 @@ ipcMain.handle('api:health', async () => {
   try {
     // Chromium caches GET by default; without no-store, a killed backend
     // can still look "online" from a stale cache hit.
-    const response = await net.fetch(API_URL, { cache: 'no-store' })
+    const response = await net.fetch(API_URL, {
+      cache: 'no-store',
+      signal: AbortSignal.timeout(5000),
+    })
     if (!response.ok) {
       return {
         ok: false,
