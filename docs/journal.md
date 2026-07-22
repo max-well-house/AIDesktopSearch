@@ -103,5 +103,18 @@ What I did:
 - Added gap issues #111 (ship Python with package) and #112 (GPU detection beyond stub)
 - Wrote `docs/audit-2026-07-15.md`; synced roadmap, ideas, learning notes
 
+## 2026-07-22 — Backend lifecycle (#96)
+
+Goal:
+One-command testing: Electron attaches to or spawns FastAPI; stops only what it owns.
+
+What I did:
+- Added `electron/backendProcess.js` (probe → attach / spawn from `.venv` / tree-kill stop)
+- Wired `ensureBackend` before `createWindow` and `stopBackend` on `before-quit`
+- Updated README + architecture process model for one-command / attach workflow
+
+What I learned:
+Owned children should not use uvicorn `--reload` on Windows — the reloader process tree is easy to orphan. Attach mode keeps a manual `--reload` terminal safe.
+
 Next:
-Implement #96 (v0.1.1), then start v0.2.0 Search Launcher.
+Close v0.1.1 on the board when verified; start v0.2.0 Search Launcher (shortcut, tray, Escape).

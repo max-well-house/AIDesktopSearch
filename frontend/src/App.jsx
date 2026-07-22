@@ -113,11 +113,10 @@ export default function App() {
           <div className="error-box">
             <p>{error}</p>
             <p>
-              Is the backend running at {url}?
+              Electron could not reach the backend at {url}.
               <br />
-              <code>cd backend</code>
-              <br />
-              <code>python -m uvicorn main:app --reload</code>
+              Ensure first-time setup created <code>.venv</code>, or start uvicorn
+              manually for debugging.
             </p>
           </div>
         )}

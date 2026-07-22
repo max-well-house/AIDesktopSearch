@@ -53,7 +53,13 @@ What I learned: Early planning created parallel issues for the same product rule
 
 Why it matters: Stops thrashing on Phase 3 noise and keeps #96 from floating without a home after leaving v0.1.0.
 
-### 07/14/2026 — GPU detection research (deferred)
+### 07/22/2026 — Owned uvicorn without --reload
+
+What I learned: When Electron spawns FastAPI, skip uvicorn `--reload`. The reloader parent + worker child makes Windows cleanup (`taskkill /t` or otherwise) brittle. Attach-if-healthy still lets a manual `--reload` terminal keep running across Electron restarts.
+
+Why it matters: One-command `npm run dev` can start and stop the backend without orphaning zombies, while debug workflows stay flexible.
+
+
 
 Question: How should the app detect hardware acceleration without baking in "RTX 5060 Ti"?
 

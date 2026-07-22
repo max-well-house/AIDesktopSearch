@@ -37,7 +37,14 @@ npm install
 
 ## Spin up to test (every time)
 
-You need **two terminals**. FastAPI and Electron are separate processes until Electron manages the backend (#96).
+One command from the repo root (after first-time setup):
+
+```powershell
+cd .
+npm run dev
+```
+
+Electron probes `http://127.0.0.1:8000/health`. If a healthy FastAPI is already running, it **attaches** and leaves it alone on quit. Otherwise it **spawns** uvicorn from `.venv` (no `--reload`) and stops that child when you quit the app.
 
 Endpoint framework (every API call follows this — React never hits FastAPI directly):
 
@@ -45,44 +52,36 @@ Endpoint framework (every API call follows this — React never hits FastAPI dir
 React → Electron (IPC) → FastAPI → Electron → React
 ```
 
-### Terminal 1 — backend
+### What to click
+
+1. In the window, click **Check System Status**.
+2. Expect **Backend: Online**, plus Ollama status (Available / Unavailable / Not installed). Ollama is never required to start.
+3. Quit Electron → if Electron spawned the backend, port 8000 should be free again.
+
+### Optional: manual uvicorn (debug / hot reload)
 
 ```powershell
-cd .
 .\.venv\Scripts\Activate.ps1
 cd backend
 python -m uvicorn main:app --reload
 ```
 
-Leave this running. You should see uvicorn listening on `http://127.0.0.1:8000`.
+Then `npm run dev` in another terminal — Electron attaches and will **not** kill your manual server on quit.
 
-Quick sanity check in a browser: open http://127.0.0.1:8000/health — you should get JSON with `status`, `version`, `timestamp`, and `capabilities`. API docs: http://127.0.0.1:8000/docs
+Odd layouts: set `AIDESKTOP_ROOT` to the repo root so Electron can find `.venv` and `backend/`.
 
-### Terminal 2 — desktop UI
-
-```powershell
-cd .
-npm run dev
-```
-
-That starts Vite and then opens the Electron window (hot reload).
-
-### What to click
-
-1. In the window, click **Check System Status**.
-2. With the backend up → **Backend: Online**, plus Ollama status (Available / Unavailable / Not installed).
-3. Stop Terminal 1 (`Ctrl+C`), click **Check System Status** again → **Unable to reach backend**.
+Quick sanity check in a browser: http://127.0.0.1:8000/health — JSON with `status`, `version`, `timestamp`, and `capabilities`. API docs: http://127.0.0.1:8000/docs
 
 ### Other commands
 
 | Command | What it does |
 |---------|----------------|
-| `npm run dev` | Vite + Electron (hot reload; preferred while developing) |
-| `npm start` | Build React to `frontend/dist`, then open Electron against that build |
+| `npm run dev` | Vite + Electron (hot reload UI; Electron manages FastAPI) |
+| `npm start` | Build React to `frontend/dist`, then open Electron (same backend lifecycle) |
 | `npm run package` | Build React, then write an unpacked app under `release/win-unpacked/` |
 | `npm run package:portable` | Same, plus a double-clickable Windows portable `.exe` in `release/` |
 
-Stop dev processes with `Ctrl+C` in their terminals.
+Stop `npm run dev` with `Ctrl+C` in that terminal.
 
 ### Packaged app
 
@@ -91,7 +90,7 @@ After `npm run package:portable`, launch:
 - `release\AI Desktop Search 1.0.0.exe`, or
 - `release\win-unpacked\AI Desktop Search.exe`
 
-The window opens with the React UI. FastAPI is still started separately (Terminal 1) for System Status to show Online.
+Packaged builds do **not** bundle Python (#111). If a repo `.venv` is visible (or `AIDESKTOP_ROOT` points at one), Electron can spawn FastAPI; otherwise it attaches to an already-running server or System Status stays offline.
 
 ## How Electron talks to FastAPI
 
@@ -103,7 +102,8 @@ React (Check System Status)
   → IPC result back to React
 ```
 
-- `electron/main.js` — Electron main process; creates the window; calls FastAPI
+- `electron/main.js` — Electron main process; window + lifecycle hooks
+- `electron/backendProcess.js` — attach / spawn / stop FastAPI
 - `electron/preload.js` — safe bridge (`window.api.checkHealth`)
 - `frontend/` — React + Material UI System Status screen
 - `electron-builder.yml` — packaging config

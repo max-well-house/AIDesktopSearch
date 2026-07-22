@@ -61,12 +61,12 @@ Backend Lifecycle
 
 Electron starts/stops FastAPI for one-command testing
 
-Status: next — milestone open; primary issue #96
+Status: done (2026-07-22) — primary issue #96
 
-- [ ] Manage FastAPI process from Electron (#96)
-- [ ] README reflects one-command (or attach) workflow
+- [x] Manage FastAPI process from Electron (#96)
+- [x] README reflects one-command (or attach) workflow
 
-Do this before heavy v0.2.0 launcher work. (Freezing Python into the installer is later — #111.)
+Bridge before heavy v0.2.0 launcher work. (Freezing Python into the installer is later — #111.)
 
 ---
 

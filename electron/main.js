@@ -1,34 +1,14 @@
-const { app, BrowserWindow, ipcMain, net } = require('electron')
+const { app, BrowserWindow, ipcMain } = require('electron')
 const path = require('node:path')
+const {
+  fetchHealth,
+  ensureBackend,
+  stopBackend,
+} = require('./backendProcess')
 
-const API_URL = 'http://127.0.0.1:8000/health'
 const RENDERER_DEV_URL = process.env.ELECTRON_RENDERER_URL || 'http://127.0.0.1:5173'
 
-ipcMain.handle('api:health', async () => {
-  try {
-    // Chromium caches GET by default; without no-store, a killed backend
-    // can still look "online" from a stale cache hit.
-    const response = await net.fetch(API_URL, {
-      cache: 'no-store',
-      signal: AbortSignal.timeout(5000),
-    })
-    if (!response.ok) {
-      return {
-        ok: false,
-        error: `HTTP ${response.status} ${response.statusText}`,
-        url: API_URL,
-      }
-    }
-    const data = await response.json()
-    return { ok: true, data, url: API_URL }
-  } catch (err) {
-    return {
-      ok: false,
-      error: err.message || String(err),
-      url: API_URL,
-    }
-  }
-})
+ipcMain.handle('api:health', async () => fetchHealth())
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -49,7 +29,8 @@ function createWindow() {
   }
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+  await ensureBackend()
   createWindow()
 
   app.on('activate', () => {
@@ -57,6 +38,10 @@ app.whenReady().then(() => {
       createWindow()
     }
   })
+})
+
+app.on('before-quit', () => {
+  stopBackend()
 })
 
 app.on('window-all-closed', () => {

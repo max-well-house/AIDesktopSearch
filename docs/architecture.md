@@ -29,34 +29,40 @@ Ollama is a separate process — never parented directly under Electron.
 
 ---
 
-## Process model (v0.1.0 Desktop Shell)
+## Process model (v0.1.1 Backend Lifecycle)
 
-Today the app is **three cooperating processes** (plus optional Ollama):
+The app is **three cooperating processes** (plus optional Ollama):
 
 | Process | How it starts | Role |
 |---------|---------------|------|
-| Electron main | `npm run dev` / `npm start` / packaged `.exe` | Window, IPC, `net.fetch` to FastAPI |
+| Electron main | `npm run dev` / `npm start` / packaged `.exe` | Window, IPC, `net.fetch`, FastAPI lifecycle |
 | React renderer | Vite (dev) or `frontend/dist` (start / package) | System Status UI (Material UI) |
-| FastAPI (uvicorn) | **Manual** second terminal for now | `GET /health` + future API |
+| FastAPI (uvicorn) | Electron attaches if healthy, else spawns from `.venv` | `GET /health` + future API |
 | Ollama (optional) | User / OS; never required | Local models when present |
 
 ```
-Terminal A (required for API):  uvicorn → :8000
-Terminal B (or double-click):   Electron → React UI
-Optional:                       Ollama → :11434
+One command:  Electron → (attach or spawn uvicorn :8000) → React UI
+Optional:     Ollama → :11434
 ```
 
-Electron does **not** yet spawn or stop FastAPI (tracked as #96). Packaged builds open the React UI only; the backend must already be running for System Status to show Online.
+Lifecycle rules (`electron/backendProcess.js`):
+
+- Probe `/health` on ready. Healthy → **attach** (do not kill on quit).
+- Otherwise spawn `python -m uvicorn main:app` from repo `.venv` (**no `--reload`** for owned children).
+- On quit, stop **only** a process Electron spawned (Windows: `taskkill /t`).
+- Missing `.venv` or spawn failure: open the UI anyway; System Status stays offline. Never require Ollama.
+
+Override project root with `AIDESKTOP_ROOT` when the working directory is unusual.
 
 ### Dev vs packaged
 
 | Mode | Command | UI source | Backend |
 |------|---------|-----------|---------|
-| Hot reload | `npm run dev` | Vite at `http://127.0.0.1:5173` | Manual uvicorn |
-| Built in-repo | `npm start` | `frontend/dist` via `loadFile` | Manual uvicorn |
-| Packaged | `npm run package` / `package:portable` | asar `frontend/dist` | Manual uvicorn |
+| Hot reload | `npm run dev` | Vite at `http://127.0.0.1:5173` | Electron attach or spawn |
+| Built in-repo | `npm start` | `frontend/dist` via `loadFile` | Electron attach or spawn |
+| Packaged | `npm run package` / `package:portable` | asar `frontend/dist` | Attach, or spawn if `.venv` visible; Python not bundled |
 
-Packaging: electron-builder → `release/win-unpacked/` or portable `release/AI Desktop Search 1.0.0.exe`. Config: `electron-builder.yml`. Does not bundle Python.
+Packaging: electron-builder → `release/win-unpacked/` or portable `release/AI Desktop Search 1.0.0.exe`. Config: `electron-builder.yml`. Does not bundle Python (#111).
 
 ---
 
@@ -159,9 +165,7 @@ AIDesktopSearch/
   docs/               Vision, architecture, decisions, roadmap
 ```
 
-**In place (v0.1.0):** native window, React + Material UI, hot reload, electron-builder packaging, System Status over IPC.
-
-**Next (v0.1.1):** Electron-managed FastAPI lifecycle (#96).
+**In place (v0.1.1):** native window, React + Material UI, hot reload, electron-builder packaging, System Status over IPC, Electron-managed FastAPI lifecycle (#96).
 
 **Later:** global shortcut / tray / Escape (v0.2.0), indexer / search (v0.3.0+), GPU detection beyond stub (#112), freeze Python into installer (#111).
 
@@ -234,7 +238,7 @@ React + Material UI (System Status via Vite + IPC)
 
 Python
 
-FastAPI (`GET /health` capability endpoint live; process still started manually)
+FastAPI (`GET /health` capability endpoint live; Electron attaches or spawns from `.venv`)
 
 SQLite (planned)
 

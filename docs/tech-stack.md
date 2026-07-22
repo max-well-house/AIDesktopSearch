@@ -39,7 +39,7 @@ In repo now:
 - Scripts: `npm run dev` (Vite + Electron), `npm start` (build then Electron), `npm run package` / `npm run package:portable` (electron-builder → `release/`)
 - Desktop → API call uses Electron `net.fetch` to local FastAPI `/health`; React only uses IPC (`window.api.checkHealth`)
 - Packaging: electron-builder (`electron-builder.yml`) — Windows portable / unpacked dir; does not bundle Python
-- FastAPI lifecycle: still manual (second terminal); Electron spawn/stop is #96
+- FastAPI lifecycle: Electron attaches if healthy, else spawns from `.venv` and stops owned children on quit (#96)
 
 ---
 
