@@ -2,6 +2,8 @@
 
 Local-first desktop search that finds your files by meaning and keyword.
 
+**Display name / company / version** live in [`app.config.json`](./app.config.json) — change that file when renaming the product; packaging and the window title read from it.
+
 See [vision.md](./docs/vision.md) for the one-page product vision, [architecture.md](./docs/architecture.md) for the architecture design, [decisions.md](./docs/decisions.md) for the decisions I made and why, [ideas.md](./docs/ideas.md) for the future implementation ideas, [roadmap.md](./docs/roadmap.md) for the project roadmap, [tech-stack.md](./docs/tech-stack.md) for the tech stack used in this project, and [audit-2026-07-15.md](./docs/audit-2026-07-15.md) for the latest board/milestone audit.
 
 ## Layout
@@ -54,8 +56,8 @@ React → Electron (IPC) → FastAPI → Electron → React
 
 ### What to click
 
-1. In the window, click **Check System Status**.
-2. Expect **Backend: Online**, plus Ollama status (Available / Unavailable / Not installed). Ollama is never required to start.
+1. The launcher opens with a search field focused — type to begin (search logic comes later).
+2. Top-right mark opens **System Status** (backend / Ollama check) for now; Settings later.
 3. From anywhere, press **Alt+Space** to show/focus the app window (falls back to **Ctrl+Shift+Space** if Alt+Space is already taken). Remapping comes later via Settings.
 4. Quit Electron → if Electron spawned the backend, port 8000 should be free again.
 
@@ -81,15 +83,17 @@ Quick sanity check in a browser: http://127.0.0.1:8000/health — JSON with `sta
 | `npm start` | Build React to `frontend/dist`, then open Electron (same backend lifecycle) |
 | `npm run package` | Build React, then write an unpacked app under `release/win-unpacked/` |
 | `npm run package:portable` | Same, plus a double-clickable Windows portable `.exe` in `release/` |
+| `npm run icons` | Regenerate dark desktop/favicon icons from `docs/brand/app-mark-dark.png` |
+| `npm run sync-config` | Sync `package.json` version/author from `app.config.json` |
 
 Stop `npm run dev` with `Ctrl+C` in that terminal.
 
 ### Packaged app
 
-After `npm run package:portable`, launch:
+After `npm run package:portable`, launch the exe named from `app.config.json`, e.g.:
 
-- `release\AI Desktop Search 1.0.0.exe`, or
-- `release\win-unpacked\AI Desktop Search.exe`
+- `release\<name> <version>.exe`, or
+- `release\win-unpacked\<name>.exe`
 
 Packaged builds do **not** bundle Python (#111). If a repo `.venv` is visible (or `AIDESKTOP_ROOT` points at one), Electron can spawn FastAPI; otherwise it attaches to an already-running server or System Status stays offline.
 

@@ -1,5 +1,6 @@
 const { app, BrowserWindow, ipcMain, globalShortcut } = require('electron')
 const path = require('node:path')
+const appConfig = require('../app.config.json')
 const {
   fetchHealth,
   ensureBackend,
@@ -26,8 +27,14 @@ function showLauncher() {
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 720,
+    height: 480,
+    minWidth: 480,
+    minHeight: 360,
+    center: true,
+    backgroundColor: '#0D1117',
+    title: appConfig.name,
+    icon: path.join(__dirname, '..', 'resources', 'icon.ico'),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,

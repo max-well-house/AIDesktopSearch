@@ -72,3 +72,9 @@ Approaches to evaluate later:
 Chosen for now: stub `gpu.available: null` in `/health`; implement after Ollama path is real.
 
 Why it matters: AMD/Intel/CPU-only machines must share the same code path.
+
+### 07/22/2026 — Product rename config + Windows icons
+
+What I learned: Keep display name, company, and version in one `app.config.json`; Electron, Vite HTML title, and electron-builder all read it (with a small `sync-app-config` into `package.json`). For desktop icons, bake a dark background into a multi-resolution `.ico` — PNG alone and light plates look wrong on Windows.
+
+Why it matters: Renaming away from a working title (e.g. MosAIq) is one config edit + repackage, and the shortcut looks intentional.

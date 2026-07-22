@@ -1,0 +1,8 @@
+{
+  "name": "MosAIq",
+  "company": "Max Wallace",
+  "version": "0.2.0",
+  "description": "Local-first desktop search that finds files by meaning and keyword",
+  "appId": "com.maxwallace.aidesktopsearch",
+  "slug": "aidesktopsearch"
+}

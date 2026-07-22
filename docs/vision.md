@@ -2,7 +2,9 @@
 
 ## What it is
 
-A **local-first desktop app** that turns the files on your computer into a searchable knowledge base. You ask in plain language; it finds the right documents by meaning and keyword, and surfaces answers with clear pointers back to the source files. Nothing leaves your machine unless you choose otherwise.
+A **local-first desktop app** (working name **MosAIq**) that turns the files on your computer into a searchable knowledge base. You ask in plain language; it finds the right documents by meaning and keyword, and surfaces answers with clear pointers back to the source files. Nothing leaves your machine unless you choose otherwise.
+
+It is **not a chatbot**. The primary surface is a keyboard-first search launcher. Every file is a tile; together the tiles form a living mosaic of the user's digital life. Search, AI, relationships, and previews reveal portions of that mosaic without overwhelming the user. The mosaic is the **idle brand** — calm and memorable on open — then yields to results the moment the user types (Decision #004).
 
 ## Problem
 

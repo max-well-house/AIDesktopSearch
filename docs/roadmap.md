@@ -78,6 +78,14 @@ Global shortcut (prefer Alt+Space on Windows — #30), tray, Escape
 
 Prerequisite: v0.1.1 (#96) strongly recommended
 
+Product direction (Decision #004): launcher is the app; mosaic is idle brand; search-first, not chatbot. UI components are ship-quality foundations — not throwaway mocks.
+
+In progress:
+
+- [x] Global shortcut (#30)
+- [x] Search input / launcher foundation (#31)
+- [ ] Auto-focus (#32), Escape (#33), tray (#34), …
+
 ---
 
 # Version 0.3.0

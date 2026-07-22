@@ -1,36 +1,109 @@
 import { createTheme } from '@mui/material/styles'
 
+/**
+ * MosAIq brand palette (from identity guide).
+ * Single source of truth — do not scatter hex values in components.
+ */
+export const colors = {
+  // Brand accents
+  accentTeal: '#00E5A8',
+  accentGreen: '#22C55E',
+  cyan: '#06B6D4',
+  blue: '#2563EB',
+
+  // Surfaces
+  background: '#0D1117',
+  surface: '#151B24',
+  border: '#243040',
+  hover: '#1A2433',
+
+  // Text
+  textPrimary: '#E8EEF2',
+  textSecondary: '#8CA3A0',
+
+  // Primary interactive accent (wordmark "AI", focus rings, search glyph)
+  accent: '#00E5A8',
+
+  // Mosaic idle grid
+  mosaicDim: 'rgba(0, 229, 168, 0.045)',
+  mosaicGlowTeal: 'rgba(0, 229, 168, 0.22)',
+  mosaicGlowCyan: 'rgba(6, 182, 212, 0.18)',
+  mosaicGlowBlue: 'rgba(37, 99, 235, 0.16)',
+}
+
 const theme = createTheme({
   palette: {
     mode: 'dark',
     primary: {
-      main: '#4caf50',
-      light: '#81c784',
-      dark: '#388e3c',
+      main: colors.accentTeal,
+      light: '#5FF0C8',
+      dark: '#00B884',
     },
     secondary: {
-      main: '#a5d6a7',
+      main: colors.cyan,
+      light: '#67E8F9',
+      dark: colors.blue,
     },
     background: {
-      default: '#0f1410',
-      paper: '#1a211c',
+      default: colors.background,
+      paper: colors.surface,
     },
+    divider: colors.border,
     text: {
-      primary: '#e8f5e9',
-      secondary: '#a5b5a8',
+      primary: colors.textPrimary,
+      secondary: colors.textSecondary,
     },
     success: {
-      main: '#66bb6a',
+      main: colors.accentGreen,
+    },
+    info: {
+      main: colors.cyan,
     },
     error: {
-      main: '#ef5350',
+      main: '#EF5350',
+    },
+    action: {
+      hover: colors.hover,
     },
   },
   typography: {
-    fontFamily: '"Roboto", "Segoe UI", system-ui, sans-serif',
+    fontFamily: '"Segoe UI", "SF Pro Text", system-ui, sans-serif',
+    h4: {
+      fontWeight: 600,
+      letterSpacing: '-0.02em',
+    },
+    body1: {
+      letterSpacing: '0.01em',
+    },
+    body2: {
+      fontSize: '0.8125rem',
+      letterSpacing: '0.01em',
+    },
+    caption: {
+      fontSize: '0.75rem',
+      letterSpacing: '0.02em',
+    },
   },
   shape: {
-    borderRadius: 8,
+    borderRadius: 12,
+  },
+  components: {
+    MuiCssBaseline: {
+      styleOverrides: {
+        body: {
+          backgroundColor: colors.background,
+          color: colors.textPrimary,
+        },
+      },
+    },
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: 'none',
+          fontWeight: 600,
+        },
+      },
+    },
   },
 })
 

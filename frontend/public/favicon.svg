@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="App mark">
+  <defs>
+    <linearGradient id="mGrad" x1="8%" y1="12%" x2="92%" y2="88%">
+      <stop offset="0%" stop-color="#00E5A8"/>
+      <stop offset="42%" stop-color="#06B6D4"/>
+      <stop offset="100%" stop-color="#2563EB"/>
+    </linearGradient>
+    <filter id="softGlow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="1.2" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Dark app-icon plate -->
+  <rect width="128" height="128" rx="28" fill="#0D1117"/>
+
+  <g fill="url(#mGrad)" transform="translate(8,8) scale(0.875)">
+    <polygon points="14,108 28,108 46,28 32,28"/>
+    <polygon points="28,108 42,108 52,64 46,64"/>
+    <polygon points="32,28 46,28 54,18 40,18"/>
+    <polygon points="40,18 54,18 62,28 48,28"/>
+    <polygon points="46,28 58,28 68,72 56,72"/>
+    <polygon points="42,108 56,108 58,96 48,96"/>
+    <polygon points="58,28 72,28 64,64 52,64"/>
+    <polygon points="72,28 86,28 78,64 66,64"/>
+    <polygon points="64,18 78,18 86,28 72,28"/>
+    <polygon points="86,28 100,28 114,108 100,108"/>
+    <polygon points="78,64 92,64 100,108 86,108"/>
+    <polygon points="92,28 106,28 114,64 100,64"/>
+    <polygon points="100,64 114,64 114,108 106,100"/>
+    <polygon points="52,64 64,64 60,84 48,84"/>
+    <polygon points="66,64 78,64 82,88 70,88"/>
+    <polygon points="48,84 60,84 56,108 44,108"/>
+  </g>
+
+  <g filter="url(#softGlow)" stroke="#00E5A8" stroke-width="1.4" fill="none" transform="translate(8,8) scale(0.875)">
+    <line x1="88" y1="52" x2="78" y2="42"/>
+    <line x1="88" y1="52" x2="98" y2="40"/>
+    <line x1="88" y1="52" x2="102" y2="56"/>
+    <line x1="88" y1="52" x2="94" y2="66"/>
+    <line x1="88" y1="52" x2="76" y2="60"/>
+  </g>
+  <g filter="url(#softGlow)" transform="translate(8,8) scale(0.875)">
+    <circle cx="88" cy="52" r="4.2" fill="#00E5A8"/>
+    <circle cx="78" cy="42" r="2.1" fill="#22C55E"/>
+    <circle cx="98" cy="40" r="2.1" fill="#22C55E"/>
+    <circle cx="102" cy="56" r="2.3" fill="#06B6D4"/>
+    <circle cx="94" cy="66" r="1.9" fill="#22C55E"/>
+    <circle cx="76" cy="60" r="1.8" fill="#00E5A8"/>
+  </g>
+</svg>

@@ -118,3 +118,19 @@ Owned children should not use uvicorn `--reload` on Windows â€” the reloader pro
 
 Next:
 Close v0.1.1 on the board when verified; start v0.2.0 Search Launcher (shortcut, tray, Escape).
+
+## 2026-07-22 — Launcher foundation (#31) + brand
+
+Goal:
+Ship the permanent search-launcher UI foundation and a rename-ready product identity.
+
+What I did:
+- Built launcher shell: SearchBar, MosaicCanvas (idle), EmptyState, Footer; mosaic fades when typing
+- Brand palette + mosaic-M mark; dark `#0D1117` desktop `.ico`; `app.config.json` as single source for name/company/version
+- Closed #31 search input (auto-focus included in SearchBar)
+
+What I learned:
+Windows shortcuts need a real multi-size `.ico` with a dark plate — light/white icon plates look cheap on the desktop. Product display names should not be hardcoded once packaging and UI both need them.
+
+Next:
+#32 autofocus issue (likely already satisfied — verify/close), #33 Escape, #34 tray; then real search wiring.

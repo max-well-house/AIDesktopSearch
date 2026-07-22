@@ -1,26 +1,22 @@
-:root {
-  font-family: "Roboto", "Segoe UI", system-ui, sans-serif;
-  line-height: 1.45;
-}
-
 * {
   box-sizing: border-box;
 }
 
-body {
+html,
+body,
+#root {
   margin: 0;
+  height: 100%;
+}
+
+body {
+  overflow: hidden;
 }
 
 .page {
   max-width: 28rem;
   margin: 0 auto;
   padding: 2.5rem 1.5rem;
-}
-
-h1 {
-  margin: 0 0 1.25rem;
-  font-size: 1.5rem;
-  font-weight: 650;
 }
 
 .status {
@@ -33,15 +29,15 @@ h1 {
 }
 
 .status-idle {
-  color: #a5b5a8;
+  color: #8ca3a0;
 }
 
 .status-loading {
-  color: #c5e1a5;
+  color: #06b6d4;
 }
 
 .status-online {
-  color: #81c784;
+  color: #00e5a8;
 }
 
 .status-error {
@@ -62,7 +58,7 @@ h1 {
 
 .details dt {
   margin: 0;
-  color: #a5b5a8;
+  color: #8ca3a0;
   font-weight: 600;
 }
 
@@ -89,4 +85,3 @@ code {
   font-family: Consolas, "Courier New", monospace;
   font-size: 0.9em;
 }
-

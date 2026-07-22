@@ -62,7 +62,7 @@ Override project root with `AIDESKTOP_ROOT` when the working directory is unusua
 | Built in-repo | `npm start` | `frontend/dist` via `loadFile` | Electron attach or spawn |
 | Packaged | `npm run package` / `package:portable` | asar `frontend/dist` | Attach, or spawn if `.venv` visible; Python not bundled |
 
-Packaging: electron-builder → `release/win-unpacked/` or portable `release/AI Desktop Search 1.0.0.exe`. Config: `electron-builder.yml`. Does not bundle Python (#111).
+Packaging: electron-builder → `release/win-unpacked/` or portable `release/<productName> <version>.exe`. Config: `electron-builder.config.js` (reads `app.config.json`). Does not bundle Python (#111).
 
 ---
 
