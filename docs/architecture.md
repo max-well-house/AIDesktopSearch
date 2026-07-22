@@ -23,7 +23,7 @@
   Filesystem
 ```
 
-Electron is a dumb shell (window, packaging today; tray and shortcuts later) and the **API gatekeeper**.
+Electron is a dumb shell (window, packaging, global launcher shortcut; tray later) and the **API gatekeeper**.
 FastAPI is the brain (indexing, search, AI).
 Ollama is a separate process — never parented directly under Electron.
 
@@ -167,7 +167,9 @@ AIDesktopSearch/
 
 **In place (v0.1.1):** native window, React + Material UI, hot reload, electron-builder packaging, System Status over IPC, Electron-managed FastAPI lifecycle (#96).
 
-**Later:** global shortcut / tray / Escape (v0.2.0), indexer / search (v0.3.0+), GPU detection beyond stub (#112), freeze Python into installer (#111).
+**Global shortcut (#30):** `Alt+Space` shows/focuses the main window from anywhere (`Control+Shift+Space` if registration fails). Registered in `electron/main.js` via Electron `globalShortcut`; cleared on `will-quit`. Remapping belongs with Settings (#80).
+
+**Later:** tray / Escape (v0.2.0), indexer / search (v0.3.0+), GPU detection beyond stub (#112), freeze Python into installer (#111).
 
 ---
 
@@ -230,7 +232,7 @@ See Decision #003.
 
 ## Frontend
 
-Electron (shell + gatekeeper — window, IPC, packaging in place; tray/shortcuts later)
+Electron (shell + gatekeeper — window, IPC, packaging, Alt+Space launcher shortcut; tray later)
 
 React + Material UI (System Status via Vite + IPC)
 

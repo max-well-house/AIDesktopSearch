@@ -56,7 +56,8 @@ React → Electron (IPC) → FastAPI → Electron → React
 
 1. In the window, click **Check System Status**.
 2. Expect **Backend: Online**, plus Ollama status (Available / Unavailable / Not installed). Ollama is never required to start.
-3. Quit Electron → if Electron spawned the backend, port 8000 should be free again.
+3. From anywhere, press **Alt+Space** to show/focus the app window (falls back to **Ctrl+Shift+Space** if Alt+Space is already taken). Remapping comes later via Settings.
+4. Quit Electron → if Electron spawned the backend, port 8000 should be free again.
 
 ### Optional: manual uvicorn (debug / hot reload)
 
