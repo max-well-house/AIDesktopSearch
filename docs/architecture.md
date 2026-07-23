@@ -173,6 +173,8 @@ AIDesktopSearch/
 
 **System tray (#34 / #35):** `Tray` in `electron/main.js` with `resources/icon.ico`. Left-click toggles show/hide (keep query). Context menu: Show, **Start with Windows** (checkbox via `app.setLoginItemSettings` / `openAsHidden`), Quit. Window close (X) hides to tray; only Quit (or `app.quit`) exits and stops the backend. Login / `--hidden` starts with the window hidden (tray + Alt+Space ready). Works best when packaged; unpackaged registers the Electron binary with the app path and `--hidden`.
 
+**Window size (#36):** Width/height persist in `userData/window-state.json` (defaults 720×480; min 480×360). Restored on next launch.
+
 **Later:** indexer / search (v0.3.0+), GPU detection beyond stub (#112), freeze Python into installer (#111).
 
 ---

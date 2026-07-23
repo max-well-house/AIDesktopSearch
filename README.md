@@ -4,6 +4,16 @@ Local-first desktop search that finds your files by meaning and keyword.
 
 **Display name / company / version** live in [`app.config.json`](./app.config.json) — change that file when renaming the product; packaging and the window title read from it.
 
+## Screenshots
+
+Launcher idle (mosaic brand) and searching (results slot reserved until the indexer lands):
+
+![Launcher idle](docs/screenshots/launcher-idle.png)
+
+![Launcher searching](docs/screenshots/launcher-searching.png)
+
+Tray: left-click show/hide; right-click for Show, Start with Windows, and Quit. Escape dismisses and clears; Alt+Space toggles and keeps the query.
+
 See [vision.md](./docs/vision.md) for the one-page product vision, [architecture.md](./docs/architecture.md) for the architecture design, [decisions.md](./docs/decisions.md) for the decisions I made and why, [ideas.md](./docs/ideas.md) for the future implementation ideas, [roadmap.md](./docs/roadmap.md) for the project roadmap, [tech-stack.md](./docs/tech-stack.md) for the tech stack used in this project, and [audit-2026-07-15.md](./docs/audit-2026-07-15.md) for the latest board/milestone audit.
 
 ## Layout

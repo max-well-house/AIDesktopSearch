@@ -74,17 +74,24 @@ Bridge before heavy v0.2.0 launcher work. (Freezing Python into the installer is
 
 Search Launcher
 
+Status: done (2026-07-23) — global shortcut, launcher UI, Escape dismiss, tray, Start with Windows, window size, screenshots
+
 Global shortcut (prefer Alt+Space on Windows — #30), tray, Escape
 
 Prerequisite: v0.1.1 (#96) strongly recommended
 
 Product direction (Decision #004): launcher is the app; mosaic is idle brand; search-first, not chatbot. UI components are ship-quality foundations — not throwaway mocks.
 
-In progress:
+Done:
 
 - [x] Global shortcut (#30)
 - [x] Search input / launcher foundation (#31)
-- [ ] Auto-focus (#32), Escape (#33), tray (#34), …
+- [x] Auto-focus (#32)
+- [x] Escape dismiss + Alt+Space toggle (#33)
+- [x] System tray (#34)
+- [x] Start with Windows (#35)
+- [x] Remember window size (#36)
+- [x] Update screenshots (#37)
 
 ---
 
