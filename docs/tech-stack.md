@@ -90,6 +90,16 @@ No server required
 
 ---
 
+## watchdog (planned — v0.4.0)
+
+Why?
+
+Cross-platform filesystem events inside the Python indexer (Decision #005). Keeps ignore rules, queue, and SQLite updates in FastAPI — Electron stays the shell.
+
+Not installed yet. Research: `docs/research-filesystem-watchers.md`. Chokidar is the documented alternate; polling is startup/fallback only.
+
+---
+
 ## Ollama
 
 Why?

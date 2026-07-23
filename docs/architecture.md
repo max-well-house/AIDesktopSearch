@@ -175,7 +175,33 @@ AIDesktopSearch/
 
 **Window size (#36):** Session-only. Esc / Alt+Space / tray hide keep the live window size; tray Quit (cold start) resets to 720×480 (min 480×360). No cross-session file.
 
-**Later:** indexer / search (v0.3.0+), GPU detection beyond stub (#112), freeze Python into installer (#111).
+**Later:** indexer / search (v0.3.0+), live watching (v0.4.0, Decision #005), GPU detection beyond stub (#112), freeze Python into installer (#111).
+
+---
+
+## Live file watching (planned — v0.4.0, Decision #005)
+
+Research complete (#38). **No watcher runs yet.** Implementation belongs to Phase 4 after the v0.3 filename indexer exists.
+
+```
+Filesystem (opt-in roots only)
+       │
+       v
+FastAPI + watchdog
+  filter (denylist / hidden / temp)
+  → queue → debounce / batch
+  → index worker → SQLite
+       │
+       v
+Electron (IPC gatekeeper) → React (status / progress only)
+```
+
+- **Primary:** Python `watchdog` inside FastAPI (same process as the indexer).
+- **Alternate:** Chokidar in Electron (documented only; not preferred).
+- **Fallback:** polling / mtime reconciliation on startup and if native watching fails.
+- Do not watch a root until its initial index finishes; coalesce storms (editor saves, git checkout).
+
+Details: [research-filesystem-watchers.md](./research-filesystem-watchers.md).
 
 ---
 
@@ -248,7 +274,9 @@ Python
 
 FastAPI (`GET /health` capability endpoint live; Electron attaches or spawns from `.venv`)
 
-SQLite (planned)
+SQLite (planned — v0.3.0)
+
+`watchdog` (planned — v0.4.0 live watching; Decision #005)
 
 Ollama (optional; detected via `/health`, never required for classic path)
 

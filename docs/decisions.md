@@ -138,3 +138,46 @@ AI belongs inside search (and later results), not as a separate chat surface.
 ## Status
 
 Accepted
+
+---
+
+# Decision #005
+
+## Choice
+
+Filesystem watching via Python `watchdog` inside FastAPI (not Chokidar / Electron)
+
+## Date
+
+July 2026
+
+## Why
+
+- FastAPI is the brain: indexer, ignore rules, SQLite, and the change queue should share one owner (Decision #001 architecture).
+- v0.3 scanner work (#40, #45, #46) already defines corpus roots and denylists in Python ? watching must reuse that path, not fork it into Node.
+- Electron attach/spawn lifecycle (#96): watching can stay alive with the backend rather than dying when the shell quits in attach scenarios.
+- Cross-platform (Windows now; macOS / Linux later) is a wash vs Chokidar ? both wrap FSEvents / inotify / ReadDirectoryChangesW. Preferring Mac or dual-boot Linux does **not** favor Chokidar; it favors keeping the product core in Python.
+- Chokidar remains a documented alternate if Python watching proves painful; raw `fs.watch` and hand-rolled OS APIs are rejected; polling is startup / fallback only.
+
+## Tradeoffs accepted
+
+- Watcher status and control need FastAPI endpoints (UI still goes React ? Electron ? API).
+- One more Python dependency; Linux large-tree `inotify` limits still apply (mitigate with opt-in roots + denylist, Decision #003).
+
+## Rules for Phase 4
+
+1. Research only until v0.4 ? no watching in v0.3 implementation work.
+2. Pipeline: event ? filter ? queue ? debounce/batch ? index worker ? SQLite (never one index job per raw event).
+3. Start watching a root only after its initial index pass finishes; on cold start, reconcile then watch.
+4. React never watches the filesystem.
+
+## Revisit when
+
+- `watchdog` cannot meet reliability or CPU goals on the primary machine after a real v0.4 spike
+- A concrete product need requires the shell to own FS events (unlikely)
+
+Full comparison: [research-filesystem-watchers.md](./research-filesystem-watchers.md).
+
+## Status
+
+Accepted

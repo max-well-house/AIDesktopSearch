@@ -156,3 +156,20 @@ What I learned:
 
 Next:
 v0.3.0 File Indexer — opt-in folders (#40), SQLite filename search, hybrid routing stub (#98). Rebuild portable exe when daily-driving the shortcut.
+
+## 2026-07-23 — Filesystem watcher research (#38)
+
+Goal:
+Decide how Phase 4 should detect file changes without implementing watching yet.
+
+What I did:
+- Compared watchdog, Chokidar, fs.watch, polling, and raw OS APIs
+- Chose Python `watchdog` in FastAPI (Decision #005); Chokidar as alternate; polling as startup/fallback
+- Documented event pipeline (queue → debounce → batch → SQLite) and Phase 4 requirements in `docs/research-filesystem-watchers.md`
+- Closed #38
+
+What I learned:
+Mac/Linux later does not favor Chokidar — both libraries wrap the same native APIs. Architecture ownership (brain vs shell) matters more than the npm-vs-pip brand.
+
+Next:
+v0.3.0 implementation — SQLite (#39), scan folders (#40), filename index/search; leave live watching for v0.4.

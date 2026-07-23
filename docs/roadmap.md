@@ -101,13 +101,15 @@ File Indexer
 
 Opt-in folders (#40), SQLite filename search, hybrid routing stub (#98)
 
+Research (done): filesystem watchers (#38) → Decision #005 + `docs/research-filesystem-watchers.md` (feeds v0.4; does not implement watching)
+
 ---
 
 # Version 0.4.0
 
 Live File Watching
 
-Auto-update index
+Auto-update index via Python `watchdog` in FastAPI (Decision #005): event → queue → debounce/batch → SQLite. Chokidar = alternate; polling = startup/fallback.
 
 ---
 

@@ -88,3 +88,8 @@ What I learned:
 
 Why it matters: Small Electron/OS mismatches read as ?the feature is broken? even when the registry/setting is correct.
 
+### 07/23/2026 ? Watcher ownership (brain vs shell)
+
+What I learned: For a cross-platform Electron + FastAPI app, Chokidar vs Python `watchdog` is not decided by Windows/macOS/Linux support ? both wrap the same OS watchers. The real question is who owns the corpus: ignore rules, queue, and index updates. Putting watching in FastAPI avoids duplicating denylists in Node and survives Electron attach-mode. Polling stays a cold-start safety net, not the primary mode.
+
+Why it matters: Phase 4 can implement one pipeline without rewriting when Max adds a Mac or dual-boots Linux; Decision #005 locks that lean before coding.
