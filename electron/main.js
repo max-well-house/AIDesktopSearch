@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, globalShortcut } = require('electron')
+const { app, BrowserWindow, ipcMain, globalShortcut, Tray, Menu, nativeImage } = require('electron')
 const path = require('node:path')
 const appConfig = require('../app.config.json')
 const {
@@ -10,8 +10,11 @@ const {
 const RENDERER_DEV_URL = process.env.ELECTRON_RENDERER_URL || 'http://127.0.0.1:5173'
 const LAUNCHER_SHORTCUT = 'Alt+Space'
 const LAUNCHER_SHORTCUT_FALLBACK = 'Control+Shift+Space'
+const ICON_PATH = path.join(__dirname, '..', 'resources', 'icon.ico')
 
 let mainWindow = null
+let tray = null
+let isQuitting = false
 
 ipcMain.handle('api:health', async () => fetchHealth())
 ipcMain.handle('launcher:hide', async () => {
@@ -71,7 +74,7 @@ function hideLauncher() {
   mainWindow.hide()
 }
 
-/** Pause: hide but keep query (Alt+Space toggle). */
+/** Pause: hide but keep query (Alt+Space toggle / tray click). */
 function pauseLauncher() {
   hideLauncher()
 }
@@ -86,7 +89,7 @@ function dismissLauncher() {
   mainWindow.webContents.send('launcher:dismiss')
 }
 
-/** Alt+Space: hide+keep query when focused; otherwise show/focus. */
+/** Alt+Space / tray click: hide+keep query when focused; otherwise show/focus. */
 function toggleLauncher() {
   if (!mainWindow || mainWindow.isDestroyed()) {
     createWindow()
@@ -99,6 +102,43 @@ function toggleLauncher() {
   showLauncher()
 }
 
+function createTray() {
+  if (tray) return
+
+  const icon = nativeImage.createFromPath(ICON_PATH)
+  tray = new Tray(icon.isEmpty() ? ICON_PATH : icon)
+  tray.setToolTip(appConfig.name)
+  tray.setContextMenu(
+    Menu.buildFromTemplate([
+      {
+        label: 'Show',
+        click: () => showLauncher(),
+      },
+      { type: 'separator' },
+      {
+        label: 'Quit',
+        click: () => {
+          isQuitting = true
+          app.quit()
+        },
+      },
+    ]),
+  )
+  tray.on('click', () => {
+    // Tray click steals focus before this runs, so do not use isFocused()
+    // (that would only show/refocus and never hide).
+    if (!mainWindow || mainWindow.isDestroyed()) {
+      createWindow()
+      return
+    }
+    if (mainWindow.isVisible()) {
+      pauseLauncher()
+      return
+    }
+    showLauncher()
+  })
+}
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 720,
@@ -108,12 +148,18 @@ function createWindow() {
     center: true,
     backgroundColor: '#0D1117',
     title: appConfig.name,
-    icon: path.join(__dirname, '..', 'resources', 'icon.ico'),
+    icon: ICON_PATH,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration: false,
     },
+  })
+
+  mainWindow.on('close', (event) => {
+    if (isQuitting) return
+    event.preventDefault()
+    hideLauncher()
   })
 
   mainWindow.webContents.on('before-input-event', (event, input) => {
@@ -155,23 +201,31 @@ function registerLauncherShortcut() {
 app.whenReady().then(async () => {
   await ensureBackend()
   createWindow()
+  createTray()
   registerLauncherShortcut()
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow()
+    } else {
+      showLauncher()
     }
   })
 })
 
 app.on('before-quit', () => {
+  isQuitting = true
+  if (tray) {
+    tray.destroy()
+    tray = null
+  }
   stopBackend()
 })
 
+// Tray keeps the process alive while the window is hidden (not destroyed).
 app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit()
-  }
+  if (process.platform === 'darwin') return
+  // Do not quit — tray + hidden window are the steady state on Windows.
 })
 
 app.on('will-quit', () => {

@@ -23,7 +23,7 @@
   Filesystem
 ```
 
-Electron is a dumb shell (window, packaging, global launcher shortcut; tray later) and the **API gatekeeper**.
+Electron is a dumb shell (window, packaging, global launcher shortcut, system tray) and the **API gatekeeper**.
 FastAPI is the brain (indexing, search, AI).
 Ollama is a separate process — never parented directly under Electron.
 
@@ -169,9 +169,11 @@ AIDesktopSearch/
 
 **Global shortcut (#30 / #33):** `Alt+Space` toggles the launcher (`Control+Shift+Space` if registration fails). When focused → hide and **keep** the query (pause). Otherwise → show/focus. Registered in `electron/main.js` via Electron `globalShortcut`; cleared on `will-quit`. Remapping belongs with Settings (#80).
 
-**Escape (#33):** Dismiss — main sends `launcher:dismiss`; renderer `flushSync`-clears/remounts the search box, paints one frame, then hides. Next Alt+Space shows at opacity 0, scrubs again, then opacity 1 so reopen never flashes stale text. App stays running; system tray is #34.
+**Escape (#33):** Dismiss — main sends `launcher:dismiss`; renderer `flushSync`-clears/remounts the search box, paints one frame, then hides. Next Alt+Space shows at opacity 0, scrubs again, then opacity 1 so reopen never flashes stale text. App stays running in the tray.
 
-**Later:** tray (v0.2.0), indexer / search (v0.3.0+), GPU detection beyond stub (#112), freeze Python into installer (#111).
+**System tray (#34):** `Tray` in `electron/main.js` with `resources/icon.ico`. Left-click toggles show/hide (keep query). Context menu: Show / Quit. Window close (X) hides to tray; only Quit (or `app.quit`) exits and stops the backend.
+
+**Later:** indexer / search (v0.3.0+), GPU detection beyond stub (#112), freeze Python into installer (#111).
 
 ---
 
@@ -234,7 +236,7 @@ See Decision #003.
 
 ## Frontend
 
-Electron (shell + gatekeeper — window, IPC, packaging, Alt+Space toggle, Escape dismiss; tray later)
+Electron (shell + gatekeeper — window, IPC, packaging, Alt+Space toggle, Escape dismiss, system tray)
 
 React + Material UI (System Status via Vite + IPC)
 

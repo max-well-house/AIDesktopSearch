@@ -1,6 +1,6 @@
 # Roles
 
-- Electron: dumb desktop shell (window, packaging, global launcher shortcut; tray later) and API gatekeeper (React never talks to FastAPI directly)
+- Electron: dumb desktop shell (window, packaging, global launcher shortcut, system tray) and API gatekeeper (React never talks to FastAPI directly)
 - React + Material UI: UI
 - FastAPI: brain (index, search, AI)
 - Ollama: separate process for local models (never inside Electron)
