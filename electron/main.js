@@ -89,7 +89,7 @@ function dismissLauncher() {
   mainWindow.webContents.send('launcher:dismiss')
 }
 
-/** Alt+Space / tray click: hide+keep query when focused; otherwise show/focus. */
+/** Alt+Space: hide+keep query when focused; otherwise show/focus. */
 function toggleLauncher() {
   if (!mainWindow || mainWindow.isDestroyed()) {
     createWindow()
@@ -102,17 +102,62 @@ function toggleLauncher() {
   showLauncher()
 }
 
-function createTray() {
-  if (tray) return
+function shouldStartHidden() {
+  if (process.argv.includes('--hidden')) return true
+  try {
+    // Must pass the same path/args used when registering (Windows).
+    return Boolean(app.getLoginItemSettings(loginItemPathArgs()).wasOpenedAsHidden)
+  } catch {
+    return false
+  }
+}
 
-  const icon = nativeImage.createFromPath(ICON_PATH)
-  tray = new Tray(icon.isEmpty() ? ICON_PATH : icon)
-  tray.setToolTip(appConfig.name)
+/** path/args must match setLoginItemSettings or Windows getLoginItemSettings lies. */
+function loginItemPathArgs() {
+  if (app.isPackaged) {
+    return { path: process.execPath, args: [] }
+  }
+  return { path: process.execPath, args: [app.getAppPath(), '--hidden'] }
+}
+
+function loginItemOptions(openAtLogin) {
+  return {
+    ...loginItemPathArgs(),
+    openAtLogin: Boolean(openAtLogin),
+    openAsHidden: true,
+  }
+}
+
+function getOpenAtLogin() {
+  try {
+    return Boolean(app.getLoginItemSettings(loginItemPathArgs()).openAtLogin)
+  } catch {
+    return false
+  }
+}
+
+function setOpenAtLogin(enabled) {
+  app.setLoginItemSettings(loginItemOptions(enabled))
+}
+
+function rebuildTrayMenu() {
+  if (!tray) return
+
   tray.setContextMenu(
     Menu.buildFromTemplate([
       {
         label: 'Show',
         click: () => showLauncher(),
+      },
+      {
+        label: 'Start with Windows',
+        type: 'checkbox',
+        checked: getOpenAtLogin(),
+        click: (menuItem) => {
+          setOpenAtLogin(menuItem.checked)
+          // Rebuild so checked state is re-read with matching path/args.
+          rebuildTrayMenu()
+        },
       },
       { type: 'separator' },
       {
@@ -124,6 +169,15 @@ function createTray() {
       },
     ]),
   )
+}
+
+function createTray() {
+  if (tray) return
+
+  const icon = nativeImage.createFromPath(ICON_PATH)
+  tray = new Tray(icon.isEmpty() ? ICON_PATH : icon)
+  tray.setToolTip(appConfig.name)
+  rebuildTrayMenu()
   tray.on('click', () => {
     // Tray click steals focus before this runs, so do not use isFocused()
     // (that would only show/refocus and never hide).
@@ -139,13 +193,14 @@ function createTray() {
   })
 }
 
-function createWindow() {
+function createWindow({ show = true } = {}) {
   mainWindow = new BrowserWindow({
     width: 720,
     height: 480,
     minWidth: 480,
     minHeight: 360,
     center: true,
+    show,
     backgroundColor: '#0D1117',
     title: appConfig.name,
     icon: ICON_PATH,
@@ -200,9 +255,14 @@ function registerLauncherShortcut() {
 
 app.whenReady().then(async () => {
   await ensureBackend()
-  createWindow()
+  const startHidden = shouldStartHidden()
+  createWindow({ show: !startHidden })
   createTray()
   registerLauncherShortcut()
+
+  if (startHidden) {
+    hideLauncher()
+  }
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
