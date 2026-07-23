@@ -73,6 +73,7 @@ src-tauri/target/
 
 # Local app data & indexes (never commit user corpora)
 data/
+testdata/
 indexes/
 .index/
 *.db

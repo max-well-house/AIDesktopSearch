@@ -24,10 +24,10 @@ electron/    Electron shell (main, preload) — gatekeeper to FastAPI
 frontend/    React + Material UI (Vite)
 backend/     FastAPI app
 data/        Local data (gitignored when real indexes land)
+tools/       Dev utilities (corpus generator — output is outside the repo)
 tests/       Tests
 release/     Packaged builds (gitignored; from npm run package*)
 ```
-
 ## Prerequisites
 
 - Python 3.x
@@ -98,6 +98,16 @@ Quick sanity check in a browser: http://127.0.0.1:8000/health — JSON with `sta
 | `npm run sync-config` | Sync `package.json` version/author from `app.config.json` |
 
 Stop `npm run dev` with `Ctrl+C` in that terminal.
+
+### Test corpus (local machine only)
+
+For indexer/search work, generate a **control folder outside this repo** so tests mirror real opt-in roots and you don’t get false confidence from scanning the project tree (`node_modules`, source, docs, etc.).
+
+```powershell
+python tools/corpus/generate.py
+```
+
+Writes to `%USERPROFILE%\Documents\MosAIq-TestCorpus` by default (not committed to GitHub). Use `--clean` to wipe and recreate; `--out` to choose another path. Details: [`tools/corpus/README.md`](./tools/corpus/README.md). When folder pickers land, add **only** that Documents folder as a root — not the AIDesktopSearch project folder.
 
 ### Packaged app
 
