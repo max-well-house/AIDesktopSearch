@@ -69,7 +69,7 @@ React → Electron (IPC) → FastAPI → Electron → React
 1. The launcher opens with a search field focused — type to begin (search logic comes later).
 2. Top-right mark opens **System Status** (backend / Ollama check) for now; Settings later.
 3. From anywhere, press **Alt+Space** to show/focus the app window (falls back to **Ctrl+Shift+Space** if Alt+Space is already taken). Remapping comes later via Settings.
-4. Tray icon: left-click show/hide; right-click for Show, optional **Start with Windows**, and Quit. Startup is optional (#35) — best with a packaged build.
+4. Tray icon: left-click show/hide; right-click for Show, optional **Start with Windows**, and Quit. Startup is optional (#35) — best with a packaged build. Window size sticks for the session (Esc/Alt+Space); **Quit** resets to the default size next launch.
 5. Quit Electron → if Electron spawned the backend, port 8000 should be free again.
 
 ### Optional: manual uvicorn (debug / hot reload)

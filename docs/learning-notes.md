@@ -78,3 +78,13 @@ Why it matters: AMD/Intel/CPU-only machines must share the same code path.
 What I learned: Keep display name, company, and version in one `app.config.json`; Electron, Vite HTML title, and electron-builder all read it (with a small `sync-app-config` into `package.json`). For desktop icons, bake a dark background into a multi-resolution `.ico` — PNG alone and light plates look wrong on Windows.
 
 Why it matters: Renaming away from a working title (e.g. MosAIq) is one config edit + repackage, and the shortcut looks intentional.
+
+### 07/23/2026 ? Launcher shell UX (tray, login item, session size)
+
+What I learned:
+1. **Tray click vs focus** ? Left-click focuses the tray first, so `isVisible() && isFocused()` never hides. Toggle on visibility for tray; keep focus-aware toggle for Alt+Space.
+2. **Login-item readback** ? On Windows, `getLoginItemSettings({ path, args })` must match `setLoginItemSettings` or `openAtLogin` reads false and checkbox rebuilds unchecked. Unpackaged entries show as ?Electron? in Startup apps.
+3. **Session vs durable window size** ? For a launcher, resize should stick across Esc/Alt+Space pause, but Quit should return to the default. Cross-session persistence felt sticky without an obvious reset.
+
+Why it matters: Small Electron/OS mismatches read as ?the feature is broken? even when the registry/setting is correct.
+

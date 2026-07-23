@@ -74,9 +74,9 @@ Bridge before heavy v0.2.0 launcher work. (Freezing Python into the installer is
 
 Search Launcher
 
-Status: done (2026-07-23) — global shortcut, launcher UI, Escape dismiss, tray, Start with Windows, window size, screenshots
+Status: done (2026-07-23) — GitHub milestone closed; #30–#37 complete
 
-Global shortcut (prefer Alt+Space on Windows — #30), tray, Escape
+Global shortcut (prefer Alt+Space on Windows — #30), tray, Escape dismiss, Start with Windows, session window size, screenshots
 
 Prerequisite: v0.1.1 (#96) strongly recommended
 
@@ -90,7 +90,7 @@ Done:
 - [x] Escape dismiss + Alt+Space toggle (#33)
 - [x] System tray (#34)
 - [x] Start with Windows (#35)
-- [x] Remember window size (#36)
+- [x] Remember window size (#36) — session-only; Quit resets to default
 - [x] Update screenshots (#37)
 
 ---

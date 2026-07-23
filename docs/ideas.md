@@ -16,5 +16,6 @@ Tracked on GitHub as **nice to have** issues (unmilestoned — not MVP). See boa
 | Mobile companion app | #108 |
 | Plugin system | #109 |
 | Knowledge graph visualization | #110 |
+| Tray “Reset window size” without Quit | — (session size is Quit-reset today; promote if needed) |
 
 Add new ideas here first; promote to a milestone only when a daily-driver gap appears.

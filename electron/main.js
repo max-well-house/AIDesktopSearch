@@ -7,11 +7,10 @@ const {
   stopBackend,
 } = require('./backendProcess')
 const {
+  DEFAULT_BOUNDS,
   MIN_WIDTH,
   MIN_HEIGHT,
-  loadWindowSize,
-  saveWindowSize,
-  attachWindowSizePersistence,
+  clearSavedWindowSize,
 } = require('./windowState')
 
 const RENDERER_DEV_URL = process.env.ELECTRON_RENDERER_URL || 'http://127.0.0.1:5173'
@@ -201,11 +200,9 @@ function createTray() {
 }
 
 function createWindow({ show = true } = {}) {
-  const { width, height } = loadWindowSize()
-
   mainWindow = new BrowserWindow({
-    width,
-    height,
+    width: DEFAULT_BOUNDS.width,
+    height: DEFAULT_BOUNDS.height,
     minWidth: MIN_WIDTH,
     minHeight: MIN_HEIGHT,
     center: true,
@@ -219,8 +216,6 @@ function createWindow({ show = true } = {}) {
       nodeIntegration: false,
     },
   })
-
-  attachWindowSizePersistence(mainWindow)
 
   mainWindow.on('close', (event) => {
     if (isQuitting) return
@@ -265,6 +260,7 @@ function registerLauncherShortcut() {
 }
 
 app.whenReady().then(async () => {
+  clearSavedWindowSize()
   await ensureBackend()
   const startHidden = shouldStartHidden()
   createWindow({ show: !startHidden })
@@ -286,7 +282,7 @@ app.whenReady().then(async () => {
 
 app.on('before-quit', () => {
   isQuitting = true
-  saveWindowSize(mainWindow)
+  clearSavedWindowSize()
   if (tray) {
     tray.destroy()
     tray = null

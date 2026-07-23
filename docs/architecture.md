@@ -165,7 +165,7 @@ AIDesktopSearch/
   docs/               Vision, architecture, decisions, roadmap
 ```
 
-**In place (v0.1.1):** native window, React + Material UI, hot reload, electron-builder packaging, System Status over IPC, Electron-managed FastAPI lifecycle (#96).
+**In place (v0.2.0):** native window, React + Material UI launcher (mosaic idle), hot reload, electron-builder packaging, System Status over IPC, Electron-managed FastAPI lifecycle (#96), Alt+Space toggle, Escape dismiss, system tray, Start with Windows, session window size.
 
 **Global shortcut (#30 / #33):** `Alt+Space` toggles the launcher (`Control+Shift+Space` if registration fails). When focused → hide and **keep** the query (pause). Otherwise → show/focus. Registered in `electron/main.js` via Electron `globalShortcut`; cleared on `will-quit`. Remapping belongs with Settings (#80).
 
@@ -173,7 +173,7 @@ AIDesktopSearch/
 
 **System tray (#34 / #35):** `Tray` in `electron/main.js` with `resources/icon.ico`. Left-click toggles show/hide (keep query). Context menu: Show, **Start with Windows** (checkbox via `app.setLoginItemSettings` / `openAsHidden`), Quit. Window close (X) hides to tray; only Quit (or `app.quit`) exits and stops the backend. Login / `--hidden` starts with the window hidden (tray + Alt+Space ready). Works best when packaged; unpackaged registers the Electron binary with the app path and `--hidden`.
 
-**Window size (#36):** Width/height persist in `userData/window-state.json` (defaults 720×480; min 480×360). Restored on next launch.
+**Window size (#36):** Session-only. Esc / Alt+Space / tray hide keep the live window size; tray Quit (cold start) resets to 720×480 (min 480×360). No cross-session file.
 
 **Later:** indexer / search (v0.3.0+), GPU detection beyond stub (#112), freeze Python into installer (#111).
 

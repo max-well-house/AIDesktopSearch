@@ -134,3 +134,25 @@ Windows shortcuts need a real multi-size `.ico` with a dark plate � light/white 
 
 Next:
 #32 autofocus issue (likely already satisfied � verify/close), #33 Escape, #34 tray; then real search wiring.
+
+## 2026-07-23 — Search Launcher milestone (v0.2.0)
+
+Goal:
+Finish Phase 2 Search Launcher: shortcut, dismiss/toggle, tray, startup, polish — close the milestone.
+
+What I did:
+- Closed #32 (autofocus already in SearchBar from #31)
+- #33 Escape dismiss (clear + hide) + Alt+Space toggle (keep query); scrub-on-reopen so no stale-text flash
+- #34 System tray (Show / Quit; X hides; tray click toggles by visibility)
+- #35 Start with Windows tray checkbox (`setLoginItemSettings`; unpackaged shows as Electron in Startup)
+- #36 Window size session-only (keep while hidden; Quit → default 720×480)
+- #37 Launcher screenshots in README + `docs/screenshots/`
+- Closed GitHub milestone **v0.2.0 - Search Launcher** (8/8 issues)
+
+What I learned:
+- Tray click steals focus before the handler runs — toggle must use visibility, not `isFocused()`
+- Windows `getLoginItemSettings` needs the same `path`/`args` as set, or the menu checkmark lies
+- Packaged desktop shortcuts go stale; rebuild after shell UX lands or Esc/Alt+Space look "broken"
+
+Next:
+v0.3.0 File Indexer — opt-in folders (#40), SQLite filename search, hybrid routing stub (#98). Rebuild portable exe when daily-driving the shortcut.
