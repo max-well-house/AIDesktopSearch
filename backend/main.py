@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
 from fastapi import FastAPI
@@ -5,10 +6,19 @@ from fastapi.responses import JSONResponse
 
 from capabilities import build_capabilities
 from capabilities.schema import HealthResponse
+from db import init_db
 
 APP_VERSION = "0.0.3"
 
-app = FastAPI(title="AI Desktop Search API", version=APP_VERSION)
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    # Create data/index.db + schema foundation on every process start (#39).
+    init_db()
+    yield
+
+
+app = FastAPI(title="AI Desktop Search API", version=APP_VERSION, lifespan=lifespan)
 
 
 def _utc_timestamp() -> str:

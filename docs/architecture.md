@@ -112,7 +112,7 @@ IPC result → React System Status UI
 | Preload | `electron/preload.js` | Exposes `checkHealth` to the renderer |
 | Renderer UI | `frontend/src/` (Vite + React + MUI) | System Status (API + Ollama) |
 | Theme | `frontend/src/theme.js` | MUI theme |
-| Backend | `backend/main.py` + `backend/capabilities/` | Health + capability detection |
+| Backend | `backend/main.py` + `backend/capabilities/` + `backend/db/` | Health + capability detection; SQLite init (`data/index.db`) |
 | Packaging | `electron-builder.yml` | Windows portable / unpacked dir under `release/` |
 
 ### `GET /health` contract
@@ -159,8 +159,10 @@ AIDesktopSearch/
     src/App.jsx       System Status screen
     dist/             Production UI assets
   backend/            FastAPI app
-    main.py           /health (+ / shim)
+    main.py           /health (+ / shim); lifespan inits SQLite
     capabilities/     Ollama probe, schema stubs
+    db/               SQLite connection + files/roots schema (#39)
+  data/               Local index DB (gitignored) — `index.db`
   release/            Packaged builds (gitignored)
   docs/               Vision, architecture, decisions, roadmap
 ```
@@ -274,7 +276,7 @@ Python
 
 FastAPI (`GET /health` capability endpoint live; Electron attaches or spawns from `.venv`)
 
-SQLite (planned — v0.3.0)
+SQLite (`data/index.db` — created on API startup; #39)
 
 `watchdog` (planned — v0.4.0 live watching; Decision #005)
 
