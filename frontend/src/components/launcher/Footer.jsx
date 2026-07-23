@@ -9,8 +9,8 @@ const DEFAULT_STATUS = [
 ]
 
 const DEFAULT_SHORTCUTS = [
-  { keys: 'Alt+Space', action: 'Open' },
-  { keys: 'Esc', action: 'Close' },
+  { keys: 'Alt+Space', action: 'Toggle' },
+  { keys: 'Esc', action: 'Dismiss' },
 ]
 
 /**

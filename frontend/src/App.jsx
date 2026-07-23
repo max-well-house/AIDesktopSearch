@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ThemeProvider } from '@mui/material/styles'
 import CssBaseline from '@mui/material/CssBaseline'
 import IconButton from '@mui/material/IconButton'
@@ -11,6 +11,14 @@ import appConfig from '@app-config'
 
 export default function App() {
   const [view, setView] = useState('launcher')
+
+  // LauncherWindow owns Escape dismiss (clear → hide). Status view only needs hide.
+  useEffect(() => {
+    if (view !== 'status') return undefined
+    return window.api?.onDismiss?.(() => {
+      window.api?.hideLauncher?.()
+    })
+  }, [view])
 
   return (
     <ThemeProvider theme={theme}>

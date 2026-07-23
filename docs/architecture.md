@@ -167,9 +167,11 @@ AIDesktopSearch/
 
 **In place (v0.1.1):** native window, React + Material UI, hot reload, electron-builder packaging, System Status over IPC, Electron-managed FastAPI lifecycle (#96).
 
-**Global shortcut (#30):** `Alt+Space` shows/focuses the main window from anywhere (`Control+Shift+Space` if registration fails). Registered in `electron/main.js` via Electron `globalShortcut`; cleared on `will-quit`. Remapping belongs with Settings (#80).
+**Global shortcut (#30 / #33):** `Alt+Space` toggles the launcher (`Control+Shift+Space` if registration fails). When focused → hide and **keep** the query (pause). Otherwise → show/focus. Registered in `electron/main.js` via Electron `globalShortcut`; cleared on `will-quit`. Remapping belongs with Settings (#80).
 
-**Later:** tray / Escape (v0.2.0), indexer / search (v0.3.0+), GPU detection beyond stub (#112), freeze Python into installer (#111).
+**Escape (#33):** Dismiss — main sends `launcher:dismiss`; renderer `flushSync`-clears/remounts the search box, paints one frame, then hides. Next Alt+Space shows at opacity 0, scrubs again, then opacity 1 so reopen never flashes stale text. App stays running; system tray is #34.
+
+**Later:** tray (v0.2.0), indexer / search (v0.3.0+), GPU detection beyond stub (#112), freeze Python into installer (#111).
 
 ---
 
@@ -232,7 +234,7 @@ See Decision #003.
 
 ## Frontend
 
-Electron (shell + gatekeeper — window, IPC, packaging, Alt+Space launcher shortcut; tray later)
+Electron (shell + gatekeeper — window, IPC, packaging, Alt+Space toggle, Escape dismiss; tray later)
 
 React + Material UI (System Status via Vite + IPC)
 

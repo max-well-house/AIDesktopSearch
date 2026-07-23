@@ -1,4 +1,5 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { flushSync } from 'react-dom'
 import Box from '@mui/material/Box'
 import SearchBar from './SearchBar'
 import MosaicCanvas from './MosaicCanvas'
@@ -14,7 +15,44 @@ import { colors } from '../../theme'
 export default function LauncherWindow() {
   const inputRef = useRef(null)
   const [query, setQuery] = useState('')
+  const [searchKey, setSearchKey] = useState(0)
   const isIdle = query.trim().length === 0
+
+  useEffect(() => {
+    const afterPaint = (fn) => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(fn)
+      })
+    }
+
+    const clearSearch = () => {
+      flushSync(() => {
+        setQuery('')
+        setSearchKey((key) => key + 1)
+      })
+    }
+
+    const unsubDismiss = window.api?.onDismiss?.(() => {
+      clearSearch()
+      // Let Chromium paint the empty field before hide (avoids caching a stale frame).
+      afterPaint(() => {
+        void window.api?.hideLauncher?.()
+      })
+    })
+
+    const unsubScrub = window.api?.onScrubBeforeShow?.(() => {
+      clearSearch()
+      afterPaint(() => {
+        inputRef.current?.focus?.()
+        void window.api?.notifyShowPrepared?.()
+      })
+    })
+
+    return () => {
+      unsubDismiss?.()
+      unsubScrub?.()
+    }
+  }, [])
 
   return (
     <Box
@@ -36,6 +74,7 @@ export default function LauncherWindow() {
       >
         <Box sx={{ maxWidth: 720, mx: 'auto' }}>
           <SearchBar
+            key={searchKey}
             ref={inputRef}
             value={query}
             onChange={(event) => setQuery(event.target.value)}
