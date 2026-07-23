@@ -15,7 +15,7 @@ const DEFAULT_SHORTCUTS = [
 
 /**
  * Launcher chrome: capability/status stubs + keyboard hints.
- * Values will become live as indexer / AI land.
+ * Values become live as indexer / AI land — Indexed count is live (#41).
  */
 export default function Footer({
   status = DEFAULT_STATUS,

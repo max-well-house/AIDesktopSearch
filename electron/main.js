@@ -1,8 +1,10 @@
-const { app, BrowserWindow, ipcMain, globalShortcut, Tray, Menu, nativeImage } = require('electron')
+const { app, BrowserWindow, ipcMain, globalShortcut, Tray, Menu, nativeImage, dialog } = require('electron')
 const path = require('node:path')
 const appConfig = require('../app.config.json')
 const {
   fetchHealth,
+  fetchIndexStatus,
+  postIndexScan,
   ensureBackend,
   stopBackend,
 } = require('./backendProcess')
@@ -23,6 +25,23 @@ let tray = null
 let isQuitting = false
 
 ipcMain.handle('api:health', async () => fetchHealth())
+ipcMain.handle('api:index-status', async () => fetchIndexStatus())
+ipcMain.handle('api:index-scan', async (_event, folderPath) => {
+  if (!folderPath || typeof folderPath !== 'string') {
+    return { ok: false, error: 'Folder path required', url: null }
+  }
+  return postIndexScan(folderPath)
+})
+ipcMain.handle('dialog:pick-folder', async () => {
+  const result = await dialog.showOpenDialog(mainWindow ?? undefined, {
+    title: 'Choose a folder to index',
+    properties: ['openDirectory'],
+  })
+  if (result.canceled || !result.filePaths?.length) {
+    return { ok: false, canceled: true, path: null }
+  }
+  return { ok: true, canceled: false, path: result.filePaths[0] }
+})
 ipcMain.handle('launcher:hide', async () => {
   hideLauncher()
 })

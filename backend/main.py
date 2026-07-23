@@ -1,12 +1,14 @@
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
 
 from capabilities import build_capabilities
 from capabilities.schema import HealthResponse
 from db import init_db
+from indexer import index_status, scan_and_save
+from indexer.schemas import IndexStatusResponse, ScanRequest, ScanResponse
 
 APP_VERSION = "0.0.3"
 
@@ -51,3 +53,28 @@ async def root():
         content=payload.model_dump(),
         headers={"Cache-Control": "no-store"},
     )
+
+
+@app.get("/index/status", response_model=IndexStatusResponse)
+async def get_index_status():
+    """How many files/roots are in SQLite — for Footer + System Status (#41)."""
+    return IndexStatusResponse(**index_status())
+
+
+@app.post("/index/scan", response_model=ScanResponse)
+async def post_index_scan(body: ScanRequest):
+    """
+    Walk a user-selected folder and persist file metadata (#41).
+
+    Full folder-picker UX / root management is #40; this endpoint is the
+    save path those flows will call.
+    """
+    try:
+        result = scan_and_save(body.path)
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except NotADirectoryError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except OSError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    return ScanResponse(**result)

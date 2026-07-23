@@ -173,3 +173,45 @@ Mac/Linux later does not favor Chokidar — both libraries wrap the same native 
 
 Next:
 v0.3.0 implementation — SQLite (#39), scan folders (#40), filename index/search; leave live watching for v0.4.
+
+## 2026-07-23 ? End of day (v0.3 kickoff)
+
+Goal:
+Start File Indexer after closing Search Launcher; lock watcher research; get metadata into SQLite with a visible confidence cue.
+
+What I did:
+- Closed **v0.2.0 Search Launcher** earlier today (#30?#37)
+- #38 Watcher research ? Decision #005 (`watchdog` in FastAPI); docs in `research-filesystem-watchers.md`
+- #39 SQLite init on API startup (`data/index.db`, `roots` + `files`)
+- #113 Test corpus generator (fixtures outside the repo)
+- #41 Save metadata ? scan upsert/replace, Footer **Indexed: N files**, System Status Browse/Scan (user-verified)
+
+What I learned:
+- Milestone framing matters: watcher research lives in v0.3 but product goal is still filename search; live watching is v0.4
+- A durable Footer stub (`Indexed`) beats a throwaway debug screen for ?did the step work??
+
+Next:
+1. #40 ? proper opt-in folder add/remove UX (scan API already exists)
+2. #42 ? filename search against SQLite
+3. #47 ? document schema; tighten #45/#46 ignores as needed
+
+## 2026-07-23 — End of day (v0.3 kickoff)
+
+Goal:
+Start File Indexer after closing Search Launcher; lock watcher research; get metadata into SQLite with a visible confidence cue.
+
+What I did:
+- Closed **v0.2.0 Search Launcher** earlier today (#30–#37)
+- #38 Watcher research → Decision #005 (`watchdog` in FastAPI); docs in `research-filesystem-watchers.md`
+- #39 SQLite init on API startup (`data/index.db`, `roots` + `files`)
+- #113 Test corpus generator (fixtures outside the repo)
+- #41 Save metadata — scan upsert/replace, Footer **Indexed: N files**, System Status Browse/Scan (user-verified)
+
+What I learned:
+- Milestone framing matters: watcher research lives in v0.3 but product goal is still filename search; live watching is v0.4
+- A durable Footer stub (`Indexed`) beats a throwaway debug screen for "did the step work?"
+
+Next:
+1. #40 — proper opt-in folder add/remove UX (scan API already exists)
+2. #42 — filename search against SQLite
+3. #47 — document schema; tighten #45/#46 ignores as needed

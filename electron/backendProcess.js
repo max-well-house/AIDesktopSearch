@@ -6,42 +6,66 @@ const path = require('node:path')
 const HOST = '127.0.0.1'
 const PORT = 8000
 const HEALTH_URL = `http://${HOST}:${PORT}/health`
+const INDEX_STATUS_URL = `http://${HOST}:${PORT}/index/status`
+const INDEX_SCAN_URL = `http://${HOST}:${PORT}/index/scan`
 const SPAWN_TIMEOUT_MS = 15000
 const POLL_INTERVAL_MS = 250
 // /health may wait ~2s for an Ollama probe; keep headroom above that.
 const PROBE_TIMEOUT_MS = 5000
+
+async function fetchJson(url, options = {}, timeoutMs = 5000) {
+  try {
+    const response = await net.fetch(url, {
+      cache: 'no-store',
+      signal: AbortSignal.timeout(timeoutMs),
+      ...options,
+    })
+    if (!response.ok) {
+      let detail = `${response.status} ${response.statusText}`
+      try {
+        const body = await response.json()
+        if (body?.detail) detail = typeof body.detail === 'string' ? body.detail : detail
+      } catch {
+        // ignore parse errors
+      }
+      return { ok: false, error: detail, url }
+    }
+    const data = await response.json()
+    return { ok: true, data, url }
+  } catch (err) {
+    return {
+      ok: false,
+      error: err.message || String(err),
+      url,
+    }
+  }
+}
+
+async function fetchHealth(timeoutMs = 5000) {
+  return fetchJson(HEALTH_URL, {}, timeoutMs)
+}
+
+async function fetchIndexStatus(timeoutMs = 5000) {
+  return fetchJson(INDEX_STATUS_URL, {}, timeoutMs)
+}
+
+async function postIndexScan(folderPath, timeoutMs = 120000) {
+  return fetchJson(
+    INDEX_SCAN_URL,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ path: folderPath }),
+    },
+    timeoutMs,
+  )
+}
 
 /** @type {{ mode: 'idle' | 'attached' | 'owned' | 'missing' | 'failed', child: import('node:child_process').ChildProcess | null, error: string | null }} */
 let state = {
   mode: 'idle',
   child: null,
   error: null,
-}
-
-async function fetchHealth(timeoutMs = 5000) {
-  try {
-    // Chromium caches GET by default; without no-store, a killed backend
-    // can still look "online" from a stale cache hit.
-    const response = await net.fetch(HEALTH_URL, {
-      cache: 'no-store',
-      signal: AbortSignal.timeout(timeoutMs),
-    })
-    if (!response.ok) {
-      return {
-        ok: false,
-        error: `HTTP ${response.status} ${response.statusText}`,
-        url: HEALTH_URL,
-      }
-    }
-    const data = await response.json()
-    return { ok: true, data, url: HEALTH_URL }
-  } catch (err) {
-    return {
-      ok: false,
-      error: err.message || String(err),
-      url: HEALTH_URL,
-    }
-  }
 }
 
 function hasBackendLayout(dir) {
@@ -259,6 +283,8 @@ function getBackendState() {
 module.exports = {
   HEALTH_URL,
   fetchHealth,
+  fetchIndexStatus,
+  postIndexScan,
   ensureBackend,
   stopBackend,
   getBackendState,

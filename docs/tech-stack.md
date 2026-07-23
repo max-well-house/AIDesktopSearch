@@ -93,7 +93,8 @@ In repo now (#39):
 - `backend/db/` — stdlib `sqlite3`; `init_db()` on FastAPI lifespan
 - Default path: repo `data/index.db` (gitignored); override with `AIDESKTOP_DB`
 - Schema foundation: `roots` + `files` (path, name, extension, size, mtime, indexed_at); `PRAGMA user_version = 1`
-- Full schema docs → #47; scan/save/search → #40–#42
+- `#41` — `POST /index/scan` upserts metadata + removes stale rows on rescan; `GET /index/status` feeds Footer **Indexed** count + System Status
+- Full schema docs → #47; folder-picker UX → #40; filename search → #42
 
 ---
 

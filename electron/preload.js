@@ -2,6 +2,9 @@ const { contextBridge, ipcRenderer } = require('electron')
 
 contextBridge.exposeInMainWorld('api', {
   checkHealth: () => ipcRenderer.invoke('api:health'),
+  getIndexStatus: () => ipcRenderer.invoke('api:index-status'),
+  scanFolder: (folderPath) => ipcRenderer.invoke('api:index-scan', folderPath),
+  pickFolder: () => ipcRenderer.invoke('dialog:pick-folder'),
   hideLauncher: () => ipcRenderer.invoke('launcher:hide'),
   notifyShowPrepared: () => ipcRenderer.invoke('launcher:show-prepared'),
   onDismiss: (callback) => {

@@ -101,7 +101,13 @@ File Indexer
 
 Opt-in folders (#40), SQLite filename search, hybrid routing stub (#98)
 
-Research (done): filesystem watchers (#38) → Decision #005 + `docs/research-filesystem-watchers.md` (feeds v0.4; does not implement watching)
+Done so far:
+- Research filesystem watchers (#38) → Decision #005 + `docs/research-filesystem-watchers.md` (feeds v0.4; does not implement watching)
+- SQLite foundation (#39) — `data/index.db`, `roots` + `files`
+- Save metadata (#41) — `POST /index/scan` upsert/replace; Footer **Indexed** count + System Status scan
+- Test corpus generator (#113)
+
+Still open: #40 folder UX, #42–#46 search/results/ignores, #47 schema docs, #98 hybrid stub
 
 ---
 

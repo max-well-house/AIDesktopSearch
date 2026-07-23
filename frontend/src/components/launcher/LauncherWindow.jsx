@@ -16,7 +16,25 @@ export default function LauncherWindow() {
   const inputRef = useRef(null)
   const [query, setQuery] = useState('')
   const [searchKey, setSearchKey] = useState(0)
+  const [indexedLabel, setIndexedLabel] = useState('—')
   const isIdle = query.trim().length === 0
+
+  useEffect(() => {
+    let cancelled = false
+    async function loadIndexStatus() {
+      if (!window.api?.getIndexStatus) return
+      const result = await window.api.getIndexStatus()
+      if (cancelled || !result.ok) return
+      const count = result.data?.file_count ?? 0
+      if (count === 0) setIndexedLabel('0 files')
+      else if (count === 1) setIndexedLabel('1 file')
+      else setIndexedLabel(`${count.toLocaleString()} files`)
+    }
+    void loadIndexStatus()
+    return () => {
+      cancelled = true
+    }
+  }, [])
 
   useEffect(() => {
     const afterPaint = (fn) => {
@@ -53,6 +71,12 @@ export default function LauncherWindow() {
       unsubScrub?.()
     }
   }, [])
+
+  const footerStatus = [
+    { label: 'Indexed', value: indexedLabel },
+    { label: 'Semantic Search', value: 'Disabled' },
+    { label: 'AI', value: 'Offline' },
+  ]
 
   return (
     <Box
@@ -147,7 +171,7 @@ export default function LauncherWindow() {
         ) : null}
       </Box>
 
-      <Footer />
+      <Footer status={footerStatus} />
     </Box>
   )
 }
