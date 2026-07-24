@@ -1,0 +1,34 @@
+---
+description: Never commit personal machine paths or local-only identity leaks
+alwaysApply: true
+---
+
+# No personal paths in the repo
+
+Never commit or suggest committing **machine-specific personal paths** or local-only filesystem identity.
+
+## Forbidden in tracked files
+
+- Absolute home paths: `C:\Users\<you>\...`, `/Users/<you>/...`, `/home/<you>/...`
+- Hard-coded clone locations (e.g. `cd C:\Users\maxwa\AIDesktopSearch`)
+- Real corpus / Documents paths that identify the developer’s machine beyond `%USERPROFILE%` / `$HOME` placeholders
+- Local DB paths, absolute `AIDESKTOP_DB` / `AIDESKTOP_ROOT` values pointing at a personal folder
+
+## Use instead
+
+- “From the **repo root**” (no absolute `cd`)
+- Env vars: `AIDESKTOP_ROOT`, `AIDESKTOP_DB`
+- Portable placeholders: `%USERPROFILE%\...`, `$env:USERPROFILE`, `$HOME`, `<repo-root>`
+
+```powershell
+# BAD
+cd C:\Users\maxwa\AIDesktopSearch
+npm run dev
+
+# GOOD
+npm run dev   # run from your clone of the repo
+```
+
+## Before commit / README edits
+
+If a path would only work on one person’s PC, rewrite it. Product branding in `app.config.json` (display name, company, `appId`) is fine when intentional — that is not a filesystem leak.

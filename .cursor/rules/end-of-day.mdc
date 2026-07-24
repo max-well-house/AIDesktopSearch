@@ -1,0 +1,56 @@
+---
+description: End-of-day wrap-up — docs, commits, close/move tasks, clean slate for tomorrow
+alwaysApply: true
+---
+
+# Done for today / end of day
+
+When the user says **"done for today"**, **"we're done for today"**, **"end of day"**, **"wrap up for today"**, or clearly asks for the same EOD wrap-up, do **all** of the following (do not skip steps):
+
+## 1. Inventory the day
+
+From this conversation + `git status` / `git diff` / `git log --since=midnight` (and open PRs/issues touched):
+
+- List what shipped, what’s mid-flight, and what’s explicitly deferred.
+- Note issue numbers (#N) that were completed vs still open.
+
+## 2. Update documentation
+
+Bring docs in sync with what actually landed. Touch only what needs it; prefer short dated entries matching existing style:
+
+| Doc | When to update |
+|-----|----------------|
+| `docs/journal.md` | **Always** — dated Goal / What I did / What I learned / Next |
+| `docs/learning-notes.md` | If something conceptual was learned |
+| `docs/ideas.md` | If new nice-to-haves appeared |
+| `README.md` | If run/test/usage steps changed |
+| `docs/architecture.md`, `docs/tech-stack.md`, `docs/roadmap.md` | If process model, stack, or milestone status changed |
+| `docs/decisions.md`, `docs/vision.md`, audits/notes | Only if a decision or vision point changed |
+
+Do **not** invent work that didn’t happen. Unfinished work goes under **Next** / open issues, not as done.
+
+## 3. Close finished tasks
+
+For each issue that is **fully done** today, follow the **Close out this task** rule (commit reference, push, check acceptance criteria, done comment, `gh issue close`).
+
+- Partially done → leave open; comment progress + what’s left if helpful.
+- If a milestone is fully complete, close it and reflect that in `docs/roadmap.md`.
+- If a GitHub Project board is in use, move completed cards to Done / appropriate column.
+
+## 4. Save and commit
+
+1. Stage relevant files only (no secrets, no `release/` junk unless asked).
+2. Commit with a message that matches repo style (EOD summary is fine if multiple topics, e.g. `docs: end-of-day 2026-07-22 — #30 launcher shortcut`).
+3. `git push` to the tracked remote so tomorrow starts from remote truth.
+4. Confirm `git status` is clean (or list only intentional leftovers).
+
+If commit/push fails, stop and report — do not claim the day is wrapped.
+
+## 5. Hand off for tomorrow
+
+Reply with a short clean-slate summary:
+
+- Done today (issues + one-line each)
+- Docs updated (paths)
+- Still open / Next (1–3 concrete next steps)
+- Confirm working tree clean and pushed

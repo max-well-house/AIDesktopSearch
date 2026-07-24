@@ -1,0 +1,17 @@
+---
+description: Close out a GitHub issue/task — commit, push, check criteria, note, close
+alwaysApply: true
+---
+
+# Close out this task
+
+When the user says **"close out this task"**, **"close out #N"**, or clearly asks for the same closeout workflow, do all of the following (do not skip steps):
+
+1. **Identify the issue** — Use the number they gave, or the issue this session implemented (e.g. #96). Confirm with `gh issue view` if unclear.
+2. **Commit** — Follow the repo git commit protocol. Stage relevant files only. Message must reference the issue (e.g. `#96 …`) and match this repo’s style. Do not commit secrets.
+3. **Push** — `git push` to the tracked remote branch.
+4. **Acceptance criteria** — Edit the issue body: set every `- [ ]` under Acceptance criteria to `- [x]` (only those criteria; leave other checklists alone unless they asked).
+5. **Notes** — `gh issue comment` with a short done note: what shipped (commit SHA), behavior summary, docs/tests, and explicit out-of-scope if any.
+6. **Close** — `gh issue close <N> --reason completed`.
+
+If there is nothing to commit, still do steps 4–6 if the work is already on the remote. If push/commit fails, stop and report — do not close the issue until the code is on the remote (unless they explicitly say close anyway).

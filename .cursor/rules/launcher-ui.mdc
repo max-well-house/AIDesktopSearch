@@ -1,0 +1,59 @@
+---
+description: MosAIq launcher UI/UX — production-quality, search-first, mosaic as idle brand
+globs: frontend/**/*.{jsx,js,css}
+alwaysApply: false
+---
+
+# Launcher UI philosophy
+
+MosAIq is a desktop search engine, not a chatbot. AI is integrated into search, not a separate chat pane.
+
+## Ship-quality from day one
+
+Do **not** build placeholder UI that will be thrown away. Every component should be designed as if it will ship in v1.0, even if functionality is incomplete. Layout, spacing, and styling evolve — structure stays stable.
+
+## Product metaphor
+
+- **Idle:** Subtle mosaic — every tile hints at a file; dormant data waiting to be explored.
+- **Searching:** Mosaic fades; results take focus (Raycast / Spotlight workflow).
+- **Opening a file:** One tile becomes the focus.
+
+The mosaic is brand / idle state, **not** the default workflow chrome.
+
+## Visual identity
+
+Dark theme first. Tokens live in `frontend/src/theme.js` — do not scatter hex values.
+
+Brand palette (identity guide):
+
+| Role | Value |
+|------|-------|
+| Background | `#0D1117` |
+| Accent teal | `#00E5A8` |
+| Accent green | `#22C55E` |
+| Cyan | `#06B6D4` |
+| Blue | `#2563EB` |
+| Neutral | `#8CA3A0` |
+
+Brand mark: mosaic **M** with semantic network (`frontend/public/app-mark.png`, `favicon.svg`, `resources/icon.ico`). Use `AppMark` in UI. Product **name / company / version** live in root `app.config.json` — never hardcode the display name in components.
+
+Feel: PowerToys Run + Raycast + Spotlight + Linear + Arc — minimal, keyboard-first, calm, premium, information-dense without clutter. Accents are teal→cyan→blue (AI-native), not flat single-green.
+
+Avoid: ChatGPT clone layouts, card-heavy dashboards, loud neon everywhere, excessive animation, floating widgets, rainbow demo mosaics, fake result content.
+
+## Component hierarchy (keep stable)
+
+```
+LauncherWindow
+  SearchBar          — primary interaction; auto-focused; extensible for filename / semantic / AI / commands
+  MosaicCanvas       — idle brand; exists permanently; fades when query non-empty
+  Results / Empty    — slot for list → preview → AI summary → related → actions (add later, don't redesign)
+  Footer / StatusBar — live status + shortcut hints (placeholders OK until wired)
+```
+
+## Design rules
+
+- Reusable components; theme tokens / shared constants only
+- Keyboard-first; dark mode first; responsive
+- Empty state is intentional copy, not "No Results"
+- Out of scope until their issues: search logic, indexing, AI, real results, full keyboard nav, preview, settings

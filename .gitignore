@@ -10,8 +10,10 @@ ehthumbs.db
 *.swp
 *.swo
 *~
-# Local Cursor config (rules, etc.) — keep out of git
-.cursor/
+# Local Cursor config — keep out of git, except shared project rules
+.cursor/*
+!.cursor/rules/
+!.cursor/rules/**
 
 # Env & secrets (never commit real secrets; keep !.env.example)
 .env
