@@ -1,12 +1,20 @@
-from indexer.metadata import index_status, replace_root_files, ensure_root
+from indexer.metadata import (
+    delete_root,
+    ensure_root,
+    index_status,
+    replace_root_files,
+    vacuum_index,
+)
 from indexer.scan import iter_files
 
 __all__ = [
+    "delete_root",
     "ensure_root",
     "index_status",
     "iter_files",
     "replace_root_files",
     "scan_and_save",
+    "vacuum_index",
 ]
 
 

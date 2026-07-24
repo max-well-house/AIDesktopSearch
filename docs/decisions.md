@@ -93,7 +93,7 @@ July 2026
 1. Usable every day on the primary profile is non-negotiable.
 2. Search must work without AI. If Ollama is missing or unhealthy, classic (and later semantic) search still works.
 3. Prefer GPU inference for Ollama on this profile; support CPU-only and no-Ollama as degraded modes.
-4. Corpus is opt-in folders ? never whole-disk by default. Denylist noise (node_modules, hidden junk). Indexing is background and pauseable.
+4. Corpus is opt-in folders — never whole-disk by default. Denylist noise (node_modules, hidden junk). Indexing is background and pauseable. **Whole-PC / whole-disk indexing is out of scope for defaults** (#40); the user explicitly chooses every root.
 5. Cap retrieved chunks. No whole-PC-in-the-prompt.
 6. Post-index latency: classic search feels instant; RAG under 1 minute on this machine, aiming for seconds with a VRAM-fitting quantized model.
 7. Model size is configurable / machine-tiered. Defaults fit 16GB system RAM + 8GB VRAM beside OS + app + index.

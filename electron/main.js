@@ -5,6 +5,7 @@ const {
   fetchHealth,
   fetchIndexStatus,
   postIndexScan,
+  deleteIndexRoot,
   ensureBackend,
   stopBackend,
 } = require('./backendProcess')
@@ -31,6 +32,13 @@ ipcMain.handle('api:index-scan', async (_event, folderPath) => {
     return { ok: false, error: 'Folder path required', url: null }
   }
   return postIndexScan(folderPath)
+})
+ipcMain.handle('api:index-root-delete', async (_event, rootId) => {
+  const id = Number(rootId)
+  if (!Number.isInteger(id) || id < 1) {
+    return { ok: false, error: 'Valid root id required', url: null }
+  }
+  return deleteIndexRoot(id)
 })
 ipcMain.handle('dialog:pick-folder', async () => {
   const result = await dialog.showOpenDialog(mainWindow ?? undefined, {

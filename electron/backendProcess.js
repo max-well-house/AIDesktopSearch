@@ -8,6 +8,7 @@ const PORT = 8000
 const HEALTH_URL = `http://${HOST}:${PORT}/health`
 const INDEX_STATUS_URL = `http://${HOST}:${PORT}/index/status`
 const INDEX_SCAN_URL = `http://${HOST}:${PORT}/index/scan`
+const INDEX_ROOTS_URL = `http://${HOST}:${PORT}/index/roots`
 const SPAWN_TIMEOUT_MS = 15000
 const POLL_INTERVAL_MS = 250
 // /health may wait ~2s for an Ollama probe; keep headroom above that.
@@ -57,6 +58,14 @@ async function postIndexScan(folderPath, timeoutMs = 120000) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ path: folderPath }),
     },
+    timeoutMs,
+  )
+}
+
+async function deleteIndexRoot(rootId, timeoutMs = 10000) {
+  return fetchJson(
+    `${INDEX_ROOTS_URL}/${encodeURIComponent(rootId)}`,
+    { method: 'DELETE' },
     timeoutMs,
   )
 }
@@ -285,6 +294,7 @@ module.exports = {
   fetchHealth,
   fetchIndexStatus,
   postIndexScan,
+  deleteIndexRoot,
   ensureBackend,
   stopBackend,
   getBackendState,

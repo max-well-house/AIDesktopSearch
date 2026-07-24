@@ -7,8 +7,13 @@ from fastapi.responses import JSONResponse
 from capabilities import build_capabilities
 from capabilities.schema import HealthResponse
 from db import init_db
-from indexer import index_status, scan_and_save
-from indexer.schemas import IndexStatusResponse, ScanRequest, ScanResponse
+from indexer import delete_root, index_status, scan_and_save
+from indexer.schemas import (
+    DeleteRootResponse,
+    IndexStatusResponse,
+    ScanRequest,
+    ScanResponse,
+)
 
 APP_VERSION = "0.0.3"
 
@@ -64,10 +69,9 @@ async def get_index_status():
 @app.post("/index/scan", response_model=ScanResponse)
 async def post_index_scan(body: ScanRequest):
     """
-    Walk a user-selected folder and persist file metadata (#41).
+    Walk a user-selected folder and persist file metadata (#40 / #41).
 
-    Full folder-picker UX / root management is #40; this endpoint is the
-    save path those flows will call.
+    Only the given path is scanned — never a silent whole-disk crawl.
     """
     try:
         result = scan_and_save(body.path)
@@ -78,3 +82,12 @@ async def post_index_scan(body: ScanRequest):
     except OSError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     return ScanResponse(**result)
+
+
+@app.delete("/index/roots/{root_id}", response_model=DeleteRootResponse)
+async def delete_index_root(root_id: int):
+    """Remove an indexed folder root and its file rows (#40)."""
+    result = delete_root(root_id)
+    if result is None:
+        raise HTTPException(status_code=404, detail=f"Root {root_id} not found")
+    return DeleteRootResponse(**result)

@@ -1,4 +1,4 @@
-"""Pydantic models for index status / scan (#41)."""
+"""Pydantic models for index status / scan / roots (#40, #41)."""
 
 from pydantic import BaseModel, Field
 
@@ -25,6 +25,15 @@ class ScanResponse(BaseModel):
     root_id: int
     root_path: str
     files_upserted: int
+    files_removed: int
+    file_count: int
+    root_count: int
+    last_indexed_at: str | None = None
+
+
+class DeleteRootResponse(BaseModel):
+    root_id: int
+    root_path: str
     files_removed: int
     file_count: int
     root_count: int

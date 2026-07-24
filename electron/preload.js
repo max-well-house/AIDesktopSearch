@@ -4,6 +4,7 @@ contextBridge.exposeInMainWorld('api', {
   checkHealth: () => ipcRenderer.invoke('api:health'),
   getIndexStatus: () => ipcRenderer.invoke('api:index-status'),
   scanFolder: (folderPath) => ipcRenderer.invoke('api:index-scan', folderPath),
+  removeRoot: (rootId) => ipcRenderer.invoke('api:index-root-delete', rootId),
   pickFolder: () => ipcRenderer.invoke('dialog:pick-folder'),
   hideLauncher: () => ipcRenderer.invoke('launcher:hide'),
   notifyShowPrepared: () => ipcRenderer.invoke('launcher:show-prepared'),

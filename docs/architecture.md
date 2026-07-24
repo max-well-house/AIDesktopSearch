@@ -278,6 +278,8 @@ FastAPI (`GET /health` capability endpoint live; Electron attaches or spawns fro
 
 SQLite (`data/index.db` — created on API startup; #39)
 
+Opt-in corpus roots only (#40): the user adds folders via System Status; `DELETE /index/roots/{id}` removes a root, cascades file rows, and runs `VACUUM` (light reclaim of free pages — not forensic wipe; see #114). Whole-PC / whole-disk indexing is out of scope for defaults (Decision #003).
+
 `watchdog` (planned — v0.4.0 live watching; Decision #005)
 
 Ollama (optional; detected via `/health`, never required for classic path)

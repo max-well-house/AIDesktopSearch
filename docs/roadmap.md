@@ -105,9 +105,10 @@ Done so far:
 - Research filesystem watchers (#38) → Decision #005 + `docs/research-filesystem-watchers.md` (feeds v0.4; does not implement watching)
 - SQLite foundation (#39) — `data/index.db`, `roots` + `files`
 - Save metadata (#41) — `POST /index/scan` upsert/replace; Footer **Indexed** count + System Status scan
+- Opt-in folder corpus (#40) — System Status add / rescan / remove roots; persists in SQLite; no whole-disk default
 - Test corpus generator (#113)
 
-Still open: #40 folder UX, #42–#46 search/results/ignores, #47 schema docs, #98 hybrid stub
+Still open: #42–#46 search/results/ignores, #47 schema docs, #98 hybrid stub
 
 ---
 
@@ -163,7 +164,7 @@ OCR / screenshot search
 
 Daily Driver
 
-Settings, polish, guides; ship Python with packaged release (#111)
+Settings, polish, guides; ship Python with packaged release (#111); stronger index.db privacy wipe beyond VACUUM (#114)
 
 ---
 

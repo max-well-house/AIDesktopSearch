@@ -141,6 +141,51 @@ def replace_root_files(
     return upserted, removed
 
 
+def vacuum_index() -> None:
+    """Rewrite the DB file to reclaim free pages after deletes (#40).
+
+    Not a forensic secure erase — that remains a later privacy feature.
+    """
+    with connect() as conn:
+        conn.execute("VACUUM")
+
+
+def delete_root(root_id: int) -> dict | None:
+    """
+    Remove a corpus root and its file rows (ON DELETE CASCADE), then VACUUM.
+
+    Returns a summary dict, or None if the root id does not exist.
+    """
+    with connect() as conn:
+        row = conn.execute(
+            "SELECT id, path FROM roots WHERE id = ?", (root_id,)
+        ).fetchone()
+        if not row:
+            return None
+        file_count = int(
+            conn.execute(
+                "SELECT COUNT(*) AS c FROM files WHERE root_id = ?",
+                (root_id,),
+            ).fetchone()["c"]
+        )
+        conn.execute("DELETE FROM roots WHERE id = ?", (root_id,))
+        conn.commit()
+        path = row["path"]
+
+    # Outside the delete transaction — SQLite forbids VACUUM mid-transaction.
+    vacuum_index()
+
+    status = index_status()
+    return {
+        "root_id": root_id,
+        "root_path": path,
+        "files_removed": file_count,
+        "file_count": status["file_count"],
+        "root_count": status["root_count"],
+        "last_indexed_at": status["last_indexed_at"],
+    }
+
+
 def index_status() -> dict:
     with connect() as conn:
         file_count = int(
