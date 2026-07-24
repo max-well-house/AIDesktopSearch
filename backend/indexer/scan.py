@@ -1,35 +1,29 @@
 """Walk a user-selected folder and collect file paths for indexing (#41).
 
-Full opt-in folder UX is #40; ignore-rule polish is #45/#46.
-A small denylist here avoids accidental huge scans while testing.
+Ignore rules live in ``indexer.ignore`` (#45 hidden folders, #46 denylist).
 """
 
 from __future__ import annotations
 
 import os
+from collections.abc import Iterable
 from pathlib import Path
 
-# Minimal noise skip — expanded properly in #45/#46.
-_SKIP_DIR_NAMES = {
-    ".git",
-    ".hg",
-    ".svn",
-    ".venv",
-    "venv",
-    "node_modules",
-    "__pycache__",
-    ".pytest_cache",
-    ".mypy_cache",
-    ".tox",
-    "dist",
-    "build",
-    ".next",
-    ".turbo",
-}
+from indexer.ignore import should_skip_dir, should_skip_file
 
 
-def iter_files(root: Path) -> list[Path]:
-    """Return files under root (recursive). Raises if missing / not a folder."""
+def iter_files(
+    root: Path,
+    *,
+    extra_skip_dirs: Iterable[str] | None = None,
+    skip_hidden: bool = True,
+) -> list[Path]:
+    """Return files under root (recursive). Raises if missing / not a folder.
+
+    By default skips dot-prefixed (hidden) names and ``DEFAULT_SKIP_DIR_NAMES``
+    (includes ``node_modules``). Pass ``extra_skip_dirs`` to extend the denylist
+    for one scan without changing defaults.
+    """
     root = root.resolve()
     if not root.exists():
         raise FileNotFoundError(f"Folder not found: {root}")
@@ -41,11 +35,14 @@ def iter_files(root: Path) -> list[Path]:
         dirnames[:] = [
             d
             for d in dirnames
-            if d not in _SKIP_DIR_NAMES and not d.startswith(".")
+            if not should_skip_dir(
+                d,
+                extra_skip_dirs=extra_skip_dirs,
+                skip_hidden=skip_hidden,
+            )
         ]
         for name in filenames:
-            # Skip dotfiles at the file level for now (#45).
-            if name.startswith("."):
+            if should_skip_file(name, skip_hidden=skip_hidden):
                 continue
             found.append(Path(dirpath) / name)
     return found

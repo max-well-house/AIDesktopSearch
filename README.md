@@ -101,7 +101,7 @@ Stop `npm run dev` with `Ctrl+C` in that terminal.
 
 ### Test corpus (local machine only)
 
-For indexer/search work, generate a **control folder outside this repo** so tests mirror real opt-in roots and you don’t get false confidence from scanning the project tree (`node_modules`, source, docs, etc.).
+For indexer/search work, generate a **control folder outside this repo** so tests mirror real opt-in roots and you don’t get false confidence from scanning the project tree (`node_modules`, source, docs, etc.). Scans skip hidden (dot-prefixed) names and a denylist that includes `node_modules` by default (`backend/indexer/ignore.py`; #45/#46).
 
 ```powershell
 python tools/corpus/generate.py

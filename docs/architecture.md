@@ -280,6 +280,17 @@ SQLite (`data/index.db` — created on API startup; #39)
 
 Opt-in corpus roots only (#40): the user adds folders via System Status; `DELETE /index/roots/{id}` removes a root, cascades file rows, and runs `VACUUM` (light reclaim of free pages — not forensic wipe; see #114). Whole-PC / whole-disk indexing is out of scope for defaults (Decision #003).
 
+### Scan ignore rules (#45 / #46)
+
+`backend/indexer/ignore.py` is the single source of truth (scanner today; watcher later — Decision #005).
+
+| Rule | Default behavior |
+|------|------------------|
+| Hidden names | Dot-prefixed dirs and files (`.git`, `.hidden`, `.env`, …) are skipped. Does not yet check Windows `FILE_ATTRIBUTE_HIDDEN`. |
+| Denylist dirs | Exact basenames in `DEFAULT_SKIP_DIR_NAMES` are pruned at any depth — includes `node_modules`, VCS (`.git`/…), venvs, caches, `dist`/`build`, `.next`/`.turbo`. |
+| Extending | Add names to `DEFAULT_SKIP_DIR_NAMES`, or pass `extra_skip_dirs=` into `iter_files` for one scan. |
+| Opted-in root | The user-chosen root itself is never skipped by name; only its children are filtered. |
+
 `watchdog` (planned — v0.4.0 live watching; Decision #005)
 
 Ollama (optional; detected via `/health`, never required for classic path)

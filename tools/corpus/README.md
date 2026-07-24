@@ -61,7 +61,9 @@ Same `--seed` should produce the same relative paths and content (timestamps in 
 - Nested projects (`Projects/Phoenix/…`), documents, code, images, archives, logs, CSV/JSON/XML/HTML
 - Filename hits: `invoice.pdf`, `Invoice-Acme.pdf`, `phoenix-budget.xlsx`, …
 - Edge cases: `Empty/`, `Duplicates/`, `Unicode/` (incl. emoji), deep `Nested/a/b/c/d/e/`
-- Ignore candidates: `.hidden/`, `node_modules/`, `.git/`, `IgnoreMe/` (`should_ignore: true` in the manifest)
+- Ignore candidates (`should_ignore: true` in the manifest):
+  - Default scanner: `.hidden/`, `node_modules/` (any depth), `.git/` — see `backend/indexer/ignore.py`
+  - Extensibility fixture: `IgnoreMe/` — not in defaults; pass `extra_skip_dirs=["IgnoreMe"]` (or add to `DEFAULT_SKIP_DIR_NAMES`) to exclude it
 
 ## Out of scope (this milestone)
 

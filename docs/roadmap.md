@@ -111,7 +111,10 @@ Done so far:
 - Display results (#43) — launcher results slot lists filename hits; no-match / error states; open file → #44
 - Open selected file (#44) — Enter/click → `shell.openPath`; missing path shows error; launcher hides on success
 
-Still open: #45–#46 ignores, #47 schema docs, #98 hybrid stub, #115 footer Indexed date
+Done so far (continued):
+- Ignore rules (#45 / #46) — hidden (dot) names + denylist (`node_modules`, …) in `indexer/ignore.py`; extensible via `DEFAULT_SKIP_DIR_NAMES` / `extra_skip_dirs`
+
+Still open: #47 schema docs, #98 hybrid stub, #115 footer Indexed date
 
 ---
 
