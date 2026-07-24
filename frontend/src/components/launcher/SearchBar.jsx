@@ -9,7 +9,13 @@ import { colors } from '../../theme'
  * Auto-focuses on mount so the launcher is ready to type immediately.
  */
 const SearchBar = forwardRef(function SearchBar(
-  { value, onChange, placeholder = 'Search your computer...', autoFocus = true },
+  {
+    value,
+    onChange,
+    onKeyDown,
+    placeholder = 'Search your computer...',
+    autoFocus = true,
+  },
   ref,
 ) {
   useEffect(() => {
@@ -44,6 +50,7 @@ const SearchBar = forwardRef(function SearchBar(
         inputRef={ref}
         value={value}
         onChange={onChange}
+        onKeyDown={onKeyDown}
         placeholder={placeholder}
         fullWidth
         inputProps={{

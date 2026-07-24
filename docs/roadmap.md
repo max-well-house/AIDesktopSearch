@@ -108,8 +108,9 @@ Done so far:
 - Opt-in folder corpus (#40) — System Status add / rescan / remove roots; persists in SQLite; no whole-disk default
 - Test corpus generator (#113)
 - Classic filename search (#42) — `GET /search?q=` against `files.name` (IPC ready; launcher results UI → #43)
+- Display results (#43) — launcher results slot lists filename hits; no-match / error states; open file → #44
 
-Still open: #43–#46 results/open/ignores, #47 schema docs, #98 hybrid stub
+Still open: #44–#46 open/ignores, #47 schema docs, #98 hybrid stub
 
 ---
 
