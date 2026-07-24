@@ -23,6 +23,7 @@ export default function LauncherWindow() {
   const [hits, setHits] = useState([])
   const [status, setStatus] = useState('idle')
   const [selectedIndex, setSelectedIndex] = useState(0)
+  const [openError, setOpenError] = useState(null)
   const isIdle = query.trim().length === 0
 
   useEffect(() => {
@@ -45,6 +46,7 @@ export default function LauncherWindow() {
   // Debounced classic filename search (#43).
   useEffect(() => {
     const q = query.trim()
+    setOpenError(null)
     if (!q) {
       setHits([])
       setStatus('idle')
@@ -97,6 +99,7 @@ export default function LauncherWindow() {
         setHits([])
         setStatus('idle')
         setSelectedIndex(0)
+        setOpenError(null)
       })
     }
 
@@ -122,6 +125,37 @@ export default function LauncherWindow() {
     }
   }, [])
 
+  async function openHit(hit, index) {
+    if (!hit?.path) return
+    if (typeof index === 'number') setSelectedIndex(index)
+    setOpenError(null)
+
+    if (!window.api?.openPath) {
+      setOpenError('Open unavailable')
+      return
+    }
+
+    const result = await window.api.openPath(hit.path)
+    if (!result.ok) {
+      setOpenError(result.error || 'Could not open file')
+      return
+    }
+
+    flushSync(() => {
+      setQuery('')
+      setSearchKey((key) => key + 1)
+      setHits([])
+      setStatus('idle')
+      setSelectedIndex(0)
+      setOpenError(null)
+    })
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        void window.api?.hideLauncher?.({ scrubNextShow: true })
+      })
+    })
+  }
+
   function handleSearchKeyDown(event) {
     if (isIdle || hits.length === 0) return
     if (event.key === 'ArrowDown') {
@@ -130,8 +164,11 @@ export default function LauncherWindow() {
     } else if (event.key === 'ArrowUp') {
       event.preventDefault()
       setSelectedIndex((i) => Math.max(i - 1, 0))
+    } else if (event.key === 'Enter') {
+      event.preventDefault()
+      const hit = hits[selectedIndex]
+      if (hit) void openHit(hit, selectedIndex)
     }
-    // Enter / click open → #44
   }
 
   const footerStatus = [
@@ -160,7 +197,24 @@ export default function LauncherWindow() {
       </Typography>
     )
   } else if (hits.length > 0) {
-    resultsBody = <ResultsList hits={hits} selectedIndex={selectedIndex} />
+    resultsBody = (
+      <>
+        {openError ? (
+          <Typography
+            variant="body2"
+            sx={{ color: colors.textSecondary, px: 0.5, pb: 1 }}
+            role="alert"
+          >
+            {openError}
+          </Typography>
+        ) : null}
+        <ResultsList
+          hits={hits}
+          selectedIndex={selectedIndex}
+          onActivate={openHit}
+        />
+      </>
+    )
   }
 
   return (

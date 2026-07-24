@@ -109,8 +109,9 @@ Done so far:
 - Test corpus generator (#113)
 - Classic filename search (#42) — `GET /search?q=` against `files.name` (IPC ready; launcher results UI → #43)
 - Display results (#43) — launcher results slot lists filename hits; no-match / error states; open file → #44
+- Open selected file (#44) — Enter/click → `shell.openPath`; missing path shows error; launcher hides on success
 
-Still open: #44–#46 open/ignores, #47 schema docs, #98 hybrid stub
+Still open: #45–#46 ignores, #47 schema docs, #98 hybrid stub, #115 footer Indexed date
 
 ---
 

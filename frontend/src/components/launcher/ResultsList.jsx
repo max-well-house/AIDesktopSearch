@@ -3,10 +3,14 @@ import Typography from '@mui/material/Typography'
 import { colors } from '../../theme'
 
 /**
- * Flat Spotlight-style filename hits (#43).
- * Selection highlight only — opening files is #44.
+ * Flat Spotlight-style filename hits (#43 / #44).
+ * Click or Enter (from SearchBar) opens via parent onActivate.
  */
-export default function ResultsList({ hits, selectedIndex = 0 }) {
+export default function ResultsList({
+  hits,
+  selectedIndex = 0,
+  onActivate,
+}) {
   if (!hits?.length) return null
 
   return (
@@ -31,6 +35,7 @@ export default function ResultsList({ hits, selectedIndex = 0 }) {
             key={hit.id ?? hit.path}
             role="option"
             aria-selected={selected}
+            onClick={() => onActivate?.(hit, index)}
             sx={{
               px: 1.5,
               py: 1,
@@ -40,7 +45,7 @@ export default function ResultsList({ hits, selectedIndex = 0 }) {
                 : '2px solid transparent',
               bgcolor: selected ? colors.hover : 'transparent',
               transition: 'background-color 120ms ease, border-color 120ms ease',
-              cursor: 'default',
+              cursor: 'pointer',
               '&:hover': {
                 bgcolor: colors.hover,
               },

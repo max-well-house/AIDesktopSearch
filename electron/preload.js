@@ -6,8 +6,9 @@ contextBridge.exposeInMainWorld('api', {
   scanFolder: (folderPath) => ipcRenderer.invoke('api:index-scan', folderPath),
   removeRoot: (rootId) => ipcRenderer.invoke('api:index-root-delete', rootId),
   search: (query, limit) => ipcRenderer.invoke('api:search', query, limit),
+  openPath: (filePath) => ipcRenderer.invoke('api:open-path', filePath),
   pickFolder: () => ipcRenderer.invoke('dialog:pick-folder'),
-  hideLauncher: () => ipcRenderer.invoke('launcher:hide'),
+  hideLauncher: (opts) => ipcRenderer.invoke('launcher:hide', opts),
   notifyShowPrepared: () => ipcRenderer.invoke('launcher:show-prepared'),
   onDismiss: (callback) => {
     const handler = () => callback()

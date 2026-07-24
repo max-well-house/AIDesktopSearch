@@ -1,5 +1,6 @@
-const { app, BrowserWindow, ipcMain, globalShortcut, Tray, Menu, nativeImage, dialog } = require('electron')
+const { app, BrowserWindow, ipcMain, globalShortcut, Tray, Menu, nativeImage, dialog, shell } = require('electron')
 const path = require('node:path')
+const fs = require('node:fs')
 const appConfig = require('../app.config.json')
 const {
   fetchHealth,
@@ -49,6 +50,24 @@ ipcMain.handle('api:search', async (_event, query, limit) => {
   }
   return fetchSearch(q, Math.min(Math.floor(capped), 200))
 })
+ipcMain.handle('api:open-path', async (_event, filePath) => {
+  if (!filePath || typeof filePath !== 'string') {
+    return { ok: false, error: 'File path required' }
+  }
+  const resolved = path.resolve(filePath)
+  if (!fs.existsSync(resolved)) {
+    return { ok: false, error: 'File not found' }
+  }
+  try {
+    const openError = await shell.openPath(resolved)
+    if (openError) {
+      return { ok: false, error: openError }
+    }
+    return { ok: true }
+  } catch (err) {
+    return { ok: false, error: err.message || String(err) }
+  }
+})
 ipcMain.handle('dialog:pick-folder', async () => {
   const result = await dialog.showOpenDialog(mainWindow ?? undefined, {
     title: 'Choose a folder to index',
@@ -59,7 +78,8 @@ ipcMain.handle('dialog:pick-folder', async () => {
   }
   return { ok: true, canceled: false, path: result.filePaths[0] }
 })
-ipcMain.handle('launcher:hide', async () => {
+ipcMain.handle('launcher:hide', async (_event, opts) => {
+  if (opts && opts.scrubNextShow) expectClearBeforeShow = true
   hideLauncher()
 })
 ipcMain.handle('launcher:show-prepared', async () => {
