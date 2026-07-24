@@ -94,12 +94,13 @@ In repo now (#39):
 - Default path: repo `data/index.db` (gitignored); override with `AIDESKTOP_DB`
 - Schema foundation: `roots` + `files` (path, name, extension, size, mtime, indexed_at); `PRAGMA user_version = 1`
 - `#41` — `POST /index/scan` upserts metadata + removes stale rows on rescan; `GET /index/status` feeds Footer **Indexed** count + System Status
+- `#115` — Footer Indexed value appends short locale date from `last_indexed_at` when known
 - `#40` — System Status lists corpus roots; add (pick + scan), rescan, remove (`DELETE /index/roots/{id}` + `VACUUM`); whole-PC indexing out of scope for defaults
 - `#42` — `GET /search?q=` classic case-insensitive filename substring (Electron `api.search`)
 - `#98` — classic-first routing stub (`backend/search/routing.py`); response includes `mode` + `stages_skipped`; semantic/LLM hooks unused
 - `#43` — Launcher results slot lists hits from `api.search` (no-match / error)
 - `#44` — Enter/click opens via Electron `shell.openPath` (`api.openPath`); missing path → error, launcher stays
-- Full schema docs → #47; forensic index wipe → #114 (v1.0)
+- `#47` — Schema documented in `docs/schema.md`; forensic index wipe → #114 (v1.0)
 
 ---
 

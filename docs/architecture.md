@@ -276,9 +276,11 @@ Python
 
 FastAPI (`GET /health` capability endpoint live; Electron attaches or spawns from `.venv`)
 
-SQLite (`data/index.db` — created on API startup; #39)
+SQLite (`data/index.db` — created on API startup; #39). Table/field reference: [schema.md](./schema.md) (#47).
 
 Opt-in corpus roots only (#40): the user adds folders via System Status; `DELETE /index/roots/{id}` removes a root, cascades file rows, and runs `VACUUM` (light reclaim of free pages — not forensic wipe; see #114). Whole-PC / whole-disk indexing is out of scope for defaults (Decision #003).
+
+Launcher Footer **Indexed** shows file count plus a short locale date from `last_indexed_at` when known (#115); no separate footer chip.
 
 ### Scan ignore rules (#45 / #46)
 

@@ -11,6 +11,19 @@ import { colors } from '../../theme'
 
 const SEARCH_DEBOUNCE_MS = 200
 
+/** Footer Indexed value: `N files` or `N files (7/23/2026)` when last_indexed_at is known (#115). */
+function formatIndexedLabel(count, lastIndexedAt) {
+  let files
+  if (count === 0) files = '0 files'
+  else if (count === 1) files = '1 file'
+  else files = `${Number(count).toLocaleString()} files`
+
+  if (!lastIndexedAt) return files
+  const date = new Date(lastIndexedAt)
+  if (Number.isNaN(date.getTime())) return files
+  return `${files} (${date.toLocaleDateString()})`
+}
+
 /**
  * Permanent launcher shell. Structure is stable for v1:
  * Search → (Mosaic idle | Results slot) → Footer.
@@ -33,9 +46,8 @@ export default function LauncherWindow() {
       const result = await window.api.getIndexStatus()
       if (cancelled || !result.ok) return
       const count = result.data?.file_count ?? 0
-      if (count === 0) setIndexedLabel('0 files')
-      else if (count === 1) setIndexedLabel('1 file')
-      else setIndexedLabel(`${count.toLocaleString()} files`)
+      const lastIndexedAt = result.data?.last_indexed_at ?? null
+      setIndexedLabel(formatIndexedLabel(count, lastIndexedAt))
     }
     void loadIndexStatus()
     return () => {

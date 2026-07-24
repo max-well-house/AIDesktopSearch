@@ -114,8 +114,10 @@ Done so far:
 Done so far (continued):
 - Ignore rules (#45 / #46) — hidden (dot) names + denylist (`node_modules`, …) in `indexer/ignore.py`; extensible via `DEFAULT_SKIP_DIR_NAMES` / `extra_skip_dirs`
 - Hybrid query routing stub (#98) — `backend/search/routing.py`; `GET /search` reports `mode: classic` + skipped semantic/LLM hooks (no embeddings)
+- Schema docs (#47) — `docs/schema.md` (`roots` / `files`, indexes, status fields)
+- Footer Indexed date (#115) — `N files (locale date)` from `last_indexed_at`; omit date when unknown
 
-Still open: #47 schema docs, #115 footer Indexed date
+**v0.3.0 complete** (open follow-ups move to later milestones).
 
 ---
 
