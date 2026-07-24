@@ -244,7 +244,7 @@ Goal:
 Remove personal home path from git history; prevent repeat leaks.
 
 What I did:
-- git filter-repo replaced C:\Users\maxwa\AIDesktopSearch across history; force-pushed main
+- git filter-repo replaced absolute home clone paths (e.g. `C:\Users\<you>\...`) across history; force-pushed main
 - Added always-on Cursor rule no-personal-paths.mdc; track .cursor/rules/ in git
 - README already used portable repo-root wording on tip
 

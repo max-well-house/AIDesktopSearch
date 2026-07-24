@@ -10,7 +10,7 @@ Never commit or suggest committing **machine-specific personal paths** or local-
 ## Forbidden in tracked files
 
 - Absolute home paths: `C:\Users\<you>\...`, `/Users/<you>/...`, `/home/<you>/...`
-- Hard-coded clone locations (e.g. `cd C:\Users\maxwa\AIDesktopSearch`)
+- Hard-coded clone locations (e.g. `cd C:\Users\<you>\AIDesktopSearch`)
 - Real corpus / Documents paths that identify the developer’s machine beyond `%USERPROFILE%` / `$HOME` placeholders
 - Local DB paths, absolute `AIDESKTOP_DB` / `AIDESKTOP_ROOT` values pointing at a personal folder
 
@@ -22,7 +22,7 @@ Never commit or suggest committing **machine-specific personal paths** or local-
 
 ```powershell
 # BAD
-cd C:\Users\maxwa\AIDesktopSearch
+cd C:\Users\<you>\AIDesktopSearch
 npm run dev
 
 # GOOD
