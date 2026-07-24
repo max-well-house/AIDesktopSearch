@@ -6,59 +6,36 @@ Local-first desktop search that finds your files by meaning and keyword.
 
 ## Screenshots
 
-Launcher idle (mosaic brand) and searching (results slot reserved until the indexer lands):
-
 ![Launcher idle](docs/screenshots/launcher-idle.png)
 
 ![Launcher searching](docs/screenshots/launcher-searching.png)
 
 Tray: left-click show/hide; right-click for Show, Start with Windows, and Quit. Escape dismisses and clears; Alt+Space toggles and keeps the query.
 
-See [vision.md](./docs/vision.md) for the one-page product vision, [architecture.md](./docs/architecture.md) for the architecture design, [schema.md](./docs/schema.md) for the SQLite index schema, [decisions.md](./docs/decisions.md) for the decisions I made and why, [ideas.md](./docs/ideas.md) for the future implementation ideas, [roadmap.md](./docs/roadmap.md) for the project roadmap, [tech-stack.md](./docs/tech-stack.md) for the tech stack used in this project, and [audit-2026-07-15.md](./docs/audit-2026-07-15.md) for the latest board/milestone audit.
+## Quick start
 
-## Layout
+**Prerequisites:** Python 3.x, Node.js + npm.
 
-```
-docs/        Project documentation
-electron/    Electron shell (main, preload) — gatekeeper to FastAPI
-frontend/    React + Material UI (Vite)
-backend/     FastAPI app
-data/        Local data (gitignored when real indexes land)
-tools/       Dev utilities (corpus generator — output is outside the repo)
-tests/       Tests
-release/     Packaged builds (gitignored; from npm run package*)
-```
-## Prerequisites
+### First-time setup (once)
 
-- Python 3.x
-- Node.js + npm
-
-## First-time setup (once)
-
-From the repo root in PowerShell:
+From the **repo root** (wherever you cloned it):
 
 ```powershell
-# Python env + FastAPI
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r backend/requirements.txt
-
-# Node deps (Electron, Vite, React, MUI, electron-builder)
 npm install
 ```
 
-## Spin up to test (every time)
-
-One command from the repo root (after first-time setup):
+### Run (every time)
 
 ```powershell
-cd .
 npm run dev
 ```
 
 Electron probes `http://127.0.0.1:8000/health`. If a healthy FastAPI is already running, it **attaches** and leaves it alone on quit. Otherwise it **spawns** uvicorn from `.venv` (no `--reload`) and stops that child when you quit the app.
 
-Endpoint framework (every API call follows this — React never hits FastAPI directly):
+Every UI → API call goes through Electron (React never talks to FastAPI directly):
 
 ```
 React → Electron (IPC) → FastAPI → Electron → React
@@ -66,10 +43,10 @@ React → Electron (IPC) → FastAPI → Electron → React
 
 ### What to click
 
-1. The launcher opens with a search field focused — type to begin (search logic comes later).
-2. Top-right mark opens **System Status** (backend / Ollama check) for now; Settings later.
-3. From anywhere, press **Alt+Space** to show/focus the app window (falls back to **Ctrl+Shift+Space** if Alt+Space is already taken). Remapping comes later via Settings.
-4. Tray icon: left-click show/hide; right-click for Show, optional **Start with Windows**, and Quit. Startup is optional (#35) — best with a packaged build. Window size sticks for the session (Esc/Alt+Space); **Quit** resets to the default size next launch.
+1. Launcher opens with the search field focused — type a filename substring (classic search; no Ollama required).
+2. Top-right mark opens **System Status** — add / rescan / remove opt-in folder roots, plus backend / Ollama health.
+3. **Alt+Space** show/focus (falls back to **Ctrl+Shift+Space** if Alt+Space is taken). Remapping later via Settings.
+4. Tray: left-click show/hide; right-click Show, optional **Start with Windows**, Quit. Window size sticks for the session; **Quit** resets to the default size next launch.
 5. Quit Electron → if Electron spawned the backend, port 8000 should be free again.
 
 ### Optional: manual uvicorn (debug / hot reload)
@@ -84,7 +61,7 @@ Then `npm run dev` in another terminal — Electron attaches and will **not** ki
 
 Odd layouts: set `AIDESKTOP_ROOT` to the repo root so Electron can find `.venv` and `backend/`.
 
-Quick sanity check in a browser: http://127.0.0.1:8000/health — JSON with `status`, `version`, `timestamp`, and `capabilities`. API docs: http://127.0.0.1:8000/docs
+Sanity check: http://127.0.0.1:8000/health — JSON with `status`, `version`, `timestamp`, and `capabilities`. API docs: http://127.0.0.1:8000/docs
 
 ### Other commands
 
@@ -99,17 +76,17 @@ Quick sanity check in a browser: http://127.0.0.1:8000/health — JSON with `sta
 
 Stop `npm run dev` with `Ctrl+C` in that terminal.
 
-### Test corpus (local machine only)
+## Test corpus (local machine only)
 
-For indexer/search work, generate a **control folder outside this repo** so tests mirror real opt-in roots and you don’t get false confidence from scanning the project tree (`node_modules`, source, docs, etc.). Scans skip hidden (dot-prefixed) names and a denylist that includes `node_modules` by default (`backend/indexer/ignore.py`; #45/#46).
+For indexer/search work, generate a **control folder outside this repo** so tests mirror real opt-in roots (do not index the project tree).
 
 ```powershell
 python tools/corpus/generate.py
 ```
 
-Writes to `%USERPROFILE%\Documents\MosAIq-TestCorpus` by default (not committed to GitHub). Use `--clean` to wipe and recreate; `--out` to choose another path. Details: [`tools/corpus/README.md`](./tools/corpus/README.md). When folder pickers land, add **only** that Documents folder as a root — not the AIDesktopSearch project folder.
+Writes to `%USERPROFILE%\Documents\MosAIq-TestCorpus` by default (**not** committed). Use `--clean` to wipe and recreate; `--out` for another path. Details: [`tools/corpus/README.md`](./tools/corpus/README.md). In System Status, add **only** that folder as a root — not the AIDesktopSearch repo.
 
-### Packaged app
+## Packaged app
 
 After `npm run package:portable`, launch the exe named from `app.config.json`, e.g.:
 
@@ -118,18 +95,44 @@ After `npm run package:portable`, launch the exe named from `app.config.json`, e
 
 Packaged builds do **not** bundle Python (#111). If a repo `.venv` is visible (or `AIDESKTOP_ROOT` points at one), Electron can spawn FastAPI; otherwise it attaches to an already-running server or System Status stays offline.
 
+## Layout
+
+```
+docs/        Project documentation
+electron/    Electron shell (main, preload) — gatekeeper to FastAPI
+frontend/    React + Material UI (Vite)
+backend/     FastAPI app (+ indexer, search routing)
+data/        Local SQLite index (gitignored — never commit)
+tools/       Dev utilities (corpus generator — output is outside the repo)
+tests/       Tests
+release/     Packaged builds (gitignored)
+```
+
+## Docs
+
+| Doc | What it is |
+|-----|------------|
+| [vision.md](./docs/vision.md) | One-page product vision |
+| [architecture.md](./docs/architecture.md) | Process model + design |
+| [schema.md](./docs/schema.md) | SQLite index schema |
+| [decisions.md](./docs/decisions.md) | Locked choices and why |
+| [roadmap.md](./docs/roadmap.md) | Milestones |
+| [tech-stack.md](./docs/tech-stack.md) | Stack notes |
+| [ideas.md](./docs/ideas.md) | Post-MVP ideas |
+| [audit-2026-07-15.md](./docs/audit-2026-07-15.md) | Board / milestone audit |
+
 ## How Electron talks to FastAPI
 
 ```
-React (Check System Status)
-  → preload.js (IPC: window.api.checkHealth)
+React (e.g. System Status / search)
+  → preload.js (IPC: window.api.*)
   → electron/main.js (net.fetch)
-  → http://127.0.0.1:8000/health
+  → http://127.0.0.1:8000/...
   → IPC result back to React
 ```
 
-- `electron/main.js` — Electron main process; window + lifecycle hooks
+- `electron/main.js` — window + lifecycle
 - `electron/backendProcess.js` — attach / spawn / stop FastAPI
-- `electron/preload.js` — safe bridge (`window.api.checkHealth`)
-- `frontend/` — React + Material UI System Status screen
+- `electron/preload.js` — safe bridge (`window.api`)
+- `frontend/` — launcher + System Status
 - `electron-builder.yml` — packaging config
