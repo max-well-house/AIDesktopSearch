@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 from capabilities import build_capabilities
 from capabilities.schema import HealthResponse
 from db import init_db
-from indexer import delete_root, index_status, scan_and_save, search_filenames
+from indexer import delete_root, index_status, scan_and_save
 from indexer.schemas import (
     DeleteRootResponse,
     IndexStatusResponse,
@@ -17,6 +17,7 @@ from indexer.schemas import (
     SearchResponse,
 )
 from indexer.search import DEFAULT_LIMIT, MAX_LIMIT
+from search import execute_search
 
 APP_VERSION = "0.0.3"
 
@@ -101,10 +102,12 @@ async def get_search(
     q: str = Query("", description="Filename substring (case-insensitive)"),
     limit: int = Query(DEFAULT_LIMIT, ge=1, le=MAX_LIMIT),
 ):
-    """Classic filename search — no Ollama required (#42)."""
-    hits = search_filenames(q, limit=limit)
+    """Routed search — classic-first stub; no Ollama (#42 / #98)."""
+    payload = execute_search(q, limit=limit)
     return SearchResponse(
-        query=q.strip(),
-        count=len(hits),
-        results=[SearchHit(**hit) for hit in hits],
+        query=payload["query"],
+        count=payload["count"],
+        results=[SearchHit(**hit) for hit in payload["results"]],
+        mode=payload["mode"],
+        stages_skipped=payload["stages_skipped"],
     )

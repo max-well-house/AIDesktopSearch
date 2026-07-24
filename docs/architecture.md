@@ -209,7 +209,7 @@ Details: [research-filesystem-watchers.md](./research-filesystem-watchers.md).
 
 ## Query routing (Decision #002)
 
-Planned product behavior — not implemented in the UI yet. Still the target design.
+v0.3 stub is live (`backend/search/routing.py`, #98): every query runs classic filename search; semantic and LLM stages are named hooks only (not invoked). Full hybrid ranking → #69. Target product flow:
 
 ```
 Question comes in

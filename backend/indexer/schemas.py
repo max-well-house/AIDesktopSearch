@@ -1,4 +1,4 @@
-"""Pydantic models for index status / scan / roots / search (#40–#42)."""
+"""Pydantic models for index status / scan / roots / search (#40–#42, #98)."""
 
 from pydantic import BaseModel, Field
 
@@ -54,3 +54,5 @@ class SearchResponse(BaseModel):
     query: str
     count: int
     results: list[SearchHit] = Field(default_factory=list)
+    mode: str = "classic"
+    stages_skipped: list[str] = Field(default_factory=lambda: ["semantic", "llm"])

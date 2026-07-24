@@ -113,8 +113,9 @@ Done so far:
 
 Done so far (continued):
 - Ignore rules (#45 / #46) — hidden (dot) names + denylist (`node_modules`, …) in `indexer/ignore.py`; extensible via `DEFAULT_SKIP_DIR_NAMES` / `extra_skip_dirs`
+- Hybrid query routing stub (#98) — `backend/search/routing.py`; `GET /search` reports `mode: classic` + skipped semantic/LLM hooks (no embeddings)
 
-Still open: #47 schema docs, #98 hybrid stub, #115 footer Indexed date
+Still open: #47 schema docs, #115 footer Indexed date
 
 ---
 

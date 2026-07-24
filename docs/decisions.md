@@ -66,6 +66,10 @@ The user should never pay the cost of AI when traditional methods are enough (ex
 
 Accepted
 
+## Implementation status (v0.3)
+
+Stub live in `backend/search/routing.py` (#98): `GET /search` always runs classic filename search; semantic and LLM hooks exist but are not called. Full hybrid ranking / embeddings remain #69 (v0.7).
+
 ---
 
 # Decision #003
