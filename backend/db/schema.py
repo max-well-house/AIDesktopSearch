@@ -1,7 +1,7 @@
 """SQLite schema foundation for file metadata (#39).
 
 Keep this minimal: enough for #41 (save metadata) and #42 (filename search)
-without inventing content/embedding tables yet. Full write-up lives in #47.
+without inventing content/embedding tables yet. Human write-up: docs/schema.md (#47).
 """
 
 SCHEMA_VERSION = 1
