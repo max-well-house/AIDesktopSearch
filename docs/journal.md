@@ -238,3 +238,20 @@ Next:
 2. Reuse `indexer/ignore.py` in the watcher path
 3. Keep classic search working without Ollama while watching lands
 
+## 2026-07-24 — History scrub + privacy rule
+
+Goal:
+Remove personal home path from git history; prevent repeat leaks.
+
+What I did:
+- git filter-repo replaced C:\Users\maxwa\AIDesktopSearch across history; force-pushed main
+- Added always-on Cursor rule no-personal-paths.mdc; track .cursor/rules/ in git
+- README already used portable repo-root wording on tip
+
+What I learned:
+- A single absolute cd in the README lives in every later blob until history is rewritten
+- filter-repo finishes in seconds on a small repo; force-push is the real product cost (stale SHAs)
+
+Next:
+1. Start v0.4 live watching when ready
+
