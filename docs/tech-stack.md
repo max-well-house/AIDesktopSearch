@@ -95,7 +95,8 @@ In repo now (#39):
 - Schema foundation: `roots` + `files` (path, name, extension, size, mtime, indexed_at); `PRAGMA user_version = 1`
 - `#41` — `POST /index/scan` upserts metadata + removes stale rows on rescan; `GET /index/status` feeds Footer **Indexed** count + System Status
 - `#40` — System Status lists corpus roots; add (pick + scan), rescan, remove (`DELETE /index/roots/{id}` + `VACUUM`); whole-PC indexing out of scope for defaults
-- Full schema docs → #47; filename search → #42; forensic index wipe → #114 (v1.0)
+- `#42` — `GET /search?q=` classic case-insensitive filename substring (Electron `api.search`); results UI → #43
+- Full schema docs → #47; forensic index wipe → #114 (v1.0)
 
 ---
 

@@ -1,19 +1,22 @@
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import JSONResponse
 
 from capabilities import build_capabilities
 from capabilities.schema import HealthResponse
 from db import init_db
-from indexer import delete_root, index_status, scan_and_save
+from indexer import delete_root, index_status, scan_and_save, search_filenames
 from indexer.schemas import (
     DeleteRootResponse,
     IndexStatusResponse,
     ScanRequest,
     ScanResponse,
+    SearchHit,
+    SearchResponse,
 )
+from indexer.search import DEFAULT_LIMIT, MAX_LIMIT
 
 APP_VERSION = "0.0.3"
 
@@ -91,3 +94,17 @@ async def delete_index_root(root_id: int):
     if result is None:
         raise HTTPException(status_code=404, detail=f"Root {root_id} not found")
     return DeleteRootResponse(**result)
+
+
+@app.get("/search", response_model=SearchResponse)
+async def get_search(
+    q: str = Query("", description="Filename substring (case-insensitive)"),
+    limit: int = Query(DEFAULT_LIMIT, ge=1, le=MAX_LIMIT),
+):
+    """Classic filename search — no Ollama required (#42)."""
+    hits = search_filenames(q, limit=limit)
+    return SearchResponse(
+        query=q.strip(),
+        count=len(hits),
+        results=[SearchHit(**hit) for hit in hits],
+    )

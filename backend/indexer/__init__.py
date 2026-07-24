@@ -6,6 +6,7 @@ from indexer.metadata import (
     vacuum_index,
 )
 from indexer.scan import iter_files
+from indexer.search import search_filenames
 
 __all__ = [
     "delete_root",
@@ -14,6 +15,7 @@ __all__ = [
     "iter_files",
     "replace_root_files",
     "scan_and_save",
+    "search_filenames",
     "vacuum_index",
 ]
 

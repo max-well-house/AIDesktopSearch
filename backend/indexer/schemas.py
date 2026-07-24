@@ -1,4 +1,4 @@
-"""Pydantic models for index status / scan / roots (#40, #41)."""
+"""Pydantic models for index status / scan / roots / search (#40–#42)."""
 
 from pydantic import BaseModel, Field
 
@@ -38,3 +38,19 @@ class DeleteRootResponse(BaseModel):
     file_count: int
     root_count: int
     last_indexed_at: str | None = None
+
+
+class SearchHit(BaseModel):
+    id: int
+    path: str
+    name: str
+    extension: str | None = None
+    size: int | None = None
+    mtime: float | None = None
+    root_id: int | None = None
+
+
+class SearchResponse(BaseModel):
+    query: str
+    count: int
+    results: list[SearchHit] = Field(default_factory=list)

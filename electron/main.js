@@ -6,6 +6,7 @@ const {
   fetchIndexStatus,
   postIndexScan,
   deleteIndexRoot,
+  fetchSearch,
   ensureBackend,
   stopBackend,
 } = require('./backendProcess')
@@ -39,6 +40,14 @@ ipcMain.handle('api:index-root-delete', async (_event, rootId) => {
     return { ok: false, error: 'Valid root id required', url: null }
   }
   return deleteIndexRoot(id)
+})
+ipcMain.handle('api:search', async (_event, query, limit) => {
+  const q = query == null ? '' : String(query)
+  const capped = limit == null ? 50 : Number(limit)
+  if (!Number.isFinite(capped) || capped < 1) {
+    return { ok: false, error: 'Valid limit required', url: null }
+  }
+  return fetchSearch(q, Math.min(Math.floor(capped), 200))
 })
 ipcMain.handle('dialog:pick-folder', async () => {
   const result = await dialog.showOpenDialog(mainWindow ?? undefined, {

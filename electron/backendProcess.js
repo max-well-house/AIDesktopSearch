@@ -9,6 +9,7 @@ const HEALTH_URL = `http://${HOST}:${PORT}/health`
 const INDEX_STATUS_URL = `http://${HOST}:${PORT}/index/status`
 const INDEX_SCAN_URL = `http://${HOST}:${PORT}/index/scan`
 const INDEX_ROOTS_URL = `http://${HOST}:${PORT}/index/roots`
+const SEARCH_URL = `http://${HOST}:${PORT}/search`
 const SPAWN_TIMEOUT_MS = 15000
 const POLL_INTERVAL_MS = 250
 // /health may wait ~2s for an Ollama probe; keep headroom above that.
@@ -68,6 +69,13 @@ async function deleteIndexRoot(rootId, timeoutMs = 10000) {
     { method: 'DELETE' },
     timeoutMs,
   )
+}
+
+async function fetchSearch(query, limit = 50, timeoutMs = 5000) {
+  const params = new URLSearchParams()
+  params.set('q', query == null ? '' : String(query))
+  if (limit != null) params.set('limit', String(limit))
+  return fetchJson(`${SEARCH_URL}?${params.toString()}`, {}, timeoutMs)
 }
 
 /** @type {{ mode: 'idle' | 'attached' | 'owned' | 'missing' | 'failed', child: import('node:child_process').ChildProcess | null, error: string | null }} */
@@ -295,6 +303,7 @@ module.exports = {
   fetchIndexStatus,
   postIndexScan,
   deleteIndexRoot,
+  fetchSearch,
   ensureBackend,
   stopBackend,
   getBackendState,

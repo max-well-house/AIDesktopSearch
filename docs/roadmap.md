@@ -107,8 +107,9 @@ Done so far:
 - Save metadata (#41) — `POST /index/scan` upsert/replace; Footer **Indexed** count + System Status scan
 - Opt-in folder corpus (#40) — System Status add / rescan / remove roots; persists in SQLite; no whole-disk default
 - Test corpus generator (#113)
+- Classic filename search (#42) — `GET /search?q=` against `files.name` (IPC ready; launcher results UI → #43)
 
-Still open: #42–#46 search/results/ignores, #47 schema docs, #98 hybrid stub
+Still open: #43–#46 results/open/ignores, #47 schema docs, #98 hybrid stub
 
 ---
 
