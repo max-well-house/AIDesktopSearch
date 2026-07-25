@@ -52,6 +52,11 @@ One row per indexed file under a root (#41 / #42).
 - `file_count` / `root_count` — row counts
 - `last_indexed_at` — `MAX(files.indexed_at)` (feeds Footer **Indexed** date, #115)
 - Per-root `file_count` and `last_scan_at` — System Status only
+- Live watching (#48–#52): `watching`, `watched_roots`, `queue_depth`, `watch_paused` (from the in-process watcher — not DB columns)
+
+## Incremental updates (v0.4)
+
+Create / modify / delete / rename under a watched root update `files` rows via `upsert_file` / `delete_file` / `rename_file` (and prefix helpers for directory moves). No watcher cursor tables — events are applied live; cold start reconciles with a full rescan per root before watching resumes.
 
 ## Explicitly not in schema (yet)
 

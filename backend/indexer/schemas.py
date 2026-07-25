@@ -15,6 +15,18 @@ class IndexStatusResponse(BaseModel):
     root_count: int
     last_indexed_at: str | None = None
     roots: list[RootStatus] = Field(default_factory=list)
+    # Live watching (#48–#52)
+    watching: bool = False
+    watched_roots: int = 0
+    queue_depth: int = 0
+    watch_paused: bool = False
+
+
+class WatchControlResponse(BaseModel):
+    watching: bool
+    watched_roots: int
+    queue_depth: int
+    paused: bool
 
 
 class ScanRequest(BaseModel):

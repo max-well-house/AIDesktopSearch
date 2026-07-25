@@ -141,6 +141,178 @@ def replace_root_files(
     return upserted, removed
 
 
+def _abs_path_str(path: Path | str) -> str:
+    """Absolute path string; works for deleted paths when parents still exist."""
+    p = Path(path)
+    try:
+        return str(p.resolve())
+    except OSError:
+        return str(p)
+
+
+def _path_under_prefix(path_str: str, prefix: str) -> bool:
+    """True if path_str is prefix or a child (either OS separator)."""
+    if path_str == prefix:
+        return True
+    sep = "\\" if "\\" in prefix or (len(prefix) >= 2 and prefix[1] == ":") else "/"
+    # Accept both separators for robustness.
+    return (
+        path_str.startswith(prefix + "\\")
+        or path_str.startswith(prefix + "/")
+        or path_str.startswith(prefix + sep)
+    )
+
+
+def delete_file(path: Path | str) -> int:
+    """Remove one file row by absolute path. Returns rows deleted."""
+    path_str = _abs_path_str(path)
+    with connect() as conn:
+        cur = conn.execute("DELETE FROM files WHERE path = ?", (path_str,))
+        conn.commit()
+        return int(cur.rowcount or 0)
+
+
+def delete_files_under_prefix(root_id: int, dir_path: Path | str) -> int:
+    """Delete all file rows under a directory prefix for a root (dir delete/move)."""
+    prefix = _abs_path_str(dir_path).rstrip("\\/")
+    with connect() as conn:
+        rows = conn.execute(
+            "SELECT id, path FROM files WHERE root_id = ?",
+            (root_id,),
+        ).fetchall()
+        ids = [int(r["id"]) for r in rows if _path_under_prefix(r["path"], prefix)]
+        if not ids:
+            return 0
+        placeholders = ",".join("?" * len(ids))
+        cur = conn.execute(
+            f"DELETE FROM files WHERE id IN ({placeholders})",
+            ids,
+        )
+        conn.commit()
+        return int(cur.rowcount or 0)
+
+
+def rename_file(old_path: Path | str, new_path: Path | str, *, root_id: int) -> None:
+    """Update path/name for a rename, or delete+upsert if UNIQUE conflicts."""
+    old_str = _abs_path_str(old_path)
+    new_resolved = Path(new_path)
+    try:
+        new_resolved = new_resolved.resolve()
+    except OSError:
+        pass
+    new_str = str(new_resolved)
+
+    when = _utc_now()
+    name = new_resolved.name
+    extension = new_resolved.suffix.lstrip(".").lower() or None
+    size: int | None = None
+    mtime: float | None = None
+    if new_resolved.is_file():
+        try:
+            st = new_resolved.stat()
+            size = int(st.st_size)
+            mtime = float(st.st_mtime)
+        except OSError:
+            pass
+
+    with connect() as conn:
+        existing_new = conn.execute(
+            "SELECT id FROM files WHERE path = ?", (new_str,)
+        ).fetchone()
+        if existing_new and old_str != new_str:
+            conn.execute("DELETE FROM files WHERE path = ?", (old_str,))
+            conn.execute(
+                """
+                UPDATE files SET
+                    root_id = ?,
+                    name = ?,
+                    extension = ?,
+                    size = COALESCE(?, size),
+                    mtime = COALESCE(?, mtime),
+                    indexed_at = ?
+                WHERE path = ?
+                """,
+                (root_id, name, extension, size, mtime, when, new_str),
+            )
+        else:
+            cur = conn.execute(
+                """
+                UPDATE files SET
+                    root_id = ?,
+                    path = ?,
+                    name = ?,
+                    extension = ?,
+                    size = COALESCE(?, size),
+                    mtime = COALESCE(?, mtime),
+                    indexed_at = ?
+                WHERE path = ?
+                """,
+                (root_id, new_str, name, extension, size, mtime, when, old_str),
+            )
+            if int(cur.rowcount or 0) == 0 and new_resolved.is_file():
+                conn.execute(
+                    """
+                    INSERT INTO files (root_id, path, name, extension, size, mtime, indexed_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(path) DO UPDATE SET
+                        root_id = excluded.root_id,
+                        name = excluded.name,
+                        extension = excluded.extension,
+                        size = excluded.size,
+                        mtime = excluded.mtime,
+                        indexed_at = excluded.indexed_at
+                    """,
+                    (
+                        root_id,
+                        new_str,
+                        name,
+                        extension,
+                        size or 0,
+                        mtime or 0.0,
+                        when,
+                    ),
+                )
+        conn.commit()
+
+
+def rename_files_under_prefix(
+    root_id: int, old_dir: Path | str, new_dir: Path | str
+) -> int:
+    """Rewrite path prefixes when a directory is moved. Returns rows updated."""
+    old_prefix = _abs_path_str(old_dir).rstrip("\\/")
+    new_prefix = _abs_path_str(new_dir).rstrip("\\/")
+    when = _utc_now()
+    with connect() as conn:
+        rows = conn.execute(
+            "SELECT id, path FROM files WHERE root_id = ?",
+            (root_id,),
+        ).fetchall()
+        updated = 0
+        for row in rows:
+            old_file = row["path"]
+            if not _path_under_prefix(old_file, old_prefix):
+                continue
+            suffix = old_file[len(old_prefix) :]
+            new_file = new_prefix + suffix
+            new_name = Path(new_file).name
+            extension = Path(new_file).suffix.lstrip(".").lower() or None
+            # Drop colliding destination rows first.
+            conn.execute(
+                "DELETE FROM files WHERE path = ? AND id != ?",
+                (new_file, row["id"]),
+            )
+            conn.execute(
+                """
+                UPDATE files SET path = ?, name = ?, extension = ?, indexed_at = ?
+                WHERE id = ?
+                """,
+                (new_file, new_name, extension, when, row["id"]),
+            )
+            updated += 1
+        conn.commit()
+        return updated
+
+
 def vacuum_index() -> None:
     """Rewrite the DB file to reclaim free pages after deletes (#40).
 

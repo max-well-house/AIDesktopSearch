@@ -170,8 +170,8 @@ July 2026
 
 ## Rules for Phase 4
 
-1. Research only until v0.4 ? no watching in v0.3 implementation work.
-2. Pipeline: event ? filter ? queue ? debounce/batch ? index worker ? SQLite (never one index job per raw event).
+1. ~~Research only until v0.4~~ — implemented in `backend/indexer/watch.py` (#48–#52).
+2. Pipeline: event → filter → queue → debounce/batch → index worker → SQLite (never one index job per raw event).
 3. Start watching a root only after its initial index pass finishes; on cold start, reconcile then watch.
 4. React never watches the filesystem.
 

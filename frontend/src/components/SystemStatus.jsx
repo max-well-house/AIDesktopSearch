@@ -254,9 +254,23 @@ export default function SystemStatus({ onBack }) {
             </Typography>
           )}
 
+          {indexStatus?.watched_roots > 0 ? (
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+              {indexStatus.watch_paused
+                ? 'Live watching paused'
+                : indexStatus.watching
+                  ? `Live watching ${indexStatus.watched_roots} folder${indexStatus.watched_roots === 1 ? '' : 's'}`
+                  : `Watchers attached (${indexStatus.watched_roots})`}
+              {indexStatus.queue_depth > 0
+                ? ` · ${indexStatus.queue_depth} pending`
+                : ''}
+            </Typography>
+          ) : null}
+
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
             Only folders you add are indexed. Whole-PC / whole-disk crawling is out
-            of scope for defaults.
+            of scope for defaults. New, deleted, and renamed files in those folders
+            update the index automatically.
           </Typography>
 
           <Typography

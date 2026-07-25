@@ -10,6 +10,8 @@ import Footer from './Footer'
 import { colors } from '../../theme'
 
 const SEARCH_DEBOUNCE_MS = 200
+/** Light status poll while a query is open — refresh hits when the index fingerprint changes (v0.4). */
+const INDEX_POLL_MS = 1500
 
 /** Footer Indexed value: `N files` or `N files (7/23/2026)` when last_indexed_at is known (#115). */
 function formatIndexedLabel(count, lastIndexedAt) {
@@ -24,12 +26,21 @@ function formatIndexedLabel(count, lastIndexedAt) {
   return `${files} (${date.toLocaleDateString()})`
 }
 
+/** Cheap signal that SQLite changed — not a hot search loop (#52-friendly). */
+function indexFingerprint(data) {
+  if (!data) return ''
+  return `${data.file_count ?? 0}|${data.last_indexed_at ?? ''}|${data.queue_depth ?? 0}`
+}
+
 /**
  * Permanent launcher shell. Structure is stable for v1:
  * Search → (Mosaic idle | Results slot) → Footer.
  */
 export default function LauncherWindow() {
   const inputRef = useRef(null)
+  const hitsRef = useRef([])
+  const selectedIndexRef = useRef(0)
+  const indexFpRef = useRef('')
   const [query, setQuery] = useState('')
   const [searchKey, setSearchKey] = useState(0)
   const [indexedLabel, setIndexedLabel] = useState('—')
@@ -39,15 +50,52 @@ export default function LauncherWindow() {
   const [openError, setOpenError] = useState(null)
   const isIdle = query.trim().length === 0
 
+  hitsRef.current = hits
+  selectedIndexRef.current = selectedIndex
+
+  function applyIndexStatus(data) {
+    if (!data) return
+    const count = data.file_count ?? 0
+    const lastIndexedAt = data.last_indexed_at ?? null
+    setIndexedLabel(formatIndexedLabel(count, lastIndexedAt))
+    indexFpRef.current = indexFingerprint(data)
+  }
+
+  async function runSearch(q, { resetSelection, isCancelled } = {}) {
+    if (!window.api?.search) {
+      if (isCancelled?.()) return
+      setHits([])
+      setStatus('error')
+      return
+    }
+    const result = await window.api.search(q)
+    if (isCancelled?.()) return
+    if (!result.ok) {
+      setHits([])
+      setStatus('error')
+      setSelectedIndex(0)
+      return
+    }
+    const next = result.data?.results ?? []
+    if (resetSelection) {
+      setHits(next)
+      setSelectedIndex(0)
+    } else {
+      const prevPath = hitsRef.current[selectedIndexRef.current]?.path
+      const keep = prevPath ? next.findIndex((h) => h.path === prevPath) : -1
+      setHits(next)
+      setSelectedIndex(keep >= 0 ? keep : 0)
+    }
+    setStatus('ready')
+  }
+
   useEffect(() => {
     let cancelled = false
     async function loadIndexStatus() {
       if (!window.api?.getIndexStatus) return
       const result = await window.api.getIndexStatus()
       if (cancelled || !result.ok) return
-      const count = result.data?.file_count ?? 0
-      const lastIndexedAt = result.data?.last_indexed_at ?? null
-      setIndexedLabel(formatIndexedLabel(count, lastIndexedAt))
+      applyIndexStatus(result.data)
     }
     void loadIndexStatus()
     return () => {
@@ -70,30 +118,43 @@ export default function LauncherWindow() {
     setStatus((prev) => (prev === 'ready' ? prev : 'loading'))
 
     const timer = setTimeout(async () => {
-      if (!window.api?.search) {
-        if (!cancelled) {
-          setHits([])
-          setStatus('error')
-        }
-        return
-      }
-      const result = await window.api.search(q)
-      if (cancelled) return
-      if (!result.ok) {
-        setHits([])
-        setStatus('error')
-        setSelectedIndex(0)
-        return
-      }
-      const next = result.data?.results ?? []
-      setHits(next)
-      setStatus('ready')
-      setSelectedIndex(0)
+      await runSearch(q, {
+        resetSelection: true,
+        isCancelled: () => cancelled,
+      })
     }, SEARCH_DEBOUNCE_MS)
 
     return () => {
       cancelled = true
       clearTimeout(timer)
+    }
+  }, [query])
+
+  // While a query is open, poll index status lightly; re-search only when fingerprint changes.
+  // Does not fight #52: watcher stays debounced; UI only re-queries after SQLite actually moved.
+  useEffect(() => {
+    const q = query.trim()
+    if (!q || !window.api?.getIndexStatus) return undefined
+
+    let cancelled = false
+    const tick = async () => {
+      const statusResult = await window.api.getIndexStatus()
+      if (cancelled || !statusResult.ok) return
+      const nextFp = indexFingerprint(statusResult.data)
+      if (nextFp === indexFpRef.current) return
+      applyIndexStatus(statusResult.data)
+      await runSearch(q, {
+        resetSelection: false,
+        isCancelled: () => cancelled,
+      })
+    }
+
+    const id = setInterval(() => {
+      void tick()
+    }, INDEX_POLL_MS)
+    return () => {
+      cancelled = true
+      clearInterval(id)
     }
   }, [query])
 

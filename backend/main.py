@@ -15,18 +15,42 @@ from indexer.schemas import (
     ScanResponse,
     SearchHit,
     SearchResponse,
+    WatchControlResponse,
 )
 from indexer.search import DEFAULT_LIMIT, MAX_LIMIT
+from indexer.watch import get_watch_manager
 from search import execute_search
 
-APP_VERSION = "0.0.3"
+APP_VERSION = "0.0.4"
+
+
+def _reconcile_and_watch_all() -> None:
+    """Startup: rescan each root (catch offline changes), then start watchers."""
+    status = index_status()
+    manager = get_watch_manager()
+    manager.start()
+    for root in status.get("roots") or []:
+        path = root.get("path")
+        root_id = root.get("id")
+        if not path or root_id is None:
+            continue
+        try:
+            scan_and_save(path)
+        except (FileNotFoundError, NotADirectoryError, OSError):
+            # Root missing (e.g. unplugged drive) — skip watch until rescan.
+            continue
+        manager.watch_root(int(root_id), path)
 
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     # Create data/index.db + schema foundation on every process start (#39).
     init_db()
-    yield
+    _reconcile_and_watch_all()
+    try:
+        yield
+    finally:
+        get_watch_manager().stop()
 
 
 app = FastAPI(title="AI Desktop Search API", version=APP_VERSION, lifespan=lifespan)
@@ -34,6 +58,16 @@ app = FastAPI(title="AI Desktop Search API", version=APP_VERSION, lifespan=lifes
 
 def _utc_timestamp() -> str:
     return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+def _status_with_watch() -> dict:
+    payload = index_status()
+    watch = get_watch_manager().status()
+    payload["watching"] = watch["watching"]
+    payload["watched_roots"] = watch["watched_roots"]
+    payload["queue_depth"] = watch["queue_depth"]
+    payload["watch_paused"] = watch["paused"]
+    return payload
 
 
 async def _health_payload() -> HealthResponse:
@@ -67,7 +101,7 @@ async def root():
 @app.get("/index/status", response_model=IndexStatusResponse)
 async def get_index_status():
     """How many files/roots are in SQLite — for Footer + System Status (#41)."""
-    return IndexStatusResponse(**index_status())
+    return IndexStatusResponse(**_status_with_watch())
 
 
 @app.post("/index/scan", response_model=ScanResponse)
@@ -76,6 +110,7 @@ async def post_index_scan(body: ScanRequest):
     Walk a user-selected folder and persist file metadata (#40 / #41).
 
     Only the given path is scanned — never a silent whole-disk crawl.
+    Starts live watching for the root after a successful scan (#48–#52).
     """
     try:
         result = scan_and_save(body.path)
@@ -85,16 +120,35 @@ async def post_index_scan(body: ScanRequest):
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except OSError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    get_watch_manager().watch_root(result["root_id"], result["root_path"])
     return ScanResponse(**result)
 
 
 @app.delete("/index/roots/{root_id}", response_model=DeleteRootResponse)
 async def delete_index_root(root_id: int):
     """Remove an indexed folder root and its file rows (#40)."""
+    get_watch_manager().unwatch_root(root_id)
     result = delete_root(root_id)
     if result is None:
         raise HTTPException(status_code=404, detail=f"Root {root_id} not found")
     return DeleteRootResponse(**result)
+
+
+@app.post("/index/watch/pause", response_model=WatchControlResponse)
+async def pause_watch():
+    """Pause live index updates without freezing the API (#52 / Decision #003)."""
+    manager = get_watch_manager()
+    manager.pause()
+    return WatchControlResponse(**manager.status())
+
+
+@app.post("/index/watch/resume", response_model=WatchControlResponse)
+async def resume_watch():
+    """Resume draining the watcher queue after pause."""
+    manager = get_watch_manager()
+    manager.resume()
+    return WatchControlResponse(**manager.status())
 
 
 @app.get("/search", response_model=SearchResponse)

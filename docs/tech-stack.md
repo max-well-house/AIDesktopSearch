@@ -104,13 +104,15 @@ In repo now (#39):
 
 ---
 
-## watchdog (planned — v0.4.0)
+## watchdog (v0.4.0)
 
 Why?
 
 Cross-platform filesystem events inside the Python indexer (Decision #005). Keeps ignore rules, queue, and SQLite updates in FastAPI — Electron stays the shell.
 
-Not installed yet. Research: `docs/research-filesystem-watchers.md`. Chokidar is the documented alternate; polling is startup/fallback only.
+Installed via `backend/requirements.txt` (`watchdog`). Implementation: `backend/indexer/watch.py` (#48–#52). Chokidar is the documented alternate; polling is startup reconcile / fallback only.
+
+Research: `docs/research-filesystem-watchers.md`.
 
 ---
 

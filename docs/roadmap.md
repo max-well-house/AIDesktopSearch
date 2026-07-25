@@ -125,7 +125,7 @@ Done so far (continued):
 
 Live File Watching
 
-Auto-update index via Python `watchdog` in FastAPI (Decision #005): event → queue → debounce/batch → SQLite. Chokidar = alternate; polling = startup/fallback.
+**Shipped (#48–#52):** Auto-update index via Python `watchdog` in FastAPI (Decision #005): event → filter → queue → debounce/batch → SQLite. Opt-in roots only; same ignore rules as scan. Pause/resume via `/index/watch/pause|resume`. Chokidar = alternate; startup reconcile = cold-start catch-up.
 
 ---
 

@@ -3,7 +3,7 @@
 **Date:** 2026-07-23  
 **Milestone:** Research lived in **v0.3.0** (File Indexer); **implementation is v0.4.0** (Live File Watching).  
 **Decision:** [#005](./decisions.md) — Python `watchdog` in FastAPI.  
-**Status:** Complete (research only — nothing watches files yet).
+**Status:** Implemented in v0.4.0 (`backend/indexer/watch.py`, #48–#52).
 
 ---
 

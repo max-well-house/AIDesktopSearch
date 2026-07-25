@@ -7,10 +7,12 @@ from indexer.metadata import (
 )
 from indexer.scan import iter_files
 from indexer.search import search_filenames
+from indexer.watch import get_watch_manager
 
 __all__ = [
     "delete_root",
     "ensure_root",
+    "get_watch_manager",
     "index_status",
     "iter_files",
     "replace_root_files",

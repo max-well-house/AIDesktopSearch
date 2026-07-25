@@ -177,31 +177,33 @@ AIDesktopSearch/
 
 **Window size (#36):** Session-only. Esc / Alt+Space / tray hide keep the live window size; tray Quit (cold start) resets to 720×480 (min 480×360). No cross-session file.
 
-**Later:** indexer / search (v0.3.0+), live watching (v0.4.0, Decision #005), GPU detection beyond stub (#112), freeze Python into installer (#111).
+**Later:** GPU detection beyond stub (#112), freeze Python into installer (#111).
 
 ---
 
-## Live file watching (planned — v0.4.0, Decision #005)
+## Live file watching (v0.4.0 — Decision #005)
 
-Research complete (#38). **No watcher runs yet.** Implementation belongs to Phase 4 after the v0.3 filename indexer exists.
+Implemented in `backend/indexer/watch.py` (Python `watchdog` inside FastAPI).
 
 ```
 Filesystem (opt-in roots only)
        │
        v
 FastAPI + watchdog
-  filter (denylist / hidden / temp)
+  filter (denylist / hidden / temp; refuse paths outside root)
   → queue → debounce / batch
   → index worker → SQLite
        │
        v
-Electron (IPC gatekeeper) → React (status / progress only)
+Electron (IPC gatekeeper) → React (System Status / progress only)
 ```
 
-- **Primary:** Python `watchdog` inside FastAPI (same process as the indexer).
-- **Alternate:** Chokidar in Electron (documented only; not preferred).
-- **Fallback:** polling / mtime reconciliation on startup and if native watching fails.
-- Do not watch a root until its initial index finishes; coalesce storms (editor saves, git checkout).
+- **Primary:** Python `watchdog` in the same process as the indexer (#48–#52).
+- **Security boundary:** same as scan — only user-opted-in `roots`; metadata only (path/name/size/mtime); symlink escape blocked via `resolve()` + `relative_to(root)`.
+- **Lifecycle:** startup reconciles each root (full rescan) then watches; `POST /index/scan` starts/refreshes a watch; `DELETE /index/roots/{id}` stops it first.
+- **Control:** `POST /index/watch/pause` / `resume`; `GET /index/status` includes `watching`, `watched_roots`, `queue_depth`, `watch_paused`.
+- **Alternate / fallback:** Chokidar documented only; polling = startup reconcile (and if native watching fails later).
+- React never watches the filesystem.
 
 Details: [research-filesystem-watchers.md](./research-filesystem-watchers.md).
 
@@ -284,7 +286,7 @@ Launcher Footer **Indexed** shows file count plus a short locale date from `last
 
 ### Scan ignore rules (#45 / #46)
 
-`backend/indexer/ignore.py` is the single source of truth (scanner today; watcher later — Decision #005).
+`backend/indexer/ignore.py` is the single source of truth for the scanner and the live watcher (Decision #005).
 
 | Rule | Default behavior |
 |------|------------------|
@@ -293,7 +295,7 @@ Launcher Footer **Indexed** shows file count plus a short locale date from `last
 | Extending | Add names to `DEFAULT_SKIP_DIR_NAMES`, or pass `extra_skip_dirs=` into `iter_files` for one scan. |
 | Opted-in root | The user-chosen root itself is never skipped by name; only its children are filtered. |
 
-`watchdog` (planned — v0.4.0 live watching; Decision #005)
+`watchdog` (v0.4.0 live watching; Decision #005 — `backend/indexer/watch.py`)
 
 Ollama (optional; detected via `/health`, never required for classic path)
 
