@@ -135,10 +135,9 @@ PDF Reading
 
 Search inside PDFs
 
-Done so far:
-- Research PDF libraries (#53) → Decision #006 + `docs/research-pdf-libraries.md` (feeds #54–#57; does not implement extract)
+**Shipped (#53–#57):** Decision #006 + PyMuPDF extract → `file_content` / FTS5 → classic search merges filename + PDF body; launcher shows matching page. Open remains `shell.openPath` (no viewer page jump).
 
-Still open: #54 Read PDF text · #55 Save text to database · #56 Search inside PDFs · #57 Highlight matching pages · #58 Faster parsing
+Still open: #58 Faster parsing
 
 ---
 

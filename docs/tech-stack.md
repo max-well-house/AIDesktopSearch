@@ -116,13 +116,13 @@ Research: `docs/research-filesystem-watchers.md`.
 
 ---
 
-## PyMuPDF (planned v0.5.0)
+## PyMuPDF (v0.5.0)
 
 Why?
 
 Fast per-page PDF text extract in the Python indexer (Decision #006). Classic content search and page hints (#54–#57) without Ollama.
 
-Not installed yet — lands with #54 (`pymupdf` in `backend/requirements.txt`). AGPL (or commercial) called out in research; acceptable for this local open project; revisit if packaging/distribution (#111) requires a permissive alternate (pypdf).
+Installed via `backend/requirements.txt` (`pymupdf`). Implementation: `backend/indexer/pdf_extract.py` + `content.py`; FTS in SQLite (`file_pages_fts`). AGPL (or commercial) called out in research; acceptable for this local open project; revisit if packaging/distribution (#111) requires a permissive alternate (pypdf).
 
 Research: `docs/research-pdf-libraries.md`.
 

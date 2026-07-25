@@ -28,7 +28,7 @@ def classify_query(query: str) -> SearchMode:
 
 
 def run_classic(query: str, *, limit: int = DEFAULT_LIMIT) -> list[dict]:
-    """Filename / keyword path — live for v0.3."""
+    """Filename + PDF content keyword path (#42 / #56)."""
     return search_filenames(query, limit=limit)
 
 

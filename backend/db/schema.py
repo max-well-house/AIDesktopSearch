@@ -1,10 +1,9 @@
-"""SQLite schema foundation for file metadata (#39).
+"""SQLite schema for file metadata + PDF content FTS (#39 / #54–#55).
 
-Keep this minimal: enough for #41 (save metadata) and #42 (filename search)
-without inventing content/embedding tables yet. Human write-up: docs/schema.md (#47).
+Human write-up: docs/schema.md (#47).
 """
 
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
 SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS roots (
@@ -27,4 +26,27 @@ CREATE TABLE IF NOT EXISTS files (
 
 CREATE INDEX IF NOT EXISTS idx_files_name ON files(name COLLATE NOCASE);
 CREATE INDEX IF NOT EXISTS idx_files_root_id ON files(root_id);
+
+CREATE TABLE IF NOT EXISTS file_content (
+    file_id INTEGER PRIMARY KEY REFERENCES files(id) ON DELETE CASCADE,
+    parser TEXT NOT NULL,
+    parser_version TEXT,
+    page_count INTEGER,
+    mtime_at_parse REAL,
+    status TEXT NOT NULL,
+    warning TEXT,
+    parsed_at TEXT NOT NULL
+);
+
+CREATE VIRTUAL TABLE IF NOT EXISTS file_pages_fts USING fts5(
+    text,
+    file_id UNINDEXED,
+    page UNINDEXED
+);
+
+CREATE TRIGGER IF NOT EXISTS files_ad_pages_fts
+AFTER DELETE ON files
+BEGIN
+    DELETE FROM file_pages_fts WHERE file_id = old.id;
+END;
 """

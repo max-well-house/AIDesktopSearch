@@ -274,3 +274,22 @@ Next:
 2. #55 Save text / FTS schema
 3. #56–#57 Search inside PDFs + page hints
 
+## 2026-07-24 — PDF content search (#54–#57)
+
+Goal:
+Ship Phase 5 vertical slice: extract → store → search → page caption.
+
+What I did:
+- Schema v2: `file_content` + `file_pages_fts` + delete trigger
+- `pymupdf` extract with soft-fail / size+page caps; sync on scan/watch upsert/rename
+- Classic search merges filename LIKE + FTS; one hit per file with `page` / `match`
+- Launcher `ResultsList` shows Page N; open still `shell.openPath`
+
+What I learned:
+- Per-page FTS from day one avoids a redesign for #57
+- True open-to-page is viewer-specific on Windows — surface page instead
+
+Next:
+1. #58 Faster parsing (or defer) then close v0.5.0 milestone
+2. Start v0.6 document types when ready
+

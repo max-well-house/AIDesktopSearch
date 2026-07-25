@@ -60,6 +60,8 @@ class SearchHit(BaseModel):
     size: int | None = None
     mtime: float | None = None
     root_id: int | None = None
+    page: int | None = None
+    match: str = "filename"
 
 
 class SearchResponse(BaseModel):

@@ -3,7 +3,8 @@
 **Date:** 2026-07-24  
 **Milestone:** Research inside **v0.5.0** (PDF Reading); **implementation is #54–#57**.  
 **Decision:** [#006](./decisions.md) — PyMuPDF in FastAPI; thin per-page extract contract.  
-**Status:** Research complete; extract/FTS code not shipped here.
+**Status:** Implemented in v0.5.0 (`pdf_extract.py`, `content.py`, FTS search, #54–#57). #58 faster parsing still open.
+
 
 ---
 

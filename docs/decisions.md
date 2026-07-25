@@ -214,7 +214,7 @@ July 2026
 
 ## Rules for Phase 5
 
-1. Research only until #53 closes; implement extract in #54+.
+1. ~~Research only until #53 closes~~ — implemented extract/search in #54–#57.
 2. All PDF parsing in Python / FastAPI — never Electron / PDF.js.
 3. Prefer per-page text so #57 does not require a redesign.
 4. Soft-fail scanned / empty / encrypted / corrupt PDFs (warning or empty content); do not block the index worker. OCR is not on the default path (v0.9).

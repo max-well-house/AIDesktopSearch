@@ -278,7 +278,8 @@ Python
 
 FastAPI (`GET /health` capability endpoint live; Electron attaches or spawns from `.venv`)
 
-SQLite (`data/index.db` — created on API startup; #39). Table/field reference: [schema.md](./schema.md) (#47).
+SQLite (`data/index.db` — created on API startup; #39). Table/field reference: [schema.md](./schema.md) (#47). `PRAGMA user_version = 2` adds PDF `file_content` + `file_pages_fts` (#55).
+
 
 Opt-in corpus roots only (#40): the user adds folders via System Status; `DELETE /index/roots/{id}` removes a root, cascades file rows, and runs `VACUUM` (light reclaim of free pages — not forensic wipe; see #114). Whole-PC / whole-disk indexing is out of scope for defaults (Decision #003).
 
@@ -299,18 +300,24 @@ Launcher Footer **Indexed** shows file count plus a short locale date from `last
 
 ### PDF content (v0.5.0 — Decision #006)
 
-Planned flow (research done in #53; implement #54–#57):
+**Shipped (#54–#57):**
 
 ```
-PDF → PyMuPDF extract (per page) → SQLite content + FTS → classic search hit (+ page)
+PDF → PyMuPDF extract (per page) → file_content + file_pages_fts → classic search hit (+ page)
 ```
 
-- Parsing stays in FastAPI; Electron never extracts PDF text.
-- Soft-fail empty / scanned / encrypted / corrupt files; OCR deferred to v0.9.
-- Re-parse on scan/watch modify via existing indexer ownership + `files.mtime`.
-- **Not in v0.5:** embeddings/chunking (v0.7), multi-format parser registry (v0.6), tables specialty path, LangChain/Unstructured.
+| Piece | Location |
+|-------|----------|
+| Extract | `backend/indexer/pdf_extract.py` |
+| Persist / re-parse | `backend/indexer/content.py` (hooked from `metadata` upsert/rename + bulk scan) |
+| Search merge | `backend/indexer/search.py` — filename LIKE ∪ FTS5; one hit per file |
+| UI | `ResultsList` shows `Page N` when `hit.page` set; Enter still `shell.openPath` (no viewer page jump) |
 
-Details: [research-pdf-libraries.md](./research-pdf-libraries.md).
+- Soft-fail empty / scanned / encrypted / corrupt / oversize; OCR deferred to v0.9.
+- Re-parse when `files.mtime` ≠ `file_content.mtime_at_parse`.
+- **Still not in v0.5:** embeddings/chunking (v0.7), multi-format parsers (v0.6), #58 faster parsing.
+
+Details: [research-pdf-libraries.md](./research-pdf-libraries.md). Schema: [schema.md](./schema.md).
 
 Ollama (optional; detected via `/health`, never required for classic path)
 

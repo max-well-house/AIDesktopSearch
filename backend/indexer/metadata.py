@@ -36,7 +36,7 @@ def upsert_file(
     path: Path,
     indexed_at: str | None = None,
 ) -> None:
-    """Insert or replace one file row by absolute path."""
+    """Insert or replace one file row by absolute path; sync PDF content when applicable."""
     resolved = path.resolve()
     stat = resolved.stat()
     name = resolved.name
@@ -66,6 +66,10 @@ def upsert_file(
             ),
         )
         conn.commit()
+
+    from indexer.content import maybe_sync_path
+
+    maybe_sync_path(resolved)
 
 
 def replace_root_files(
@@ -137,6 +141,10 @@ def replace_root_files(
             (when, root_id),
         )
         conn.commit()
+
+    from indexer.content import sync_pdfs_for_root
+
+    sync_pdfs_for_root(root_id)
 
     return upserted, removed
 
@@ -274,6 +282,10 @@ def rename_file(old_path: Path | str, new_path: Path | str, *, root_id: int) -> 
                 )
         conn.commit()
 
+    from indexer.content import maybe_sync_path
+
+    maybe_sync_path(new_str)
+
 
 def rename_files_under_prefix(
     root_id: int, old_dir: Path | str, new_dir: Path | str
@@ -282,6 +294,7 @@ def rename_files_under_prefix(
     old_prefix = _abs_path_str(old_dir).rstrip("\\/")
     new_prefix = _abs_path_str(new_dir).rstrip("\\/")
     when = _utc_now()
+    touched: list[str] = []
     with connect() as conn:
         rows = conn.execute(
             "SELECT id, path FROM files WHERE root_id = ?",
@@ -308,9 +321,16 @@ def rename_files_under_prefix(
                 """,
                 (new_file, new_name, extension, when, row["id"]),
             )
+            touched.append(new_file)
             updated += 1
         conn.commit()
-        return updated
+
+    from indexer.content import maybe_sync_path
+
+    for path_str in touched:
+        maybe_sync_path(path_str)
+
+    return updated
 
 
 def vacuum_index() -> None:

@@ -78,6 +78,19 @@ export default function ResultsList({
             >
               {hit.path}
             </Typography>
+            {hit.page != null ? (
+              <Typography
+                variant="caption"
+                sx={{
+                  color: colors.accent,
+                  display: 'block',
+                  mt: 0.25,
+                  fontSize: '0.75rem',
+                }}
+              >
+                Page {hit.page}
+              </Typography>
+            ) : null}
           </Box>
         )
       })}
