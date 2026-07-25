@@ -185,3 +185,51 @@ Full comparison: [research-filesystem-watchers.md](./research-filesystem-watcher
 ## Status
 
 Accepted
+
+---
+
+# Decision #006
+
+## Choice
+
+Primary PDF text extractor: **PyMuPDF** (`pymupdf`) in FastAPI; thin per-page extract contract for v0.5 (not a multi-format parser platform)
+
+## Date
+
+July 2026
+
+## Why
+
+- Phase 5 needs reliable text + **per-page** extract so classic search and page hints (#54–#57) work without Ollama (Decision #002 / #003).
+- FastAPI already owns scan, ignore rules, watchdog, and SQLite (Decision #001 / #005) — PDF parsing belongs there, not in Electron.
+- PyMuPDF is fast enough for background indexing on the primary machine and ships Windows wheels suitable for a local sidecar.
+- A thin contract (path + per-page text + warnings / parser id) unblocks FTS without inventing chunkers, embeddings, or a `DocumentParser` registry before v0.6.
+- OCR, tables, LangChain/Unstructured, and cloud parsers fight local-first scope or belong in later milestones (v0.7 / v0.9).
+
+## Tradeoffs accepted
+
+- PyMuPDF is **AGPL** (or commercial). Acceptable for this local open project; revisit if distribution / commercial packaging (#111) requires a permissive stack (pypdf alternate documented in research).
+- Native binary dependency is heavier than pure-Python extractors.
+- Table-heavy documents may be weaker until a specialty path (e.g. pdfplumber) is justified later.
+
+## Rules for Phase 5
+
+1. Research only until #53 closes; implement extract in #54+.
+2. All PDF parsing in Python / FastAPI — never Electron / PDF.js.
+3. Prefer per-page text so #57 does not require a redesign.
+4. Soft-fail scanned / empty / encrypted / corrupt PDFs (warning or empty content); do not block the index worker. OCR is not on the default path (v0.9).
+5. No LangChain / Unstructured / Docling / MarkItDown as the core parser; no embeddings during parse (v0.7).
+6. Do not build a multi-format `DocumentParser` registry until v0.6 needs it.
+7. Content updates reuse scan / watch + `files.mtime` — extend the indexer; do not fork a second pipeline owner.
+
+## Revisit when
+
+- AGPL blocks a concrete packaging or distribution goal (#111)
+- PyMuPDF cannot meet accuracy or CPU goals on the primary machine after a real #54 spike
+- Product need for high-fidelity tables justifies a specialty secondary path
+
+Full comparison: [research-pdf-libraries.md](./research-pdf-libraries.md).
+
+## Status
+
+Accepted

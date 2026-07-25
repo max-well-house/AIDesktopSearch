@@ -297,6 +297,21 @@ Launcher Footer **Indexed** shows file count plus a short locale date from `last
 
 `watchdog` (v0.4.0 live watching; Decision #005 — `backend/indexer/watch.py`)
 
+### PDF content (v0.5.0 — Decision #006)
+
+Planned flow (research done in #53; implement #54–#57):
+
+```
+PDF → PyMuPDF extract (per page) → SQLite content + FTS → classic search hit (+ page)
+```
+
+- Parsing stays in FastAPI; Electron never extracts PDF text.
+- Soft-fail empty / scanned / encrypted / corrupt files; OCR deferred to v0.9.
+- Re-parse on scan/watch modify via existing indexer ownership + `files.mtime`.
+- **Not in v0.5:** embeddings/chunking (v0.7), multi-format parser registry (v0.6), tables specialty path, LangChain/Unstructured.
+
+Details: [research-pdf-libraries.md](./research-pdf-libraries.md).
+
 Ollama (optional; detected via `/health`, never required for classic path)
 
 Chroma (planned)

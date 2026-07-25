@@ -135,6 +135,11 @@ PDF Reading
 
 Search inside PDFs
 
+Done so far:
+- Research PDF libraries (#53) → Decision #006 + `docs/research-pdf-libraries.md` (feeds #54–#57; does not implement extract)
+
+Still open: #54 Read PDF text · #55 Save text to database · #56 Search inside PDFs · #57 Highlight matching pages · #58 Faster parsing
+
 ---
 
 # Version 0.6.0

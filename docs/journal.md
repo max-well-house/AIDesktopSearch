@@ -255,3 +255,22 @@ What I learned:
 Next:
 1. Start v0.4 live watching when ready
 
+## 2026-07-24 — PDF library research (#53)
+
+Goal:
+Compare PDF libraries for Phase 5; lock a recommendation before extract/FTS code.
+
+What I did:
+- Wrote `docs/research-pdf-libraries.md` (speed, accuracy, per-page, license, packaging)
+- Accepted Decision #006 — PyMuPDF in FastAPI; thin per-page contract; OCR/embeddings deferred
+- Synced roadmap, tech-stack, architecture, schema note, learning-notes
+
+What I learned:
+- Phase 5 should not design the forever multi-format ingestion platform; thin extract unblocks #54–#57
+- AGPL is a packaging-visible tradeoff; pypdf stays the documented alternate
+
+Next:
+1. #54 Read PDF text (`pymupdf` + soft-fail)
+2. #55 Save text / FTS schema
+3. #56–#57 Search inside PDFs + page hints
+

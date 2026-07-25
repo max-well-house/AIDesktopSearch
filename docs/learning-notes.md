@@ -106,3 +106,9 @@ What I learned: A hybrid *routing stub* (#98) is not hybrid *search*. Shipping n
 
 Why it matters: Prevents milestone scope creep (#69 stays v0.7) while still leaving a seam for later escalation.
 
+### 07/24/2026 — Thin PDF contract vs forever ingestion pipeline
+
+What I learned: Phase 5 needs a **thin** extract contract (per-page text + warnings), not a full `ParsedDocument` + chunker + embeddings pipeline. That richer shape is a fine north star for v0.6–v0.7; shipping it as the #53 decision would overbuild relative to classic FTS + page hits. PyMuPDF wins on speed and page APIs; **AGPL** must stay visible for packaging (#111) with pypdf as the documented permissive alternate.
+
+Why it matters: Decision #006 keeps #54–#57 on rails (FastAPI-only parse, soft-fail scanned PDFs, no LangChain core) without redesigning the indexer for OCR or semantic chunks yet.
+

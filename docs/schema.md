@@ -61,3 +61,5 @@ Create / modify / delete / rename under a watched root update `files` rows via `
 ## Explicitly not in schema (yet)
 
 Content blobs, chunks, embeddings, FTS, watcher cursors. Add tables when those milestones need them; bump `user_version` in `schema.py`.
+
+PDF / document **content + FTS** arrive with #55 (Decision #006 — PyMuPDF extract in #54 first). Still no content columns in `user_version = 1`.
