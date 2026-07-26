@@ -3,7 +3,7 @@
 **Date:** 2026-07-24  
 **Milestone:** Research inside **v0.5.0** (PDF Reading); **implementation is #54–#57**.  
 **Decision:** [#006](./decisions.md) — PyMuPDF in FastAPI; thin per-page extract contract.  
-**Status:** Implemented in v0.5.0 (`pdf_extract.py`, `content.py`, FTS search, #54–#57). #58 faster parsing still open.
+**Status:** Implemented in v0.5.0 (`pdf_extract.py`, `content.py`, FTS search, #54–#58).
 
 
 ---
@@ -175,8 +175,33 @@ Eventual north star (v0.6–v0.7+) can grow to File → Parser → normalized te
 
 ### Performance (#58)
 
-- Batching / measurable improvement notes after extract exists — not part of this research ticket
+Lean / resource-conscious pass (not multi-core max throughput — leave headroom for Ollama, Decision #003):
 
+| Change | Where |
+|--------|--------|
+| Batched FTS inserts (`executemany`) per file | `backend/indexer/content.py` |
+| Per-file extract wall budget (`MAX_PDF_EXTRACT_SECONDS`, default 30s); soft-fail + keep partial pages | `backend/indexer/pdf_extract.py` |
+| Cooperative yield between PDFs in bulk sync | `sync_pdfs_for_root` |
+| Scan/PDF work off the FastAPI event loop | `asyncio.to_thread` in `POST /index/scan` |
+| Micro-bench helper | `scripts/bench_pdf_parse.py` |
+
+**Measured** (synthetic text PDFs on primary Windows profile, 2026-07-25):
+
+| Corpus | Cold sync | Warm (mtime skip) | Per file (cold) |
+|--------|-----------|-------------------|-----------------|
+| 20 files × 5 pages | ~0.13 s | ~0.013 s | ~6.5 ms |
+| 50 files × 3 pages | ~0.34 s | ~0.036 s | ~6.8 ms |
+
+Run: `python scripts/bench_pdf_parse.py --files 20 --pages 5` (from repo root, active `.venv`).
+
+**Remaining bottlenecks** (later passes):
+
+- Bulk PDF sync still runs inside the scan request (threaded, but scan HTTP waits for completion) — not a true background/pauseable queue
+- Extract stays single-threaded (intentional; avoid fighting Ollama for CPU)
+- FTS is delete+rebuild per file (no page-level incremental reparse)
+- No pause-when-Ollama-busy / machine-idle concurrency yet
+- Startup reconcile still calls `scan_and_save` synchronously before serving
+- Pathological huge pages under the 2000-page cap can still burn the 30s budget
 ---
 
 ## Out of scope (this research)

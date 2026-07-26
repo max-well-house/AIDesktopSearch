@@ -135,9 +135,7 @@ PDF Reading
 
 Search inside PDFs
 
-**Shipped (#53–#57):** Decision #006 + PyMuPDF extract → `file_content` / FTS5 → classic search merges filename + PDF body; launcher shows matching page. Open remains `shell.openPath` (no viewer page jump).
-
-Still open: #58 Faster parsing
+**Shipped (#53–#58):** Decision #006 + PyMuPDF extract → `file_content` / FTS5 → classic search merges filename + PDF body; launcher shows matching page. Open remains `shell.openPath` (no viewer page jump). #58: batched FTS writes, extract time budget, yield-between-PDFs, scan off event loop — see [research-pdf-libraries.md](./research-pdf-libraries.md) Performance.
 
 ---
 

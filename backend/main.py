@@ -1,3 +1,4 @@
+import asyncio
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
@@ -111,9 +112,10 @@ async def post_index_scan(body: ScanRequest):
 
     Only the given path is scanned — never a silent whole-disk crawl.
     Starts live watching for the root after a successful scan (#48–#52).
+    PDF extract runs in a worker thread so the event loop stays responsive (#58).
     """
     try:
-        result = scan_and_save(body.path)
+        result = await asyncio.to_thread(scan_and_save, body.path)
     except FileNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except NotADirectoryError as exc:

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -85,15 +86,18 @@ def sync_pdf_content(file_id: int, path: Path | str, mtime: float | None) -> Non
             return
 
         warning = "; ".join(extracted.warnings) if extracted.warnings else None
-        for page, text in extracted.pages:
-            if not (text or "").strip():
-                continue
-            conn.execute(
+        fts_rows = [
+            (text, file_id, int(page))
+            for page, text in extracted.pages
+            if (text or "").strip()
+        ]
+        if fts_rows:
+            conn.executemany(
                 """
                 INSERT INTO file_pages_fts (text, file_id, page)
                 VALUES (?, ?, ?)
                 """,
-                (text, file_id, int(page)),
+                fts_rows,
             )
 
         conn.execute(
@@ -154,7 +158,12 @@ def maybe_sync_path(path: Path | str) -> None:
 
 
 def sync_pdfs_for_root(root_id: int) -> None:
-    """After a bulk replace_root_files, sync every PDF under the root."""
+    """
+    After a bulk replace_root_files, sync every PDF under the root.
+
+    Single-threaded and lean (#58): one PDF at a time, cooperative yield
+    between files so the OS can schedule other work (search / future Ollama).
+    """
     with connect() as conn:
         rows = conn.execute(
             """
@@ -163,9 +172,15 @@ def sync_pdfs_for_root(root_id: int) -> None:
             """,
             (root_id,),
         ).fetchall()
-    for row in rows:
+    total = len(rows)
+    for i, row in enumerate(rows):
         try:
             mtime = float(row["mtime"]) if row["mtime"] is not None else None
             sync_pdf_content(int(row["id"]), row["path"], mtime)
         except Exception:  # noqa: BLE001
             logger.exception("PDF sync failed for %s", row["path"])
+        if i + 1 < total:
+            # Cooperative yield between files — do not hog the CPU (#58 / #003).
+            time.sleep(0)
+        if total and (i + 1 == total or (i + 1) % 25 == 0):
+            logger.info("PDF sync root %s: %s/%s", root_id, i + 1, total)

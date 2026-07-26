@@ -5,12 +5,15 @@ Soft-fail only — never raise into the index worker for bad PDFs.
 
 from __future__ import annotations
 
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Literal
 
 MAX_PDF_BYTES = 50 * 1024 * 1024  # 50 MiB
 MAX_PDF_PAGES = 2000
+# Soft wall clock budget per file (#58) — leave headroom for Ollama later.
+MAX_PDF_EXTRACT_SECONDS = 30.0
 
 PdfStatus = Literal["ok", "empty", "error"]
 
@@ -34,16 +37,22 @@ def _pymupdf_version() -> str | None:
         return None
 
 
-def extract_pdf(path: Path | str) -> PdfExtractResult:
+def extract_pdf(
+    path: Path | str,
+    *,
+    max_seconds: float | None = None,
+) -> PdfExtractResult:
     """
     Extract per-page text from a PDF.
 
     Caps: skip files larger than MAX_PDF_BYTES or with more than MAX_PDF_PAGES
     (status=error, warning set). Scanned/near-empty → status=empty.
+    Soft-fails if extract exceeds max_seconds (default MAX_PDF_EXTRACT_SECONDS).
     """
     resolved = Path(path)
     version = _pymupdf_version()
     result = PdfExtractResult(parser_version=version)
+    budget = MAX_PDF_EXTRACT_SECONDS if max_seconds is None else float(max_seconds)
 
     try:
         size = resolved.stat().st_size
@@ -95,7 +104,15 @@ def extract_pdf(path: Path | str) -> PdfExtractResult:
 
         pages: list[tuple[int, str]] = []
         total_chars = 0
+        started = time.monotonic()
         for i in range(page_count):
+            if time.monotonic() - started >= budget:
+                result.pages = pages
+                result.status = "error"
+                result.warnings.append(
+                    f"extract exceeded {budget:g}s after {len(pages)} page(s); stopped early"
+                )
+                return result
             try:
                 text = doc.load_page(i).get_text("text") or ""
             except Exception as exc:  # noqa: BLE001

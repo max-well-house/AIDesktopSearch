@@ -300,7 +300,7 @@ Launcher Footer **Indexed** shows file count plus a short locale date from `last
 
 ### PDF content (v0.5.0 — Decision #006)
 
-**Shipped (#54–#57):**
+**Shipped (#54–#58):**
 
 ```
 PDF → PyMuPDF extract (per page) → file_content + file_pages_fts → classic search hit (+ page)
@@ -308,14 +308,15 @@ PDF → PyMuPDF extract (per page) → file_content + file_pages_fts → classic
 
 | Piece | Location |
 |-------|----------|
-| Extract | `backend/indexer/pdf_extract.py` |
-| Persist / re-parse | `backend/indexer/content.py` (hooked from `metadata` upsert/rename + bulk scan) |
+| Extract | `backend/indexer/pdf_extract.py` (size / page / time caps) |
+| Persist / re-parse | `backend/indexer/content.py` (hooked from `metadata` upsert/rename + bulk scan; batched FTS inserts; yield between PDFs) |
 | Search merge | `backend/indexer/search.py` — filename LIKE ∪ FTS5; one hit per file |
 | UI | `ResultsList` shows `Page N` when `hit.page` set; Enter still `shell.openPath` (no viewer page jump) |
 
-- Soft-fail empty / scanned / encrypted / corrupt / oversize; OCR deferred to v0.9.
+- Soft-fail empty / scanned / encrypted / corrupt / oversize / timed-out; OCR deferred to v0.9.
 - Re-parse when `files.mtime` ≠ `file_content.mtime_at_parse`.
-- **Still not in v0.5:** embeddings/chunking (v0.7), multi-format parsers (v0.6), #58 faster parsing.
+- Scan runs PDF work in a worker thread so `/health` and `/search` stay responsive during index (#58).
+- **Still not in v0.5:** embeddings/chunking (v0.7), multi-format parsers (v0.6), background pauseable PDF queue / Ollama-aware throttling (later).
 
 Details: [research-pdf-libraries.md](./research-pdf-libraries.md). Schema: [schema.md](./schema.md).
 
