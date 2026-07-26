@@ -293,3 +293,22 @@ Next:
 1. #58 Faster parsing (or defer) then close v0.5.0 milestone
 2. Start v0.6 document types when ready
 
+## 2026-07-25 — End of day (v0.5 complete + board hygiene)
+
+Goal:
+Finish Phase 5 PDF performance (#58), close v0.5.0, and shape new pre-v1.0 polish issues so the board matches the rest of the project.
+
+What I did:
+- Shipped #58 — batched FTS writes, extract time budget, yield between PDFs, scan off the event loop; closed v0.5.0 milestone
+- Formatted #118 (per-root auto-watch), #120 (footer capability lights), #121 (hide native menu / theme chrome & scrollbars) with acceptance criteria → **v1.0.0 Daily Driver**
+- Formatted #116 / #117 / #119 as post–v1.0 nice-to-haves (no milestone)
+- Synced `docs/roadmap.md` v1.0.0 bullets for #118 / #120 / #121
+
+What I learned:
+- Don’t invent a “0.9 polish” milestone when **v0.9.0 is already Images** — corpus/footer/chrome polish belongs in Daily Driver alongside Settings / #86
+- New issues stay useful when they get the same Phase / Goal / AC / Out of scope shape as #114
+
+Next:
+1. Start **v0.6.0 Documents** (DOCX / TXT / Markdown)
+2. Keep #118 / #120 / #121 queued for v1.0; don’t block v0.6 on them
+

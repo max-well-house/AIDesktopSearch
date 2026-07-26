@@ -175,7 +175,7 @@ OCR / screenshot search
 
 Daily Driver
 
-Settings, polish, guides; ship Python with packaged release (#111); stronger index.db privacy wipe beyond VACUUM (#114)
+Settings, polish, guides; ship Python with packaged release (#111); stronger index.db privacy wipe beyond VACUUM (#114); per-root auto-watch toggle (#118); footer capability lights (#120); hide native menu bar / theme window chrome & scrollbars (#121)
 
 ---
 
