@@ -148,7 +148,7 @@ DOCX / TXT / Markdown
 In progress:
 - [x] Unified parser interface (#62) — `ExtractResult` + registry; PDF migrated; leftover clear; Page N UI gated to PDF
 - [x] TXT parser (#60) — stdlib extract with encoding fallbacks; FTS segment page=1
-- [ ] Markdown parser (#61)
+- [x] Markdown parser (#61) — raw MD indexed (headings/lists preserved); `.md` / `.markdown`
 - [ ] DOCX parser (#59)
 
 ---

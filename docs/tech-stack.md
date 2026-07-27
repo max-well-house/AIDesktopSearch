@@ -132,9 +132,9 @@ Research: `docs/research-pdf-libraries.md`.
 
 Why?
 
-Plain `.txt` body search without a new dependency (#60). Encoding tries utf-8-sig → utf-8 → cp1252 → latin-1 (replace).
+Plain `.txt` and Markdown (`.md` / `.markdown`) body search without a new dependency (#60 / #61). Encoding tries utf-8-sig → utf-8 → cp1252 → latin-1 (replace). Markdown is indexed raw so headings/lists stay searchable.
 
-Implementation: `backend/indexer/text_extract.py` via `extract_for_path` (Decision #007).
+Implementation: `backend/indexer/text_extract.py` + `markdown_extract.py` via `extract_for_path` (Decision #007).
 
 ---
 
