@@ -333,3 +333,21 @@ Next:
 2. Optional: extend `tools/corpus/generate.py` with real TXT/MD/DOCX bodies
 3. Keep #118 / #120 / #121 queued for v1.0
 
+## 2026-07-27 — Phase 7 kickoff (v0.7.0 Semantic Search)
+
+Goal:
+Execute semantic search in dependency order so classic search stays AI-independent.
+
+What I did:
+- Locked Phase 7 plan: store foundation (#67) → generate (#66) → semantic endpoint (#68) → hybrid (#69); #112 GPU in parallel
+- Defaults: `nomic-embed-text` via Ollama; sqlite-vec in same `index.db`; page-aware PDF chunks; classic-first hybrid escalate
+- Research gate already closed (#63–#65); implementation starts with #67
+
+What I learned:
+- Pipeline narrative is “chunk → embed → store,” but code needs the store/schema first so generate has a write target
+- Generate ≠ query: building vectors needs Ollama; searching stored vectors must still work when Ollama is down (Decision #003 / #008)
+
+Next:
+1. Ship **#67 Store embeddings** (sqlite-vec load, schema, soft-fail, System Status visibility)
+2. Then #66 → #68 → #69 one issue at a time with manual UI checks between commits
+

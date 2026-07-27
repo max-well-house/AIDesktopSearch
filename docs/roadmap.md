@@ -165,6 +165,15 @@ Done so far:
 - Research vector DBs (#64) → Decision #008 + `docs/research-vector-databases.md` (sqlite-vec primary; LanceDB escape hatch; Chroma demoted).
 - Install Ollama (#65) → local runner on the machine; `/health` + System Status detect/connect (probe from #95); README setup notes. Chat inference still #70; generate embeddings → #66.
 
+Implementation order (dependency-correct):
+1. **#67** Store embeddings — sqlite-vec load + chunk/vec schema + soft-fail (in progress)
+2. **#66** Generate embeddings — chunk + `nomic-embed-text` via Ollama + pauseable queue
+3. **#68** Semantic search endpoint — query embed + k-NN + `run_semantic`
+4. **#69** Hybrid search — classic-first escalate/merge (Decision #002)
+5. **#112** GPU capability detection — parallel; not a blocker for stored-vector search
+
+Defaults locked for this phase: sqlite-vec in same `index.db`; `nomic-embed-text`; page-aware PDF chunks; classic wins filename-like queries.
+
 ---
 
 # Version 0.8.0

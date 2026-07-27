@@ -130,3 +130,9 @@ What I learned: #65 is “runner on the machine + detect,” not “turn on Sema
 
 Why it matters: Keeps #65 closable without pretending embeddings or RAG shipped, and avoids confusing Max when classic search works but footer lights stay dark.
 
+### 07/27/2026 — Phase 7: store before generate
+
+What I learned: Issue titles say “generate then store,” but implementation order is the reverse for the schema: **#67** loads sqlite-vec and creates chunk/vec tables so **#66** has a write target. Soft-fail if the extension cannot load — classic search must keep working (Decision #008).
+
+Why it matters: Avoids an in-memory embedding detour and keeps Decision #008 rules visible on System Status before any Ollama embed calls.
+
