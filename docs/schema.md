@@ -81,4 +81,4 @@ Create / replace / delete / rename under a watched root update `files` rows via 
 
 ## Explicitly not in schema (yet)
 
-Chunks, embeddings, watcher cursors. Document body text for non-PDF formats reuses `file_content` / `file_pages_fts` (Decision #007) — no new tables for v0.6. Add tables when those milestones need them; bump `user_version` in `schema.py`.
+Chunks, embeddings, watcher cursors. Document body text for non-PDF formats reuses `file_content` / `file_pages_fts` (Decision #007) — no new tables for v0.6. Add tables when #67 (store embeddings) needs them; bump `user_version` in `schema.py`. Conceptual pipeline: [research-embeddings.md](./research-embeddings.md) (#63).

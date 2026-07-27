@@ -112,3 +112,9 @@ What I learned: Phase 5 needs a **thin** extract contract (per-page text + warni
 
 Why it matters: Decision #006 keeps #54–#57 on rails (FastAPI-only parse, soft-fail scanned PDFs, no LangChain core) without redesigning the indexer for OCR or semantic chunks yet.
 
+### 07/27/2026 — Embeddings: generate vs query
+
+What I learned: For MosAIq, embeddings are a second index over **chunks** of already-extracted text — not a replacement for FTS and not the same as RAG. Building vectors needs a live embedder (usually Ollama); **searching stored vectors does not**. Local-by-default fits Decision #003; cloud APIs are explicit opt-in. Embedding models are much smaller than chat LLMs, so Phase 7 should not wait on a chat-sized model.
+
+Why it matters: Keeps #63 notes honest for #65–#69 (and the architecture “vectors ready” mode) without locking Chroma or a model SKU before #64/#66.
+

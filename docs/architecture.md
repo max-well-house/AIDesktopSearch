@@ -239,11 +239,11 @@ Still accurate. `/health` already reports Ollama so the UI can degrade; search m
 
 | Mode | When | Capabilities |
 |------|------|----------------|
-| Classic only | Ollama unavailable / RAM tight / AI off | Filename + keyword search |
-| Classic + semantic | Vectors ready | Meaning search without LLM |
+| Classic only | Ollama unavailable / RAM tight / AI off / no vectors | Filename + keyword search |
+| Classic + semantic | Vectors ready | Meaning search without LLM (query does not need live Ollama) |
 | Full RAG | Ollama healthy + user asks | Answers with citations |
 
-Degrade cleanly. Never crash because AI is missing.
+Degrade cleanly. Never crash because AI is missing. Embeddings notes: [research-embeddings.md](./research-embeddings.md) (#63).
 
 ---
 

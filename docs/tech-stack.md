@@ -160,8 +160,16 @@ Detected via `/health` (`available` / `unavailable` / `not_installed`). Missing 
 
 ---
 
+## Embeddings (v0.7)
+
+Meaning search over chunk vectors. Classic FTS stays first (Decision #002). Local embed models preferred; cloud optional/explicit (Decision #003).
+
+Research: `docs/research-embeddings.md` (#63). Generate/store/search → #66–#68; hybrid → #69.
+
+---
+
 ## Chroma
 
 Why?
 
-Local vector store for embeddings / semantic search
+Local vector store for embeddings / semantic search (provisional placeholder — confirm or replace in #64)
