@@ -5,6 +5,7 @@ contextBridge.exposeInMainWorld('api', {
   getIndexStatus: () => ipcRenderer.invoke('api:index-status'),
   scanFolder: (folderPath) => ipcRenderer.invoke('api:index-scan', folderPath),
   removeRoot: (rootId) => ipcRenderer.invoke('api:index-root-delete', rootId),
+  embeddingsSmoke: () => ipcRenderer.invoke('api:embeddings-smoke'),
   search: (query, limit) => ipcRenderer.invoke('api:search', query, limit),
   openPath: (filePath) => ipcRenderer.invoke('api:open-path', filePath),
   pickFolder: () => ipcRenderer.invoke('dialog:pick-folder'),

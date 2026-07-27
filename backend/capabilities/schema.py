@@ -24,10 +24,21 @@ class ModelsCapability(BaseModel):
     embedding: bool = False
 
 
+class VectorStoreCapability(BaseModel):
+    """sqlite-vec readiness (#67 / Decision #008)."""
+
+    available: bool = False
+    version: str | None = None
+    note: str | None = None
+    dimension: int = 768
+    chunk_count: int = 0
+
+
 class Capabilities(BaseModel):
     ollama: OllamaCapability
     gpu: GpuCapability = Field(default_factory=GpuCapability)
     models: ModelsCapability = Field(default_factory=ModelsCapability)
+    vector_store: VectorStoreCapability = Field(default_factory=VectorStoreCapability)
 
 
 class HealthResponse(BaseModel):

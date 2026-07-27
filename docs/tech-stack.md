@@ -174,6 +174,6 @@ Why?
 
 Local vector search inside the existing SQLite brain (Decision #008). Same process as FastAPI indexer; joins to `files` / FTS5 for hybrid (#69).
 
-Research: `docs/research-vector-databases.md` (#64). Implementation → #67.
+Package: `sqlite-vec` (pip). Loaded per connection in `backend/db/connection.py`; soft-fail if missing. Schema + store API: `backend/embeddings/` (#67). Default dim **768** (`nomic-embed-text`). System Status shows Vector store + **Verify vector store** smoke.
 
 Escape hatch: LanceDB if brute-force or packaging fails. Chroma demoted (was early placeholder only).

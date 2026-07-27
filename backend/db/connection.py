@@ -1,4 +1,4 @@
-"""SQLite connection helpers — stdlib only (#39)."""
+"""SQLite connection helpers (#39 / #67)."""
 
 from __future__ import annotations
 
@@ -29,6 +29,13 @@ def connect(db_path: Path | None = None) -> sqlite3.Connection:
     conn = sqlite3.connect(path)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
+    # sqlite-vec is per-connection; soft-fail inside load helper (#67).
+    try:
+        from embeddings.vec import load_sqlite_vec
+
+        load_sqlite_vec(conn)
+    except Exception:
+        pass
     return conn
 
 
@@ -38,5 +45,12 @@ def init_db(db_path: Path | None = None) -> Path:
     with connect(path) as conn:
         conn.executescript(SCHEMA_SQL)
         conn.execute(f"PRAGMA user_version = {int(SCHEMA_VERSION)}")
+        try:
+            from embeddings.vec import ensure_vec_schema
+
+            ensure_vec_schema(conn)
+        except Exception:
+            # Classic search must still work if the extension is missing.
+            pass
         conn.commit()
     return path

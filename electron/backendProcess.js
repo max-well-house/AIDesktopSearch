@@ -9,6 +9,7 @@ const HEALTH_URL = `http://${HOST}:${PORT}/health`
 const INDEX_STATUS_URL = `http://${HOST}:${PORT}/index/status`
 const INDEX_SCAN_URL = `http://${HOST}:${PORT}/index/scan`
 const INDEX_ROOTS_URL = `http://${HOST}:${PORT}/index/roots`
+const INDEX_EMBEDDINGS_SMOKE_URL = `http://${HOST}:${PORT}/index/embeddings/smoke`
 const SEARCH_URL = `http://${HOST}:${PORT}/search`
 const SPAWN_TIMEOUT_MS = 15000
 const POLL_INTERVAL_MS = 250
@@ -67,6 +68,14 @@ async function deleteIndexRoot(rootId, timeoutMs = 10000) {
   return fetchJson(
     `${INDEX_ROOTS_URL}/${encodeURIComponent(rootId)}`,
     { method: 'DELETE' },
+    timeoutMs,
+  )
+}
+
+async function postEmbeddingsSmoke(timeoutMs = 15000) {
+  return fetchJson(
+    INDEX_EMBEDDINGS_SMOKE_URL,
+    { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' },
     timeoutMs,
   )
 }
@@ -303,6 +312,7 @@ module.exports = {
   fetchIndexStatus,
   postIndexScan,
   deleteIndexRoot,
+  postEmbeddingsSmoke,
   fetchSearch,
   ensureBackend,
   stopBackend,

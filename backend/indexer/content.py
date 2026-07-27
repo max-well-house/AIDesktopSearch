@@ -26,11 +26,19 @@ def _abs_path_str(path: Path | str) -> str:
 
 
 def clear_file_content(file_id: int) -> None:
-    """Remove FTS pages and file_content row for a file id."""
+    """Remove FTS pages, file_content, and embedding chunks for a file id."""
     with connect() as conn:
         conn.execute("DELETE FROM file_pages_fts WHERE file_id = ?", (file_id,))
         conn.execute("DELETE FROM file_content WHERE file_id = ?", (file_id,))
         conn.commit()
+    try:
+        from embeddings.store import clear_file_embeddings
+
+        clear_file_embeddings(file_id)
+    except Exception:
+        with connect() as conn:
+            conn.execute("DELETE FROM embedding_chunks WHERE file_id = ?", (file_id,))
+            conn.commit()
 
 
 def sync_file_content(file_id: int, path: Path | str, mtime: float | None) -> None:

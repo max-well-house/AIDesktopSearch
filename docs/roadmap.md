@@ -166,7 +166,7 @@ Done so far:
 - Install Ollama (#65) → local runner on the machine; `/health` + System Status detect/connect (probe from #95); README setup notes. Chat inference still #70; generate embeddings → #66.
 
 Implementation order (dependency-correct):
-1. **#67** Store embeddings — sqlite-vec load + chunk/vec schema + soft-fail (in progress)
+1. **#67** Store embeddings — sqlite-vec load + chunk/vec schema + soft-fail + System Status verify. **Done.**
 2. **#66** Generate embeddings — chunk + `nomic-embed-text` via Ollama + pauseable queue
 3. **#68** Semantic search endpoint — query embed + k-NN + `run_semantic`
 4. **#69** Hybrid search — classic-first escalate/merge (Decision #002)

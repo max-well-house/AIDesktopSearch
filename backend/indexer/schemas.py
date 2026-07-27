@@ -20,6 +20,9 @@ class IndexStatusResponse(BaseModel):
     watched_roots: int = 0
     queue_depth: int = 0
     watch_paused: bool = False
+    # Embedding store (#67)
+    embedding_chunk_count: int = 0
+    vector_store_available: bool = False
 
 
 class WatchControlResponse(BaseModel):
@@ -27,6 +30,18 @@ class WatchControlResponse(BaseModel):
     watched_roots: int
     queue_depth: int
     paused: bool
+
+
+class EmbeddingSmokeResponse(BaseModel):
+    """Result of POST /index/embeddings/smoke (#67)."""
+
+    ok: bool
+    version: str | None = None
+    error: str | None = None
+    file_id: int | None = None
+    file_name: str | None = None
+    distance: float | None = None
+    detail: str | None = None
 
 
 class ScanRequest(BaseModel):

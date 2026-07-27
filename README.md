@@ -88,7 +88,9 @@ curl.exe http://127.0.0.1:11434/api/version
 
 Expect JSON with a `version`. If connection fails, start **Ollama** from the Start menu / tray and retry.
 
-**In the app:** System Status → **Ollama: Available** (with version). Footer **Semantic Search** / **AI** stay off until generate/store/search (#66–#68) and chat wiring (#70) land — that is expected.
+**In the app:** System Status → **Ollama: Available** (with version). Footer **Semantic Search** / **AI** stay off until generate/search (#66 / #68) and chat wiring (#70) land — that is expected.
+
+**Vector store (#67):** after `pip install -r backend/requirements.txt`, System Status → **Check System Status** should show **Vector store: Available (sqlite-vec …)**. With at least one indexed folder/file, **Verify vector store** runs a throwaway k-NN round-trip (no rows left behind). Classic search still works if the extension fails to load.
 
 **Optional embed model** (for #66; exact default may change):
 

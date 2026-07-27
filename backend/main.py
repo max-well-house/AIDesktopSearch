@@ -11,6 +11,7 @@ from db import init_db
 from indexer import delete_root, index_status, scan_and_save
 from indexer.schemas import (
     DeleteRootResponse,
+    EmbeddingSmokeResponse,
     IndexStatusResponse,
     ScanRequest,
     ScanResponse,
@@ -21,6 +22,7 @@ from indexer.schemas import (
 from indexer.search import DEFAULT_LIMIT, MAX_LIMIT
 from indexer.watch import get_watch_manager
 from search import execute_search
+from embeddings.store import run_store_smoke
 
 APP_VERSION = "0.0.4"
 
@@ -151,6 +153,17 @@ async def resume_watch():
     manager = get_watch_manager()
     manager.resume()
     return WatchControlResponse(**manager.status())
+
+
+@app.post("/index/embeddings/smoke", response_model=EmbeddingSmokeResponse)
+async def post_embeddings_smoke():
+    """
+    Round-trip a throwaway vector to verify sqlite-vec (#67).
+
+    Requires at least one indexed file. Does not leave smoke rows behind.
+    """
+    result = await asyncio.to_thread(run_store_smoke)
+    return EmbeddingSmokeResponse(**result)
 
 
 @app.get("/search", response_model=SearchResponse)

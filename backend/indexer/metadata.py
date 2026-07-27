@@ -405,9 +405,28 @@ def index_status() -> dict:
                 "SELECT id, path, last_scan_at FROM roots ORDER BY id"
             )
         ]
+        try:
+            embedding_chunk_count = int(
+                conn.execute("SELECT COUNT(*) AS c FROM embedding_chunks").fetchone()[
+                    "c"
+                ]
+            )
+        except Exception:
+            embedding_chunk_count = 0
+
+    vector_store_available = False
+    try:
+        from embeddings.store import vector_store_status
+
+        vector_store_available = bool(vector_store_status().get("available"))
+    except Exception:
+        pass
+
     return {
         "file_count": file_count,
         "root_count": root_count,
         "last_indexed_at": last,
         "roots": roots,
+        "embedding_chunk_count": embedding_chunk_count,
+        "vector_store_available": vector_store_available,
     }

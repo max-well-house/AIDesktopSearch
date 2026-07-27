@@ -32,6 +32,21 @@ function ollamaTone(ollama) {
   return 'idle'
 }
 
+function vectorStoreLabel(vectorStore) {
+  if (!vectorStore) return 'Unknown'
+  if (vectorStore.available) {
+    return vectorStore.version
+      ? `Available (sqlite-vec ${vectorStore.version})`
+      : 'Available'
+  }
+  return vectorStore.note || 'Unavailable'
+}
+
+function vectorStoreTone(vectorStore) {
+  if (!vectorStore) return 'idle'
+  return vectorStore.available ? 'online' : 'loading'
+}
+
 function formatIndexed(count) {
   if (count == null) return '—'
   if (count === 0) return '0 files'
@@ -123,6 +138,42 @@ export default function SystemStatus({ onBack }) {
   function setCorpusFeedback(tone, message) {
     setCorpusTone(tone)
     setCorpusMessage(message)
+  }
+
+  async function verifyVectorStore() {
+    if (!window.api?.embeddingsSmoke) {
+      setCorpusFeedback('error', 'Electron bridge missing for vector store check.')
+      return
+    }
+    setBusyKey('embeddings-smoke')
+    setCorpusFeedback('online', 'Verifying vector store…')
+    try {
+      const result = await window.api.embeddingsSmoke()
+      if (!result.ok) {
+        setCorpusFeedback('error', result.error || 'Vector store check failed')
+        return
+      }
+      const data = result.data
+      if (!data?.ok) {
+        setCorpusFeedback('error', data?.error || 'Vector store check failed')
+        return
+      }
+      const dist =
+        typeof data.distance === 'number' ? data.distance.toFixed(6) : '?'
+      setCorpusFeedback(
+        'online',
+        `Vector store OK — self-match distance ${dist} on ${data.file_name || 'file'}`,
+      )
+      await refreshIndexStatus()
+      if (phase === 'online') {
+        const health = await window.api.checkHealth()
+        if (health.ok) setPayload(health.data)
+      }
+    } catch (err) {
+      setCorpusFeedback('error', err?.message || String(err))
+    } finally {
+      setBusyKey(null)
+    }
   }
 
   async function addFolder() {
@@ -217,6 +268,7 @@ export default function SystemStatus({ onBack }) {
 
   const ollama = payload?.capabilities?.ollama
   const gpu = payload?.capabilities?.gpu
+  const vectorStore = payload?.capabilities?.vector_store
   const roots = indexStatus?.roots ?? []
   const busy = busyKey != null
 
@@ -242,6 +294,11 @@ export default function SystemStatus({ onBack }) {
             {formatIndexed(indexStatus?.file_count)}
             {indexStatus?.root_count
               ? ` · ${indexStatus.root_count} folder${indexStatus.root_count === 1 ? '' : 's'}`
+              : ''}
+            {indexStatus?.embedding_chunk_count != null
+              ? ` · ${indexStatus.embedding_chunk_count.toLocaleString()} embedding chunk${
+                  indexStatus.embedding_chunk_count === 1 ? '' : 's'
+                }`
               : ''}
           </p>
           {indexStatus?.last_indexed_at ? (
@@ -409,6 +466,15 @@ export default function SystemStatus({ onBack }) {
                 <p className={`status status-${ollamaTone(ollama)}`}>
                   <span className="status-label">Ollama:</span> {ollamaLabel(ollama)}
                 </p>
+                <p className={`status status-${vectorStoreTone(vectorStore)}`}>
+                  <span className="status-label">Vector store:</span>{' '}
+                  {vectorStoreLabel(vectorStore)}
+                  {typeof vectorStore?.chunk_count === 'number'
+                    ? ` · ${vectorStore.chunk_count.toLocaleString()} chunk${
+                        vectorStore.chunk_count === 1 ? '' : 's'
+                      }`
+                    : ''}
+                </p>
 
                 <dl className="details">
                   <div>
@@ -422,6 +488,10 @@ export default function SystemStatus({ onBack }) {
                   <div>
                     <dt>GPU</dt>
                     <dd>{gpu?.note || 'Not detected yet'}</dd>
+                  </div>
+                  <div>
+                    <dt>Embed dim</dt>
+                    <dd>{vectorStore?.dimension ?? 768}</dd>
                   </div>
                 </dl>
               </>
@@ -446,6 +516,15 @@ export default function SystemStatus({ onBack }) {
               disabled={phase === 'loading'}
             >
               Check System Status
+            </Button>
+            <Button
+              variant="outlined"
+              color="primary"
+              onClick={verifyVectorStore}
+              disabled={busy || phase === 'loading'}
+              sx={{ ml: 1, mt: { xs: 1, sm: 0 } }}
+            >
+              Verify vector store
             </Button>
           </AccordionDetails>
         </Accordion>
