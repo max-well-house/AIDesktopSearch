@@ -159,10 +159,10 @@ def test_maybe_sync_path_clears_leftover_when_extension_not_content(
             is not None
         )
         # Simulate extension flip (e.g. path reused as non-content type).
-        conn.execute("UPDATE files SET extension = 'txt' WHERE id = ?", (file_id,))
+        conn.execute("UPDATE files SET extension = 'log' WHERE id = ?", (file_id,))
         conn.commit()
 
-    assert "txt" not in CONTENT_EXTENSIONS
+    assert "log" not in CONTENT_EXTENSIONS
     maybe_sync_path(path_str)
 
     with connect() as conn:

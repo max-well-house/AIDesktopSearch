@@ -128,6 +128,16 @@ Research: `docs/research-pdf-libraries.md`.
 
 ---
 
+## Stdlib text extract (v0.6.0)
+
+Why?
+
+Plain `.txt` body search without a new dependency (#60). Encoding tries utf-8-sig → utf-8 → cp1252 → latin-1 (replace).
+
+Implementation: `backend/indexer/text_extract.py` via `extract_for_path` (Decision #007).
+
+---
+
 ## Ollama
 
 Why?
