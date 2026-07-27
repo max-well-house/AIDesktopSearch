@@ -270,3 +270,49 @@ July 2026
 ## Status
 
 Accepted
+
+---
+
+# Decision #008
+
+## Choice
+
+Primary vector store: **sqlite-vec** (SQLite extension) in the FastAPI sidecar, same brain as `files` / FTS5. Chroma is not the default. LanceDB is the documented escape hatch if scale or packaging forces it.
+
+## Date
+
+July 2026
+
+## Why
+
+- MosAIq already owns corpus state in SQLite; vectors should join to `files` / pages without a second source of truth.
+- Opt-in personal corpora (Decision #003) fit exact k-NN; we do not need a server or cloud vector DB for v0.7.
+- Hybrid search (#69) is simpler when classic FTS5 and vectors share one engine.
+- Matches Decision #001 process model (FastAPI = brain; no extra daemon beside optional Ollama).
+- Permissive license; avoids growing the AGPL surface.
+
+## Tradeoffs accepted
+
+- Native extension load on Windows (packaging detail for #67 / #111).
+- Stable sqlite-vec is brute-force — revisit LanceDB (or ANN) if real corpora prove too slow.
+- Younger dependency (pin versions; soft-fail if extension missing so classic search still works).
+
+## Rules for Phase 7 store
+
+1. Research only until #64 closes — implement persistence in #67.
+2. Record `model_id` + dimension with stored vectors; do not mix embedding models without re-embed.
+3. Semantic query must work from stored vectors when Ollama is down (Decision #003 / #63).
+4. Missing sqlite-vec must not crash the API or classic search.
+5. Do not adopt Chroma / Qdrant / cloud vector SaaS as the default path.
+
+## Revisit when
+
+- Exact k-NN is too slow on a real primary-machine corpus after opt-in growth
+- Extension loading cannot be packaged reliably on a supported OS
+- A concrete need for disk-ANN / versioned Lance datasets appears
+
+Full comparison: [research-vector-databases.md](./research-vector-databases.md).
+
+## Status
+
+Accepted

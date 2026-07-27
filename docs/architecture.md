@@ -243,7 +243,7 @@ Still accurate. `/health` already reports Ollama so the UI can degrade; search m
 | Classic + semantic | Vectors ready | Meaning search without LLM (query does not need live Ollama) |
 | Full RAG | Ollama healthy + user asks | Answers with citations |
 
-Degrade cleanly. Never crash because AI is missing. Embeddings notes: [research-embeddings.md](./research-embeddings.md) (#63).
+Degrade cleanly. Never crash because AI is missing. Embeddings notes: [research-embeddings.md](./research-embeddings.md) (#63). Vector store: [research-vector-databases.md](./research-vector-databases.md) (#64 / Decision #008 — sqlite-vec).
 
 ---
 
@@ -324,4 +324,4 @@ Details: [research-pdf-libraries.md](./research-pdf-libraries.md). Schema: [sche
 
 Ollama (optional; detected via `/health`, never required for classic path)
 
-Chroma (planned)
+sqlite-vec (planned — Decision #008; store in #67)

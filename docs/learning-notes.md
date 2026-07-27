@@ -118,3 +118,9 @@ What I learned: For MosAIq, embeddings are a second index over **chunks** of alr
 
 Why it matters: Keeps #63 notes honest for #65–#69 (and the architecture “vectors ready” mode) without locking Chroma or a model SKU before #64/#66.
 
+### 07/27/2026 — Vector store: sqlite-vec over Chroma
+
+What I learned: For a desktop app that already owns corpus state in SQLite + FTS5, the vector store question is mostly “second database vs extension.” **sqlite-vec** keeps joins, backup, and hybrid (#69) in one brain; Chroma’s prototype DX is not worth a second source of truth at opt-in personal scale. Exact k-NN is enough until measured otherwise; LanceDB is the escape hatch, not the default. Packaging the native extension on Windows is the real risk to watch in #67 / #111.
+
+Why it matters: Decision #008 replaces the early Chroma placeholder before #67 stores anything we would have to migrate.
+

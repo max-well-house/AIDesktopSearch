@@ -161,7 +161,8 @@ Semantic Search
 Embeddings / meaning search (defaults fit 16GB + 8GB VRAM); GPU detection beyond stub (#112)
 
 Done so far:
-- Research embeddings (#63) → `docs/research-embeddings.md` (how embeddings fit MosAIq; local vs cloud; generate ≠ query). No Decision yet; vector store compare remains #64.
+- Research embeddings (#63) → `docs/research-embeddings.md` (how embeddings fit MosAIq; local vs cloud; generate ≠ query). Closed.
+- Research vector DBs (#64) → Decision #008 + `docs/research-vector-databases.md` (sqlite-vec primary; LanceDB escape hatch; Chroma demoted).
 
 ---
 

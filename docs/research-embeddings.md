@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-27  
 **Milestone:** Research inside **v0.7.0** (Semantic Search); **implementation is #65–#69** (plus #112 GPU detection).  
-**Decision:** None yet — learning notes only. Vector store choice → issue #64. Model install → #65.  
+**Decision:** None yet — learning notes only. Vector store → [research-vector-databases.md](./research-vector-databases.md) / Decision #008. Model install → #65.  
 **Status:** Research complete (notes). No embedding or chunking code ships here.
 
 ---
@@ -181,7 +181,7 @@ Decision #002 order stays: classic → semantic when needed → LLM when reasoni
 ### Vector store (#64)
 
 - Compare options for a **local desktop** app (process model, persistence next to SQLite, packaging)
-- Recommendation recorded (`docs/tech-stack.md` currently placeholders Chroma — treat as provisional until #64)
+- Recommendation recorded (`docs/research-vector-databases.md` / Decision #008 — sqlite-vec)
 
 ### Ollama (#65)
 
@@ -224,7 +224,7 @@ Decision #002 order stays: classic → semantic when needed → LLM when reasoni
 
 ## Open questions (hand off)
 
-1. **#64:** Best local vector store beside existing SQLite — Chroma placeholder vs sqlite-vec / others?
+1. **#67:** sqlite-vec load path on Windows; single DB vs sidecar; chunk metadata shape?
 2. **#66:** Default chunk size/overlap and page-aware strategy for PDFs?
 3. **#65/#66:** Which embedding model fits 8GB VRAM with OS + Electron + FastAPI (+ optional later chat)?
 4. **#69:** Escalate to semantic on empty classic hits only, or also on “question-shaped” queries?
