@@ -6,7 +6,7 @@ Default path: repo `data/index.db` (gitignored). Override with `AIDESKTOP_DB`.
 
 ## Purpose
 
-Store **opt-in folder roots**, **filename metadata**, and **PDF page text (FTS5)** so `GET /search` can find files by name or PDF body without Ollama (Decision #006 / #54–#56).
+Store **opt-in folder roots**, **filename metadata**, and **document body text (FTS5)** so `GET /search` can find files by name or content without Ollama (Decision #006 / #007 / #54–#56 / #62).
 
 ## Tables
 
@@ -38,24 +38,24 @@ One row per indexed file under a root (#41 / #42).
 | `mtime` | REAL | Filesystem mtime; may be null |
 | `indexed_at` | TEXT NOT NULL | ISO timestamp when this row was last written |
 
-### `file_content` (#55)
+### `file_content` (#55 / #62)
 
-One row per parsed PDF (Decision #006).
+One row per parsed content-eligible file (Decision #006 / #007). PDF first; TXT / MD / DOCX register via `CONTENT_EXTENSIONS`.
 
 | Column | Type | Notes |
 |--------|------|--------|
 | `file_id` | INTEGER PK | FK → `files(id)` **ON DELETE CASCADE** |
 | `parser` | TEXT NOT NULL | e.g. `pymupdf` |
 | `parser_version` | TEXT | Library version string when known |
-| `page_count` | INTEGER | Pages seen at parse time |
+| `page_count` | INTEGER | Pages/segments seen at parse time |
 | `mtime_at_parse` | REAL | Skip re-parse when equal to `files.mtime` |
 | `status` | TEXT NOT NULL | `ok` \| `empty` \| `error` |
 | `warning` | TEXT | Soft-fail / cap reason |
 | `parsed_at` | TEXT NOT NULL | ISO timestamp |
 
-### `file_pages_fts` (#55)
+### `file_pages_fts` (#55 / #62)
 
-FTS5 virtual table: `text`, `file_id UNINDEXED`, `page UNINDEXED` (1-based page). One row per page with extractable text.
+FTS5 virtual table: `text`, `file_id UNINDEXED`, `page UNINDEXED` (1-based). One row per page/segment with extractable text. PDFs use real page numbers; linear formats use a single segment at `page=1` (launcher shows “Page N” only for PDFs).
 
 Trigger `files_ad_pages_fts`: after DELETE on `files`, remove matching FTS rows (FTS does not cascade).
 
@@ -77,8 +77,8 @@ Trigger `files_ad_pages_fts`: after DELETE on `files`, remove matching FTS rows 
 
 ## Incremental updates (v0.4+)
 
-Create / modify / delete / rename under a watched root update `files` rows via `upsert_file` / `delete_file` / `rename_file` (and prefix helpers for directory moves). PDF create/modify also syncs `file_content` + FTS when `extension = 'pdf'`. Cold start reconciles with a full rescan per root before watching resumes.
+Create / replace / delete / rename under a watched root update `files` rows via `upsert_file` / `delete_file` / `rename_file` (and prefix helpers for directory moves). Content-eligible create/modify also syncs `file_content` + FTS when `extension` is in `CONTENT_EXTENSIONS` (PDF in v0.5; more formats in v0.6). Cold start reconciles with a full rescan per root before watching resumes.
 
 ## Explicitly not in schema (yet)
 
-Chunks, embeddings, watcher cursors, non-PDF document content (v0.6+). Add tables when those milestones need them; bump `user_version` in `schema.py`.
+Chunks, embeddings, watcher cursors. Document body text for non-PDF formats reuses `file_content` / `file_pages_fts` (Decision #007) — no new tables for v0.6. Add tables when those milestones need them; bump `user_version` in `schema.py`.

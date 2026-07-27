@@ -1,4 +1,4 @@
-"""Persist PDF page text into SQLite FTS (#55 / Decision #006)."""
+"""Persist document text into SQLite FTS (#55 / #62 / Decision #006 / #007)."""
 
 from __future__ import annotations
 
@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from db import connect
-from indexer.pdf_extract import extract_pdf
+from indexer.extract import CONTENT_EXTENSIONS, extract_for_path
 
 logger = logging.getLogger(__name__)
 
@@ -33,9 +33,9 @@ def clear_file_content(file_id: int) -> None:
         conn.commit()
 
 
-def sync_pdf_content(file_id: int, path: Path | str, mtime: float | None) -> None:
+def sync_file_content(file_id: int, path: Path | str, mtime: float | None) -> None:
     """
-    Extract PDF text and replace FTS + file_content for file_id.
+    Extract document text and replace FTS + file_content for file_id.
 
     Skips work when mtime_at_parse already matches mtime.
     Never raises for extract failures (soft-fail into status/warning).
@@ -55,7 +55,7 @@ def sync_pdf_content(file_id: int, path: Path | str, mtime: float | None) -> Non
             return
 
     try:
-        extracted = extract_pdf(path_str)
+        extracted = extract_for_path(path_str)
     except Exception:  # noqa: BLE001
         logger.exception("unexpected extract failure for %s", path_str)
         extracted = None
@@ -70,7 +70,7 @@ def sync_pdf_content(file_id: int, path: Path | str, mtime: float | None) -> Non
                 INSERT INTO file_content (
                     file_id, parser, parser_version, page_count, mtime_at_parse,
                     status, warning, parsed_at
-                ) VALUES (?, 'pymupdf', NULL, NULL, ?, 'error', ?, ?)
+                ) VALUES (?, 'unknown', NULL, NULL, ?, 'error', ?, ?)
                 ON CONFLICT(file_id) DO UPDATE SET
                     parser = excluded.parser,
                     parser_version = excluded.parser_version,
@@ -129,11 +129,16 @@ def sync_pdf_content(file_id: int, path: Path | str, mtime: float | None) -> Non
         conn.commit()
 
 
+# Backward-compatible alias (#55 / tests / bench).
+sync_pdf_content = sync_file_content
+
+
 def maybe_sync_path(path: Path | str) -> None:
     """
     Sync or clear content for a path already present in ``files``.
 
-    PDFs → sync_pdf_content; non-PDFs with leftover content → clear.
+    Content-eligible extensions → sync_file_content; others with leftover
+    content → clear.
     """
     path_str = _abs_path_str(path)
     with connect() as conn:
@@ -151,36 +156,62 @@ def maybe_sync_path(path: Path | str) -> None:
             (file_id,),
         ).fetchone()
 
-    if extension == "pdf":
-        sync_pdf_content(file_id, path_str, mtime)
+    if extension in CONTENT_EXTENSIONS:
+        sync_file_content(file_id, path_str, mtime)
     elif has_content:
         clear_file_content(file_id)
 
 
-def sync_pdfs_for_root(root_id: int) -> None:
+def sync_content_for_root(root_id: int) -> None:
     """
-    After a bulk replace_root_files, sync every PDF under the root.
+    After a bulk replace_root_files, sync every content-eligible file under the root.
 
-    Single-threaded and lean (#58): one PDF at a time, cooperative yield
+    Also clears leftover ``file_content`` / FTS for files under the root whose
+    extension is no longer content-eligible (e.g. extension flip on rescan).
+
+    Single-threaded and lean (#58): one file at a time, cooperative yield
     between files so the OS can schedule other work (search / future Ollama).
     """
+    placeholders = ", ".join("?" for _ in CONTENT_EXTENSIONS) or "NULL"
+    ext_params = tuple(sorted(CONTENT_EXTENSIONS))
     with connect() as conn:
         rows = conn.execute(
-            """
+            f"""
             SELECT id, path, mtime FROM files
-            WHERE root_id = ? AND extension = 'pdf'
+            WHERE root_id = ? AND lower(extension) IN ({placeholders})
             """,
-            (root_id,),
+            (root_id, *ext_params),
         ).fetchall()
+        stale = conn.execute(
+            f"""
+            SELECT fc.file_id
+            FROM file_content AS fc
+            JOIN files AS f ON f.id = fc.file_id
+            WHERE f.root_id = ?
+              AND lower(COALESCE(f.extension, '')) NOT IN ({placeholders})
+            """,
+            (root_id, *ext_params),
+        ).fetchall()
+
+    for row in stale:
+        try:
+            clear_file_content(int(row["file_id"]))
+        except Exception:  # noqa: BLE001
+            logger.exception("content clear failed for file_id=%s", row["file_id"])
+
     total = len(rows)
     for i, row in enumerate(rows):
         try:
             mtime = float(row["mtime"]) if row["mtime"] is not None else None
-            sync_pdf_content(int(row["id"]), row["path"], mtime)
+            sync_file_content(int(row["id"]), row["path"], mtime)
         except Exception:  # noqa: BLE001
-            logger.exception("PDF sync failed for %s", row["path"])
+            logger.exception("content sync failed for %s", row["path"])
         if i + 1 < total:
             # Cooperative yield between files — do not hog the CPU (#58 / #003).
             time.sleep(0)
         if total and (i + 1 == total or (i + 1) % 25 == 0):
-            logger.info("PDF sync root %s: %s/%s", root_id, i + 1, total)
+            logger.info("content sync root %s: %s/%s", root_id, i + 1, total)
+
+
+# Backward-compatible alias.
+sync_pdfs_for_root = sync_content_for_root

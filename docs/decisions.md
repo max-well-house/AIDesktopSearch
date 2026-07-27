@@ -233,3 +233,40 @@ Full comparison: [research-pdf-libraries.md](./research-pdf-libraries.md).
 ## Status
 
 Accepted
+
+---
+
+# Decision #007
+
+## Choice
+
+Thin multi-format extract registry in FastAPI (`ExtractResult` + `CONTENT_EXTENSIONS` + `extract_for_path`); reuse `file_content` / `file_pages_fts` without a schema bump. Linear formats store one FTS segment at `page=1`; launcher shows **Page N** only when `hit.extension === 'pdf'`.
+
+## Date
+
+July 2026
+
+## Why
+
+- Decision #006 deferred a multi-format registry until v0.6; Phase 6 (#62–#59) needs one dispatch path instead of more `extension == …` special cases.
+- Schema already stores `parser` / `page` in a format-agnostic way — only Python dispatch was PDF-hardcoded.
+- Fake “Page 1” captions on TXT/MD/DOCX would mislead; gating the UI on PDF keeps FTS simple.
+- Still no chunkers, embeddings, or LangChain-class parsers (v0.7 / Decision #006 rules 4–5).
+
+## Tradeoffs accepted
+
+- One FTS segment for non-paged docs (no section-level hits until a later need).
+- Registry is a plain extension map, not a plugin/entry-point system.
+
+## Rules for Phase 6
+
+1. All document parsing stays in Python / FastAPI — never Electron.
+2. Soft-fail bad files; do not block the index worker.
+3. Grow `CONTENT_EXTENSIONS` as #60 / #61 / #59 land; PDF remains on the shared contract.
+4. Bulk sync (`sync_content_for_root`) must clear leftover content when extension is no longer eligible.
+5. DOCX uses a separate permissive library (`python-docx`) — do not expand the AGPL surface casually.
+6. No embeddings during parse (v0.7).
+
+## Status
+
+Accepted

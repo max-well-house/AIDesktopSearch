@@ -5,6 +5,7 @@ import { colors } from '../../theme'
 /**
  * Flat Spotlight-style filename hits (#43 / #44).
  * Click or Enter (from SearchBar) opens via parent onActivate.
+ * Page caption only for PDF content hits (#57 / #62).
  */
 export default function ResultsList({
   hits,
@@ -78,7 +79,8 @@ export default function ResultsList({
             >
               {hit.path}
             </Typography>
-            {hit.page != null ? (
+            {hit.page != null &&
+            String(hit.extension || '').toLowerCase() === 'pdf' ? (
               <Typography
                 variant="caption"
                 sx={{

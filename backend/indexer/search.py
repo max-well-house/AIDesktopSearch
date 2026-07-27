@@ -59,7 +59,7 @@ def _hit_from_row(row, *, page: int | None, match: str) -> dict:
 
 def search_filenames(query: str, *, limit: int = DEFAULT_LIMIT) -> list[dict]:
     """
-    Case-insensitive substring match on files.name plus PDF body FTS (#56).
+    Case-insensitive substring match on files.name plus document body FTS (#56 / #62).
 
     Empty/whitespace query returns []. One hit per file: filename matches rank
     above content-only; content contributes the lowest matching page.

@@ -41,7 +41,7 @@ def main() -> int:
 
     from db import init_db
     from indexer import ensure_root, replace_root_files
-    from indexer.content import sync_pdfs_for_root
+    from indexer.content import sync_content_for_root
 
     with tempfile.TemporaryDirectory(
         prefix="aidesktop-pdf-bench-",
@@ -71,7 +71,7 @@ def main() -> int:
 
         # Warm sync (mtime skip) — should be near-instant.
         t1 = time.perf_counter()
-        sync_pdfs_for_root(root_id)
+        sync_content_for_root(root_id)
         warm_s = time.perf_counter() - t1
 
         print(f"files={args.files} pages_each={args.pages}")

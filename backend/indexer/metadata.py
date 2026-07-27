@@ -142,9 +142,9 @@ def replace_root_files(
         )
         conn.commit()
 
-    from indexer.content import sync_pdfs_for_root
+    from indexer.content import sync_content_for_root
 
-    sync_pdfs_for_root(root_id)
+    sync_content_for_root(root_id)
 
     return upserted, removed
 

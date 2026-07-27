@@ -1,31 +1,24 @@
 """PDF text extraction via PyMuPDF (#54 / Decision #006).
 
 Soft-fail only — never raise into the index worker for bad PDFs.
+Returns the shared ExtractResult contract (#62 / Decision #007).
 """
 
 from __future__ import annotations
 
 import time
-from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Literal
+
+from indexer.extract import ExtractResult, ExtractStatus
 
 MAX_PDF_BYTES = 50 * 1024 * 1024  # 50 MiB
 MAX_PDF_PAGES = 2000
 # Soft wall clock budget per file (#58) — leave headroom for Ollama later.
 MAX_PDF_EXTRACT_SECONDS = 30.0
 
-PdfStatus = Literal["ok", "empty", "error"]
-
-
-@dataclass
-class PdfExtractResult:
-    pages: list[tuple[int, str]] = field(default_factory=list)  # 1-based page, text
-    page_count: int = 0
-    status: PdfStatus = "ok"
-    warnings: list[str] = field(default_factory=list)
-    parser: str = "pymupdf"
-    parser_version: str | None = None
+# Backward-compatible aliases for older imports / tests.
+PdfStatus = ExtractStatus
+PdfExtractResult = ExtractResult
 
 
 def _pymupdf_version() -> str | None:
@@ -41,7 +34,7 @@ def extract_pdf(
     path: Path | str,
     *,
     max_seconds: float | None = None,
-) -> PdfExtractResult:
+) -> ExtractResult:
     """
     Extract per-page text from a PDF.
 
@@ -51,7 +44,7 @@ def extract_pdf(
     """
     resolved = Path(path)
     version = _pymupdf_version()
-    result = PdfExtractResult(parser_version=version)
+    result = ExtractResult(parser="pymupdf", parser_version=version)
     budget = MAX_PDF_EXTRACT_SECONDS if max_seconds is None else float(max_seconds)
 
     try:

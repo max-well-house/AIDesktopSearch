@@ -298,25 +298,27 @@ Launcher Footer **Indexed** shows file count plus a short locale date from `last
 
 `watchdog` (v0.4.0 live watching; Decision #005 — `backend/indexer/watch.py`)
 
-### PDF content (v0.5.0 — Decision #006)
+### Document content (v0.5.0 PDF — Decision #006; v0.6.0 registry — Decision #007)
 
-**Shipped (#54–#58):**
+**Shipped PDF (#54–#58); unified dispatch (#62):**
 
 ```
-PDF → PyMuPDF extract (per page) → file_content + file_pages_fts → classic search hit (+ page)
+File → extract_for_path (by extension) → file_content + file_pages_fts → classic search hit (+ page for PDF)
 ```
 
 | Piece | Location |
 |-------|----------|
-| Extract | `backend/indexer/pdf_extract.py` (size / page / time caps) |
-| Persist / re-parse | `backend/indexer/content.py` (hooked from `metadata` upsert/rename + bulk scan; batched FTS inserts; yield between PDFs) |
+| Shared contract / registry | `backend/indexer/extract.py` (`ExtractResult`, `CONTENT_EXTENSIONS`, `extract_for_path`) |
+| PDF extract | `backend/indexer/pdf_extract.py` (size / page / time caps) |
+| Persist / re-parse | `backend/indexer/content.py` (`sync_file_content`, `sync_content_for_root`, leftover clear; hooked from `metadata`) |
 | Search merge | `backend/indexer/search.py` — filename LIKE ∪ FTS5; one hit per file |
-| UI | `ResultsList` shows `Page N` when `hit.page` set; Enter still `shell.openPath` (no viewer page jump) |
+| UI | `ResultsList` shows `Page N` only for PDF hits with `hit.page`; Enter still `shell.openPath` (no viewer page jump) |
 
 - Soft-fail empty / scanned / encrypted / corrupt / oversize / timed-out; OCR deferred to v0.9.
 - Re-parse when `files.mtime` ≠ `file_content.mtime_at_parse`.
-- Scan runs PDF work in a worker thread so `/health` and `/search` stay responsive during index (#58).
-- **Still not in v0.5:** embeddings/chunking (v0.7), multi-format parsers (v0.6), background pauseable PDF queue / Ollama-aware throttling (later).
+- Scan runs content work in a worker thread so `/health` and `/search` stay responsive during index (#58).
+- **v0.6 in progress:** TXT / Markdown / DOCX parsers (#60 / #61 / #59) plug into the same registry.
+- **Still later:** embeddings/chunking (v0.7), background pauseable content queue / Ollama-aware throttling.
 
 Details: [research-pdf-libraries.md](./research-pdf-libraries.md). Schema: [schema.md](./schema.md).
 

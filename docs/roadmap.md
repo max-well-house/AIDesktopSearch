@@ -145,6 +145,12 @@ Documents
 
 DOCX / TXT / Markdown
 
+In progress:
+- [x] Unified parser interface (#62) — `ExtractResult` + registry; PDF migrated; leftover clear; Page N UI gated to PDF
+- [ ] TXT parser (#60)
+- [ ] Markdown parser (#61)
+- [ ] DOCX parser (#59)
+
 ---
 
 # Version 0.7.0

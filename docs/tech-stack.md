@@ -122,7 +122,7 @@ Why?
 
 Fast per-page PDF text extract in the Python indexer (Decision #006). Classic content search and page hints (#54–#57) without Ollama.
 
-Installed via `backend/requirements.txt` (`pymupdf`). Implementation: `backend/indexer/pdf_extract.py` + `content.py`; FTS in SQLite (`file_pages_fts`). AGPL (or commercial) called out in research; acceptable for this local open project; revisit if packaging/distribution (#111) requires a permissive alternate (pypdf).
+Installed via `backend/requirements.txt` (`pymupdf`). Implementation: `backend/indexer/pdf_extract.py` behind shared `extract.py` registry (Decision #007 / #62); persist in `content.py`; FTS in SQLite (`file_pages_fts`). AGPL (or commercial) called out in research; acceptable for this local open project; revisit if packaging/distribution (#111) requires a permissive alternate (pypdf).
 
 Research: `docs/research-pdf-libraries.md`.
 

@@ -181,7 +181,8 @@ Lean / resource-conscious pass (not multi-core max throughput — leave headroom
 |--------|--------|
 | Batched FTS inserts (`executemany`) per file | `backend/indexer/content.py` |
 | Per-file extract wall budget (`MAX_PDF_EXTRACT_SECONDS`, default 30s); soft-fail + keep partial pages | `backend/indexer/pdf_extract.py` |
-| Cooperative yield between PDFs in bulk sync | `sync_pdfs_for_root` |
+| Cooperative yield between files in bulk sync | `sync_content_for_root` |
+
 | Scan/PDF work off the FastAPI event loop | `asyncio.to_thread` in `POST /index/scan` |
 | Micro-bench helper | `scripts/bench_pdf_parse.py` |
 
