@@ -163,6 +163,7 @@ Embeddings / meaning search (defaults fit 16GB + 8GB VRAM); GPU detection beyond
 Done so far:
 - Research embeddings (#63) → `docs/research-embeddings.md` (how embeddings fit MosAIq; local vs cloud; generate ≠ query). Closed.
 - Research vector DBs (#64) → Decision #008 + `docs/research-vector-databases.md` (sqlite-vec primary; LanceDB escape hatch; Chroma demoted).
+- Install Ollama (#65) → local runner on the machine; `/health` + System Status detect/connect (probe from #95); README setup notes. Chat inference still #70; generate embeddings → #66.
 
 ---
 

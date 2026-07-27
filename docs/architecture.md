@@ -322,6 +322,6 @@ File → extract_for_path (by extension) → file_content + file_pages_fts → c
 
 Details: [research-pdf-libraries.md](./research-pdf-libraries.md). Schema: [schema.md](./schema.md).
 
-Ollama (optional; detected via `/health`, never required for classic path)
+Ollama (optional; detected via `/health`, never required for classic path). Local install/docs: README **Optional: Ollama** (#65). Chat wiring → #70.
 
 sqlite-vec (planned — Decision #008; store in #67)

@@ -152,11 +152,11 @@ Installed via `backend/requirements.txt` (`python-docx`). Implementation: `backe
 
 Why?
 
-Local models
+Local models (embeddings in v0.7; chat/RAG in v0.8)
 
-Separate process; prefer GPU on the primary machine
+Separate process; prefer GPU on the primary machine. Never installed into the repo or parented under Electron.
 
-Detected via `/health` (`available` / `unavailable` / `not_installed`). Missing Ollama never crashes the API.
+Detected via `/health` (`available` / `unavailable` / `not_installed`). Missing Ollama never crashes the API. Install/docs for local dev: README **Optional: Ollama** (#65). Chat prompt wiring remains #70.
 
 ---
 

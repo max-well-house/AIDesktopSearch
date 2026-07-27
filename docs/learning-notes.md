@@ -124,3 +124,9 @@ What I learned: For a desktop app that already owns corpus state in SQLite + FTS
 
 Why it matters: Decision #008 replaces the early Chroma placeholder before #67 stores anything we would have to migrate.
 
+### 07/27/2026 — Ollama install vs feature lights
+
+What I learned: #65 is “runner on the machine + detect,” not “turn on Semantic/AI in the footer.” System Status **Ollama: Available** means `:11434` answers; footer Semantic/AI stay off until #66–#68 / #70. Install is system-wide (script/winget/exe) — never into the repo. On Windows, use `curl.exe` to probe the API; bare `curl` is `Invoke-WebRequest`.
+
+Why it matters: Keeps #65 closable without pretending embeddings or RAG shipped, and avoids confusing Max when classic search works but footer lights stay dark.
+

@@ -14,7 +14,7 @@ Tray: left-click show/hide; right-click for Show, Start with Windows, and Quit. 
 
 ## Quick start
 
-**Prerequisites:** Python 3.x, Node.js + npm.
+**Prerequisites:** Python 3.x, Node.js + npm. **Ollama is optional** (classic filename/content search works without it).
 
 ### First-time setup (once)
 
@@ -62,6 +62,41 @@ Then `npm run dev` in another terminal — Electron attaches and will **not** ki
 Odd layouts: set `AIDESKTOP_ROOT` to the repo root so Electron can find `.venv` and `backend/`.
 
 Sanity check: http://127.0.0.1:8000/health — JSON with `status`, `version`, `timestamp`, and `capabilities`. API docs: http://127.0.0.1:8000/docs
+
+### Optional: Ollama (local models / embeddings)
+
+Ollama is a **separate** Windows app — not installed into this repo, and never parented under Electron. Detection already lives in `GET /health` + System Status (#95). Install it on the machine so Phase 7 embedding work (#66+) and later RAG (#70) have a local runner.
+
+**Install (pick one; run from any folder — not the repo):**
+
+```powershell
+# Official installer script
+irm https://ollama.com/install.ps1 | iex
+
+# Or winget
+winget install --id Ollama.Ollama -e
+```
+
+Or download from [ollama.com/download/windows](https://ollama.com/download/windows).
+
+**Verify the server** (PowerShell’s `curl` is not real curl — use `curl.exe`):
+
+```powershell
+ollama --version
+curl.exe http://127.0.0.1:11434/api/version
+```
+
+Expect JSON with a `version`. If connection fails, start **Ollama** from the Start menu / tray and retry.
+
+**In the app:** System Status → **Ollama: Available** (with version). Footer **Semantic Search** / **AI** stay off until generate/store/search (#66–#68) and chat wiring (#70) land — that is expected.
+
+**Optional embed model** (for #66; exact default may change):
+
+```powershell
+ollama pull nomic-embed-text
+```
+
+Bare `ollama` may open an interactive menu — Esc out; MosAIq only needs the background server on `127.0.0.1:11434`.
 
 ### Other commands
 
