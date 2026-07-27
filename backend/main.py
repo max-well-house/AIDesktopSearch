@@ -11,6 +11,8 @@ from db import init_db
 from indexer import delete_root, index_status, scan_and_save
 from indexer.schemas import (
     DeleteRootResponse,
+    EmbeddingBackfillResponse,
+    EmbeddingControlResponse,
     EmbeddingSmokeResponse,
     IndexStatusResponse,
     ScanRequest,
@@ -23,6 +25,9 @@ from indexer.search import DEFAULT_LIMIT, MAX_LIMIT
 from indexer.watch import get_watch_manager
 from search import execute_search
 from embeddings.store import run_store_smoke
+from embeddings.queue import get_embed_queue
+from embeddings.generate import list_pending_embed_file_ids
+from embeddings.store import DEFAULT_EMBED_MODEL
 
 APP_VERSION = "0.0.4"
 
@@ -49,11 +54,13 @@ def _reconcile_and_watch_all() -> None:
 async def lifespan(_app: FastAPI):
     # Create data/index.db + schema foundation on every process start (#39).
     init_db()
+    get_embed_queue().start()
     _reconcile_and_watch_all()
     try:
         yield
     finally:
         get_watch_manager().stop()
+        get_embed_queue().stop()
 
 
 app = FastAPI(title="AI Desktop Search API", version=APP_VERSION, lifespan=lifespan)
@@ -66,10 +73,20 @@ def _utc_timestamp() -> str:
 def _status_with_watch() -> dict:
     payload = index_status()
     watch = get_watch_manager().status()
+    embed = get_embed_queue().status()
     payload["watching"] = watch["watching"]
     payload["watched_roots"] = watch["watched_roots"]
     payload["queue_depth"] = watch["queue_depth"]
     payload["watch_paused"] = watch["paused"]
+    payload["embed_queue_depth"] = embed["queue_depth"]
+    payload["embed_paused"] = embed["paused"]
+    payload["embed_completed"] = embed["completed"]
+    payload["embed_failed"] = embed["failed"]
+    payload["embed_last_error"] = embed["last_error"]
+    try:
+        payload["embed_pending_files"] = len(list_pending_embed_file_ids())
+    except Exception:
+        payload["embed_pending_files"] = 0
     return payload
 
 
@@ -164,6 +181,64 @@ async def post_embeddings_smoke():
     """
     result = await asyncio.to_thread(run_store_smoke)
     return EmbeddingSmokeResponse(**result)
+
+
+@app.get("/index/embeddings/status", response_model=EmbeddingControlResponse)
+async def get_embeddings_status():
+    """Embed queue + pending file count (#66)."""
+    q = get_embed_queue().status()
+    pending = await asyncio.to_thread(list_pending_embed_file_ids)
+    return EmbeddingControlResponse(
+        **q,
+        pending_files=len(pending),
+        model_id=DEFAULT_EMBED_MODEL,
+    )
+
+
+@app.post("/index/embeddings/pause", response_model=EmbeddingControlResponse)
+async def pause_embeddings():
+    """Pause background embedding generation (Decision #003)."""
+    manager = get_embed_queue()
+    manager.pause()
+    q = manager.status()
+    pending = await asyncio.to_thread(list_pending_embed_file_ids)
+    return EmbeddingControlResponse(
+        **q,
+        pending_files=len(pending),
+        model_id=DEFAULT_EMBED_MODEL,
+    )
+
+
+@app.post("/index/embeddings/resume", response_model=EmbeddingControlResponse)
+async def resume_embeddings():
+    """Resume draining the embed queue."""
+    manager = get_embed_queue()
+    manager.resume()
+    q = manager.status()
+    pending = await asyncio.to_thread(list_pending_embed_file_ids)
+    return EmbeddingControlResponse(
+        **q,
+        pending_files=len(pending),
+        model_id=DEFAULT_EMBED_MODEL,
+    )
+
+
+@app.post("/index/embeddings/backfill", response_model=EmbeddingBackfillResponse)
+async def backfill_embeddings():
+    """
+    Enqueue files that have FTS text but no chunks for the default model (#66).
+
+    Use after installing nomic-embed-text or upgrading from store-only (#67).
+    """
+    pending = await asyncio.to_thread(list_pending_embed_file_ids)
+    manager = get_embed_queue()
+    enqueued = manager.enqueue_many(pending)
+    return EmbeddingBackfillResponse(
+        enqueued=enqueued,
+        pending_files=len(pending),
+        queue_depth=manager.status()["queue_depth"],
+        model_id=DEFAULT_EMBED_MODEL,
+    )
 
 
 @app.get("/search", response_model=SearchResponse)

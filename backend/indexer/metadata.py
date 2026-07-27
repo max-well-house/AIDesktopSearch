@@ -414,6 +414,28 @@ def index_status() -> dict:
         except Exception:
             embedding_chunk_count = 0
 
+        embedded_files: list[dict] = []
+        try:
+            embedded_files = [
+                {
+                    "file_id": int(row["file_id"]),
+                    "name": row["name"],
+                    "chunks": int(row["chunks"]),
+                }
+                for row in conn.execute(
+                    """
+                    SELECT e.file_id AS file_id, f.name AS name, COUNT(*) AS chunks
+                    FROM embedding_chunks AS e
+                    JOIN files AS f ON f.id = e.file_id
+                    GROUP BY e.file_id
+                    ORDER BY chunks DESC, f.name COLLATE NOCASE
+                    LIMIT 8
+                    """
+                )
+            ]
+        except Exception:
+            embedded_files = []
+
     vector_store_available = False
     try:
         from embeddings.store import vector_store_status
@@ -429,4 +451,5 @@ def index_status() -> dict:
         "roots": roots,
         "embedding_chunk_count": embedding_chunk_count,
         "vector_store_available": vector_store_available,
+        "embedded_files": embedded_files,
     }

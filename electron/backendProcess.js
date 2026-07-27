@@ -10,6 +10,9 @@ const INDEX_STATUS_URL = `http://${HOST}:${PORT}/index/status`
 const INDEX_SCAN_URL = `http://${HOST}:${PORT}/index/scan`
 const INDEX_ROOTS_URL = `http://${HOST}:${PORT}/index/roots`
 const INDEX_EMBEDDINGS_SMOKE_URL = `http://${HOST}:${PORT}/index/embeddings/smoke`
+const INDEX_EMBEDDINGS_BACKFILL_URL = `http://${HOST}:${PORT}/index/embeddings/backfill`
+const INDEX_EMBEDDINGS_PAUSE_URL = `http://${HOST}:${PORT}/index/embeddings/pause`
+const INDEX_EMBEDDINGS_RESUME_URL = `http://${HOST}:${PORT}/index/embeddings/resume`
 const SEARCH_URL = `http://${HOST}:${PORT}/search`
 const SPAWN_TIMEOUT_MS = 15000
 const POLL_INTERVAL_MS = 250
@@ -75,6 +78,30 @@ async function deleteIndexRoot(rootId, timeoutMs = 10000) {
 async function postEmbeddingsSmoke(timeoutMs = 15000) {
   return fetchJson(
     INDEX_EMBEDDINGS_SMOKE_URL,
+    { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' },
+    timeoutMs,
+  )
+}
+
+async function postEmbeddingsBackfill(timeoutMs = 30000) {
+  return fetchJson(
+    INDEX_EMBEDDINGS_BACKFILL_URL,
+    { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' },
+    timeoutMs,
+  )
+}
+
+async function postEmbeddingsPause(timeoutMs = 10000) {
+  return fetchJson(
+    INDEX_EMBEDDINGS_PAUSE_URL,
+    { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' },
+    timeoutMs,
+  )
+}
+
+async function postEmbeddingsResume(timeoutMs = 10000) {
+  return fetchJson(
+    INDEX_EMBEDDINGS_RESUME_URL,
     { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' },
     timeoutMs,
   )
@@ -313,6 +340,9 @@ module.exports = {
   postIndexScan,
   deleteIndexRoot,
   postEmbeddingsSmoke,
+  postEmbeddingsBackfill,
+  postEmbeddingsPause,
+  postEmbeddingsResume,
   fetchSearch,
   ensureBackend,
   stopBackend,

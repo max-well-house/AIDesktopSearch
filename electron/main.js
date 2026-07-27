@@ -8,6 +8,9 @@ const {
   postIndexScan,
   deleteIndexRoot,
   postEmbeddingsSmoke,
+  postEmbeddingsBackfill,
+  postEmbeddingsPause,
+  postEmbeddingsResume,
   fetchSearch,
   ensureBackend,
   stopBackend,
@@ -44,6 +47,9 @@ ipcMain.handle('api:index-root-delete', async (_event, rootId) => {
   return deleteIndexRoot(id)
 })
 ipcMain.handle('api:embeddings-smoke', async () => postEmbeddingsSmoke())
+ipcMain.handle('api:embeddings-backfill', async () => postEmbeddingsBackfill())
+ipcMain.handle('api:embeddings-pause', async () => postEmbeddingsPause())
+ipcMain.handle('api:embeddings-resume', async () => postEmbeddingsResume())
 ipcMain.handle('api:search', async (_event, query, limit) => {
   const q = query == null ? '' : String(query)
   const capped = limit == null ? 50 : Number(limit)

@@ -22,6 +22,11 @@ __all__ = [
 async def build_capabilities() -> Capabilities:
     ollama = await detect_ollama()
     vs = vector_store_status()
+    # Lazy import avoids capabilities ↔ embeddings.client cycle at startup.
+    from embeddings.client import model_available
+    from embeddings.store import DEFAULT_EMBED_MODEL
+
+    embedding_ready = bool(ollama.available) and model_available(DEFAULT_EMBED_MODEL)
     return Capabilities(
         ollama=ollama,
         gpu=GpuCapability(
@@ -29,7 +34,7 @@ async def build_capabilities() -> Capabilities:
             name=None,
             note="detection deferred; see docs/learning-notes.md",
         ),
-        models=ModelsCapability(chat=False, embedding=False),
+        models=ModelsCapability(chat=False, embedding=embedding_ready),
         vector_store=VectorStoreCapability(
             available=bool(vs.get("available")),
             version=vs.get("version"),

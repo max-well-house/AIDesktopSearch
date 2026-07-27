@@ -47,6 +47,16 @@ function vectorStoreTone(vectorStore) {
   return vectorStore.available ? 'online' : 'loading'
 }
 
+function embeddingLabel(models) {
+  if (!models) return 'Unknown'
+  return models.embedding ? 'Available (nomic-embed-text)' : 'Unavailable — pull nomic-embed-text'
+}
+
+function embeddingTone(models) {
+  if (!models) return 'idle'
+  return models.embedding ? 'online' : 'loading'
+}
+
 function formatIndexed(count) {
   if (count == null) return '—'
   if (count === 0) return '0 files'
@@ -96,9 +106,34 @@ export default function SystemStatus({ onBack }) {
     if (result.ok) setIndexStatus(result.data)
   }
 
+  async function refreshHealthQuiet() {
+    if (!window.api?.checkHealth) return
+    try {
+      const result = await window.api.checkHealth()
+      if (result.ok) {
+        setPayload(result.data)
+        setUrl(result.url)
+        setPhase('online')
+      }
+    } catch {
+      // Keep last known snapshot during quiet polls.
+    }
+  }
+
   useEffect(() => {
     void refreshIndexStatus()
   }, [])
+
+  // Live embed progress while the queue is draining (#122 interim).
+  const embedQueueDepth = indexStatus?.embed_queue_depth ?? 0
+  useEffect(() => {
+    if (embedQueueDepth <= 0) return undefined
+    const id = setInterval(() => {
+      void refreshIndexStatus()
+      void refreshHealthQuiet()
+    }, 2000)
+    return () => clearInterval(id)
+  }, [embedQueueDepth])
 
   async function checkSystemStatus() {
     setPhase('loading')
@@ -169,6 +204,89 @@ export default function SystemStatus({ onBack }) {
         const health = await window.api.checkHealth()
         if (health.ok) setPayload(health.data)
       }
+    } catch (err) {
+      setCorpusFeedback('error', err?.message || String(err))
+    } finally {
+      setBusyKey(null)
+    }
+  }
+
+  async function embedPending() {
+    if (!window.api?.embeddingsBackfill) {
+      setCorpusFeedback('error', 'Electron bridge missing for embed backfill.')
+      return
+    }
+    setBusyKey('embeddings-backfill')
+    try {
+      const result = await window.api.embeddingsBackfill()
+      if (!result.ok) {
+        setCorpusFeedback('error', result.error || 'Embed backfill failed')
+        return
+      }
+      const data = result.data
+      setCorpusFeedback(
+        'online',
+        `Queued ${data.enqueued?.toLocaleString?.() ?? data.enqueued} file(s) for embedding (queue depth ${data.queue_depth}).`,
+      )
+      await refreshIndexStatus()
+    } catch (err) {
+      setCorpusFeedback('error', err?.message || String(err))
+    } finally {
+      setBusyKey(null)
+    }
+  }
+
+  async function pauseEmbeddings() {
+    if (!window.api?.embeddingsPause) return
+    setBusyKey('embeddings-pause')
+    try {
+      const result = await window.api.embeddingsPause()
+      if (!result.ok) {
+        setCorpusFeedback('error', result.error || 'Pause failed')
+        return
+      }
+      // Apply pause immediately so the same button flips to Resume.
+      setIndexStatus((prev) =>
+        prev
+          ? {
+              ...prev,
+              embed_paused: true,
+              embed_queue_depth: result.data?.queue_depth ?? prev.embed_queue_depth,
+            }
+          : prev,
+      )
+      setCorpusFeedback(
+        'online',
+        'Embedding queue paused — click Resume embed on the same button to continue.',
+      )
+      await refreshIndexStatus()
+    } catch (err) {
+      setCorpusFeedback('error', err?.message || String(err))
+    } finally {
+      setBusyKey(null)
+    }
+  }
+
+  async function resumeEmbeddings() {
+    if (!window.api?.embeddingsResume) return
+    setBusyKey('embeddings-resume')
+    try {
+      const result = await window.api.embeddingsResume()
+      if (!result.ok) {
+        setCorpusFeedback('error', result.error || 'Resume failed')
+        return
+      }
+      setIndexStatus((prev) =>
+        prev
+          ? {
+              ...prev,
+              embed_paused: false,
+              embed_queue_depth: result.data?.queue_depth ?? prev.embed_queue_depth,
+            }
+          : prev,
+      )
+      setCorpusFeedback('online', 'Embedding queue resumed.')
+      await refreshIndexStatus()
     } catch (err) {
       setCorpusFeedback('error', err?.message || String(err))
     } finally {
@@ -269,6 +387,7 @@ export default function SystemStatus({ onBack }) {
   const ollama = payload?.capabilities?.ollama
   const gpu = payload?.capabilities?.gpu
   const vectorStore = payload?.capabilities?.vector_store
+  const models = payload?.capabilities?.models
   const roots = indexStatus?.roots ?? []
   const busy = busyKey != null
 
@@ -475,6 +594,46 @@ export default function SystemStatus({ onBack }) {
                       }`
                     : ''}
                 </p>
+                <p className={`status status-${embeddingTone(models)}`}>
+                  <span className="status-label">Embedding model:</span>{' '}
+                  {embeddingLabel(models)}
+                </p>
+                <p
+                  className={`status status-${
+                    indexStatus?.embed_paused ? 'loading' : 'online'
+                  }`}
+                >
+                  <span className="status-label">Embed queue:</span>{' '}
+                  {indexStatus?.embed_paused ? 'Paused' : 'Running'}
+                  {indexStatus?.embed_queue_depth != null
+                    ? ` · ${indexStatus.embed_queue_depth} queued`
+                    : ''}
+                  {indexStatus?.embed_pending_files != null
+                    ? ` · ${indexStatus.embed_pending_files} file(s) need embed`
+                    : ''}
+                  {indexStatus?.embedding_chunk_count != null
+                    ? ` · ${indexStatus.embedding_chunk_count} chunks stored`
+                    : ''}
+                  {embedQueueDepth > 0 && !indexStatus?.embed_paused
+                    ? ' · updating…'
+                    : ''}
+                </p>
+                {(indexStatus?.embedded_files?.length ?? 0) > 0 ? (
+                  <Typography
+                    variant="body2"
+                    sx={{ mb: 1.25, color: colors.textPrimary, lineHeight: 1.45 }}
+                  >
+                    <span className="status-label">Embedded:</span>{' '}
+                    {indexStatus.embedded_files
+                      .map((f) => `${f.name} (${f.chunks})`)
+                      .join(' · ')}
+                  </Typography>
+                ) : null}
+                {indexStatus?.embed_last_error ? (
+                  <Typography variant="body2" color="error" sx={{ mb: 1 }}>
+                    Last embed error: {indexStatus.embed_last_error}
+                  </Typography>
+                ) : null}
 
                 <dl className="details">
                   <div>
@@ -509,23 +668,56 @@ export default function SystemStatus({ onBack }) {
               </div>
             )}
 
-            <Button
-              variant="contained"
-              color="primary"
-              onClick={checkSystemStatus}
-              disabled={phase === 'loading'}
+            <Box
+              sx={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: 1,
+                alignItems: 'center',
+              }}
             >
-              Check System Status
-            </Button>
-            <Button
-              variant="outlined"
-              color="primary"
-              onClick={verifyVectorStore}
-              disabled={busy || phase === 'loading'}
-              sx={{ ml: 1, mt: { xs: 1, sm: 0 } }}
-            >
-              Verify vector store
-            </Button>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={checkSystemStatus}
+                disabled={phase === 'loading'}
+              >
+                Check System Status
+              </Button>
+              <Button
+                variant="outlined"
+                color="primary"
+                onClick={verifyVectorStore}
+                disabled={busy || phase === 'loading'}
+              >
+                Verify vector store
+              </Button>
+              {(indexStatus?.embed_pending_files ?? 0) > 0 ? (
+                <Button
+                  variant="outlined"
+                  color="primary"
+                  onClick={embedPending}
+                  disabled={busy || phase === 'loading'}
+                >
+                  {`Embed ${indexStatus.embed_pending_files} pending`}
+                </Button>
+              ) : null}
+              {indexStatus?.embed_paused ||
+              (indexStatus?.embed_queue_depth ?? 0) > 0 ? (
+                <Button
+                  variant={indexStatus?.embed_paused ? 'contained' : 'outlined'}
+                  color="primary"
+                  onClick={
+                    indexStatus?.embed_paused
+                      ? resumeEmbeddings
+                      : pauseEmbeddings
+                  }
+                  disabled={busy || phase === 'loading'}
+                >
+                  {indexStatus?.embed_paused ? 'Resume embed' : 'Pause embed'}
+                </Button>
+              ) : null}
+            </Box>
           </AccordionDetails>
         </Accordion>
 

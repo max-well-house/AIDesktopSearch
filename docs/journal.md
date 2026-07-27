@@ -351,3 +351,23 @@ Next:
 1. Ship **#67 Store embeddings** (sqlite-vec load, schema, soft-fail, System Status visibility)
 2. Then #66 → #68 → #69 one issue at a time with manual UI checks between commits
 
+## 2026-07-27 — Phase 7 pause after #66
+
+Goal:
+Land store + generate for semantic search, then pause before the query/hybrid path.
+
+What I did:
+- #67 — sqlite-vec in `index.db`, soft-fail, System Status verify smoke (closed earlier)
+- #66 — chunker, Ollama `nomic-embed-text` client, pauseable embed queue, content-sync enqueue, backfill API; manual corpus embed (~28 chunks)
+- #122 opened — Diagnostics UX wrap (no instructional walls; contextual actions); interim UI: live refresh while queue drains, hide Embed/Pause when idle, Embedded sample list
+- Paused Phase 7 plan before #68 / #69 / #112
+
+What I learned:
+- Diagnostics lab buttons need status-driven visibility, not essay copy (#122)
+- Generate ≠ query still holds: vectors in DB do not turn on footer Semantic until #68
+
+Next (pick up here):
+1. **#68** Semantic search endpoint — query embed + k-NN + `run_semantic` / launcher path
+2. **#69** Hybrid search (Decision #002)
+3. **#112** GPU detection (parallel); **#122** Diagnostics UX after core path
+

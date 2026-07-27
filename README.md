@@ -92,13 +92,15 @@ Expect JSON with a `version`. If connection fails, start **Ollama** from the Sta
 
 **Vector store (#67):** after `pip install -r backend/requirements.txt`, System Status → **Check System Status** should show **Vector store: Available (sqlite-vec …)**. With at least one indexed folder/file, **Verify vector store** runs a throwaway k-NN round-trip (no rows left behind). Classic search still works if the extension fails to load.
 
-**Optional embed model** (for #66; exact default may change):
+**Optional embed model** (for #66; default for v0.7):
 
 ```powershell
 ollama pull nomic-embed-text
 ```
 
 Bare `ollama` may open an interactive menu — Esc out; MosAIq only needs the background server on `127.0.0.1:11434`.
+
+**Generate embeddings (#66):** System Status → **Check System Status** should show **Embedding model: Available** after the pull. Use **Embed pending** to queue files that have classic FTS text but no vectors yet. **Pause embed** / **Resume embed** control the background worker. Chunk counts rise under Vector store / Index as files finish. Footer **Semantic Search** stays Disabled until the query path (#68).
 
 ### Other commands
 

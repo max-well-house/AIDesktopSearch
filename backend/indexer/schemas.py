@@ -10,6 +10,14 @@ class RootStatus(BaseModel):
     file_count: int = 0
 
 
+class EmbeddedFileSample(BaseModel):
+    """One file that already has stored chunks (#66 verify)."""
+
+    file_id: int
+    name: str
+    chunks: int
+
+
 class IndexStatusResponse(BaseModel):
     file_count: int
     root_count: int
@@ -23,6 +31,14 @@ class IndexStatusResponse(BaseModel):
     # Embedding store (#67)
     embedding_chunk_count: int = 0
     vector_store_available: bool = False
+    # Embedding generate (#66)
+    embed_queue_depth: int = 0
+    embed_paused: bool = False
+    embed_completed: int = 0
+    embed_failed: int = 0
+    embed_last_error: str | None = None
+    embed_pending_files: int = 0
+    embedded_files: list[EmbeddedFileSample] = Field(default_factory=list)
 
 
 class WatchControlResponse(BaseModel):
@@ -30,6 +46,27 @@ class WatchControlResponse(BaseModel):
     watched_roots: int
     queue_depth: int
     paused: bool
+
+
+class EmbeddingControlResponse(BaseModel):
+    """Embed queue pause/resume / status (#66)."""
+
+    running: bool
+    paused: bool
+    queue_depth: int
+    completed: int
+    failed: int
+    last_error: str | None = None
+    last_ok_file_id: int | None = None
+    pending_files: int = 0
+    model_id: str = "nomic-embed-text"
+
+
+class EmbeddingBackfillResponse(BaseModel):
+    enqueued: int
+    pending_files: int
+    queue_depth: int
+    model_id: str = "nomic-embed-text"
 
 
 class EmbeddingSmokeResponse(BaseModel):

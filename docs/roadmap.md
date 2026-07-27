@@ -167,10 +167,11 @@ Done so far:
 
 Implementation order (dependency-correct):
 1. **#67** Store embeddings — sqlite-vec load + chunk/vec schema + soft-fail + System Status verify. **Done.**
-2. **#66** Generate embeddings — chunk + `nomic-embed-text` via Ollama + pauseable queue
-3. **#68** Semantic search endpoint — query embed + k-NN + `run_semantic`
+2. **#66** Generate embeddings — chunk + `nomic-embed-text` via Ollama + pauseable queue. **Done.** (paused before #68)
+3. **#68** Semantic search endpoint — query embed + k-NN + `run_semantic` ← **next**
 4. **#69** Hybrid search — classic-first escalate/merge (Decision #002)
 5. **#112** GPU capability detection — parallel; not a blocker for stored-vector search
+6. **#122** System Status diagnostics UX wrap — after #66–#69 core path
 
 Defaults locked for this phase: sqlite-vec in same `index.db`; `nomic-embed-text`; page-aware PDF chunks; classic wins filename-like queries.
 

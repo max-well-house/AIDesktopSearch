@@ -18,5 +18,6 @@ Tracked on GitHub as **nice to have** issues (unmilestoned — not MVP). See boa
 | Knowledge graph visualization | #110 |
 | Tray “Reset window size” without Quit | — (session size is Quit-reset today; promote if needed) |
 | Zero-hit suggestions / fuzzy “did you mean” / idle recents | — (classic IR polish; not #98; semantic empty-escalation is #69) |
+| System Status diagnostics UX (fewer lab buttons, live copy) | #122 (v0.7 wrap; interim live refresh may land with #66) |
 
 Add new ideas here first; promote to a milestone only when a daily-driver gap appears.
