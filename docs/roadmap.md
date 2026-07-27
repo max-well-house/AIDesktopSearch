@@ -145,11 +145,12 @@ Documents
 
 DOCX / TXT / Markdown
 
-In progress:
+**v0.6.0 complete** (#62 / #60 / #61 / #59):
+
 - [x] Unified parser interface (#62) — `ExtractResult` + registry; PDF migrated; leftover clear; Page N UI gated to PDF
 - [x] TXT parser (#60) — stdlib extract with encoding fallbacks; FTS segment page=1
 - [x] Markdown parser (#61) — raw MD indexed (headings/lists preserved); `.md` / `.markdown`
-- [ ] DOCX parser (#59)
+- [x] DOCX parser (#59) — `python-docx` paragraphs + tables; soft-fail corrupt files
 
 ---
 

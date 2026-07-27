@@ -12,8 +12,10 @@ from typing import Literal
 
 ExtractStatus = Literal["ok", "empty", "error"]
 
-# Formats with a registered extractor. Grow as #59 lands.
-CONTENT_EXTENSIONS: frozenset[str] = frozenset({"pdf", "txt", "md", "markdown"})
+# Formats with a registered extractor (Decision #007 / Phase 6).
+CONTENT_EXTENSIONS: frozenset[str] = frozenset(
+    {"pdf", "txt", "md", "markdown", "docx"}
+)
 
 
 @dataclass
@@ -64,6 +66,10 @@ def extract_for_path(
         from indexer.markdown_extract import extract_md
 
         return extract_md(path)
+    if ext == "docx":
+        from indexer.docx_extract import extract_docx
+
+        return extract_docx(path, max_seconds=max_seconds)
 
     return ExtractResult(
         status="error",

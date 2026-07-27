@@ -317,7 +317,7 @@ File → extract_for_path (by extension) → file_content + file_pages_fts → c
 - Soft-fail empty / scanned / encrypted / corrupt / oversize / timed-out; OCR deferred to v0.9.
 - Re-parse when `files.mtime` ≠ `file_content.mtime_at_parse`.
 - Scan runs content work in a worker thread so `/health` and `/search` stay responsive during index (#58).
-- **v0.6 in progress:** TXT / Markdown shipped (#60 / #61); DOCX (#59) still to plug into the same registry.
+- **v0.6.0 shipped:** TXT / Markdown / DOCX (#60 / #61 / #59) on the shared registry (Decision #007).
 - **Still later:** embeddings/chunking (v0.7), background pauseable content queue / Ollama-aware throttling.
 
 Details: [research-pdf-libraries.md](./research-pdf-libraries.md). Schema: [schema.md](./schema.md).

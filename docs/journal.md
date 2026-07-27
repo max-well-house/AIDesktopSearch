@@ -312,3 +312,24 @@ Next:
 1. Start **v0.6.0 Documents** (DOCX / TXT / Markdown)
 2. Keep #118 / #120 / #121 queued for v1.0; don’t block v0.6 on them
 
+## 2026-07-27 — Phase 6 Documents (v0.6.0)
+
+Goal:
+Ship unified document parsers so classic FTS covers DOCX / TXT / Markdown alongside PDF.
+
+What I did:
+- #62 — `ExtractResult` + `CONTENT_EXTENSIONS` registry; migrate PDF; leftover content clear; Page N UI gated to PDF (Decision #007)
+- #60 — stdlib TXT extract with encoding fallbacks
+- #61 — Markdown `.md` / `.markdown` indexed raw (headings preserved for search)
+- #59 — `python-docx` paragraphs + tables; soft-fail corrupt files
+- Manual checks: body tokens in nested TXT, Phoenix README.md, Charizard.docx/pdf
+
+What I learned:
+- Content FTS is whole-token today (filename stays substring) — typeahead body prefix is later polish
+- Corpus generator stubs are not real Office/PDF binaries; hand-edited real files are better for content tests
+
+Next:
+1. Start **v0.7.0 Semantic Search** when ready
+2. Optional: extend `tools/corpus/generate.py` with real TXT/MD/DOCX bodies
+3. Keep #118 / #120 / #121 queued for v1.0
+

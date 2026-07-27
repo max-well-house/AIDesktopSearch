@@ -138,6 +138,16 @@ Implementation: `backend/indexer/text_extract.py` + `markdown_extract.py` via `e
 
 ---
 
+## python-docx (v0.6.0)
+
+Why?
+
+Word `.docx` body search in the Python indexer (#59 / Decision #007). MIT license — keeps the AGPL surface limited to PyMuPDF.
+
+Installed via `backend/requirements.txt` (`python-docx`). Implementation: `backend/indexer/docx_extract.py` (paragraphs + table cells → one FTS segment). Legacy `.doc` not supported.
+
+---
+
 ## Ollama
 
 Why?
