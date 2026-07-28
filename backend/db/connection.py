@@ -44,6 +44,17 @@ def init_db(db_path: Path | None = None) -> Path:
     path = db_path or get_db_path()
     with connect(path) as conn:
         conn.executescript(SCHEMA_SQL)
+        row = conn.execute("PRAGMA user_version").fetchone()
+        current = int(row[0]) if row is not None else 0
+        if current < 4:
+            cols = {
+                r[1]
+                for r in conn.execute("PRAGMA table_info(roots)").fetchall()
+            }
+            if "auto_watch" not in cols:
+                conn.execute(
+                    "ALTER TABLE roots ADD COLUMN auto_watch INTEGER NOT NULL DEFAULT 1"
+                )
         conn.execute(f"PRAGMA user_version = {int(SCHEMA_VERSION)}")
         try:
             from embeddings.vec import ensure_vec_schema

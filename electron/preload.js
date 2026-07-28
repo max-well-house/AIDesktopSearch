@@ -5,6 +5,9 @@ contextBridge.exposeInMainWorld('api', {
   getIndexStatus: () => ipcRenderer.invoke('api:index-status'),
   scanFolder: (folderPath) => ipcRenderer.invoke('api:index-scan', folderPath),
   removeRoot: (rootId) => ipcRenderer.invoke('api:index-root-delete', rootId),
+  setRootAutoWatch: (rootId, autoWatch) =>
+    ipcRenderer.invoke('api:index-root-auto-watch', rootId, autoWatch),
+  wipeIndex: () => ipcRenderer.invoke('api:index-wipe'),
   embeddingsSmoke: () => ipcRenderer.invoke('api:embeddings-smoke'),
   embeddingsBackfill: () => ipcRenderer.invoke('api:embeddings-backfill'),
   embeddingsPause: () => ipcRenderer.invoke('api:embeddings-pause'),

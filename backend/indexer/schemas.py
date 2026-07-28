@@ -8,6 +8,7 @@ class RootStatus(BaseModel):
     path: str
     last_scan_at: str | None = None
     file_count: int = 0
+    auto_watch: bool = True
 
 
 class EmbeddedFileSample(BaseModel):
@@ -41,6 +42,18 @@ class IndexStatusResponse(BaseModel):
     embed_last_error: str | None = None
     embed_pending_files: int = 0
     embedded_files: list[EmbeddedFileSample] = Field(default_factory=list)
+
+
+class RootAutoWatchRequest(BaseModel):
+    auto_watch: bool
+
+
+class WipeIndexResponse(BaseModel):
+    ok: bool
+    path: str
+    file_count: int
+    root_count: int
+    last_indexed_at: str | None = None
 
 
 class WatchControlResponse(BaseModel):

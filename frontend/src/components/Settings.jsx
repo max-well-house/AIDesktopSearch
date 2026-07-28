@@ -3,12 +3,14 @@ import Accordion from '@mui/material/Accordion'
 import AccordionDetails from '@mui/material/AccordionDetails'
 import AccordionSummary from '@mui/material/AccordionSummary'
 import Button from '@mui/material/Button'
+import Checkbox from '@mui/material/Checkbox'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import Switch from '@mui/material/Switch'
 import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
 import AppMark from './brand/AppMark'
 import { colors } from '../theme'
+import appConfig from '@app-config'
 
 function formatCheckedAt(iso) {
   if (!iso) return null
@@ -401,6 +403,66 @@ export default function Settings({ onBack }) {
     }
   }
 
+  async function toggleAutoWatch(root, next) {
+    if (!window.api?.setRootAutoWatch) {
+      setCorpusFeedback('error', 'Electron bridge missing for auto-update.')
+      return
+    }
+    setBusyKey(`watch-${root.id}`)
+    setCorpusMessage(null)
+    try {
+      const result = await window.api.setRootAutoWatch(root.id, next)
+      if (!result.ok) {
+        setCorpusFeedback('error', result.error || 'Could not update auto-update')
+        return
+      }
+      await refreshIndexStatus()
+      setCorpusFeedback(
+        'online',
+        next
+          ? `Auto-update on for ${root.path}`
+          : `Auto-update off — use Rescan for ${root.path}`,
+      )
+    } catch (err) {
+      setCorpusFeedback('error', err?.message || String(err))
+    } finally {
+      setBusyKey(null)
+    }
+  }
+
+  async function wipeIndex() {
+    if (!window.api?.wipeIndex) {
+      setCorpusFeedback('error', 'Electron bridge missing for privacy wipe.')
+      return
+    }
+    const confirmed = window.confirm(
+      'Wipe the search index?\n\n' +
+        'This deletes MosAIq’s index database (folder list, filenames, document text, embeddings). ' +
+        'Your original files on disk are not deleted.\n\n' +
+        'This is stronger than removing one folder (VACUUM), but not a forensic erase of old disk pages.',
+    )
+    if (!confirmed) return
+
+    setBusyKey('wipe')
+    setCorpusMessage(null)
+    try {
+      const result = await window.api.wipeIndex()
+      if (!result.ok) {
+        setCorpusFeedback('error', result.error || 'Wipe failed')
+        return
+      }
+      await refreshIndexStatus()
+      setCorpusFeedback(
+        'online',
+        'Index wiped and recreated empty. Add a folder to start again.',
+      )
+    } catch (err) {
+      setCorpusFeedback('error', err?.message || String(err))
+    } finally {
+      setBusyKey(null)
+    }
+  }
+
   let apiLabel = 'Not checked'
   if (phase === 'loading') apiLabel = 'Checking...'
   if (phase === 'online') apiLabel = 'Online'
@@ -557,13 +619,31 @@ export default function Settings({ onBack }) {
                   <Typography
                     variant="caption"
                     color="text.secondary"
-                    sx={{ display: 'block', mb: 1 }}
+                    sx={{ display: 'block', mb: 0.5 }}
                   >
                     {formatIndexed(root.file_count)}
                     {root.last_scan_at
                       ? ` · scanned ${formatCheckedAt(root.last_scan_at)}`
                       : ' · not scanned yet'}
                   </Typography>
+                  <FormControlLabel
+                    sx={{ ml: 0, mb: 1 }}
+                    control={
+                      <Checkbox
+                        size="small"
+                        checked={root.auto_watch !== false}
+                        disabled={busy}
+                        onChange={(event) =>
+                          void toggleAutoWatch(root, event.target.checked)
+                        }
+                      />
+                    }
+                    label={
+                      <Typography variant="body2" color="text.secondary">
+                        Auto-update (live watch). Off = Rescan only.
+                      </Typography>
+                    }
+                  />
                   <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                     <Button
                       size="small"
@@ -779,6 +859,32 @@ export default function Settings({ onBack }) {
             </Box>
           </AccordionDetails>
         </Accordion>
+
+        <Box sx={{ mb: 2 }}>
+          <Typography
+            variant="subtitle2"
+            sx={{ mb: 1, color: colors.textPrimary, fontWeight: 600 }}
+          >
+            Privacy
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+            Removing a folder clears its rows and runs VACUUM (light reclaim). Wipe
+            deletes and recreates the whole index database. Neither deletes your
+            original files on disk.
+          </Typography>
+          <Button
+            variant="outlined"
+            color="error"
+            onClick={() => void wipeIndex()}
+            disabled={busy}
+          >
+            {busyKey === 'wipe' ? 'Wiping…' : 'Wipe search index…'}
+          </Button>
+        </Box>
+
+        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
+          {appConfig.name} v{appConfig.version}
+        </Typography>
 
         {onBack ? (
           <Button variant="outlined" color="primary" onClick={onBack}>

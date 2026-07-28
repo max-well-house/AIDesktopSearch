@@ -7,6 +7,8 @@ const {
   fetchIndexStatus,
   postIndexScan,
   deleteIndexRoot,
+  patchRootAutoWatch,
+  postIndexWipe,
   postEmbeddingsSmoke,
   postEmbeddingsBackfill,
   postEmbeddingsPause,
@@ -46,6 +48,14 @@ ipcMain.handle('api:index-root-delete', async (_event, rootId) => {
   }
   return deleteIndexRoot(id)
 })
+ipcMain.handle('api:index-root-auto-watch', async (_event, rootId, autoWatch) => {
+  const id = Number(rootId)
+  if (!Number.isInteger(id) || id < 1) {
+    return { ok: false, error: 'Valid root id required', url: null }
+  }
+  return patchRootAutoWatch(id, Boolean(autoWatch))
+})
+ipcMain.handle('api:index-wipe', async () => postIndexWipe())
 ipcMain.handle('api:embeddings-smoke', async () => postEmbeddingsSmoke())
 ipcMain.handle('api:embeddings-backfill', async () => postEmbeddingsBackfill())
 ipcMain.handle('api:embeddings-pause', async () => postEmbeddingsPause())

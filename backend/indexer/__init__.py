@@ -3,7 +3,9 @@ from indexer.metadata import (
     ensure_root,
     index_status,
     replace_root_files,
+    set_root_auto_watch,
     vacuum_index,
+    wipe_index_database,
 )
 from indexer.scan import iter_files
 from indexer.search import search_filenames
@@ -18,7 +20,9 @@ __all__ = [
     "replace_root_files",
     "scan_and_save",
     "search_filenames",
+    "set_root_auto_watch",
     "vacuum_index",
+    "wipe_index_database",
 ]
 
 

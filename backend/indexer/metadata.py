@@ -23,11 +23,114 @@ def ensure_root(path: Path) -> int:
         if row:
             return int(row["id"])
         cur = conn.execute(
-            "INSERT INTO roots (path, added_at, last_scan_at) VALUES (?, ?, ?)",
+            """
+            INSERT INTO roots (path, added_at, last_scan_at, auto_watch)
+            VALUES (?, ?, ?, 1)
+            """,
             (resolved, now, None),
         )
         conn.commit()
         return int(cur.lastrowid)
+
+
+def set_root_auto_watch(root_id: int, auto_watch: bool) -> dict | None:
+    """Persist per-root auto-watch preference (#118). Returns root summary or None."""
+    with connect() as conn:
+        row = conn.execute(
+            "SELECT id, path, last_scan_at, auto_watch FROM roots WHERE id = ?",
+            (root_id,),
+        ).fetchone()
+        if not row:
+            return None
+        flag = 1 if auto_watch else 0
+        conn.execute(
+            "UPDATE roots SET auto_watch = ? WHERE id = ?",
+            (flag, root_id),
+        )
+        conn.commit()
+        file_count = int(
+            conn.execute(
+                "SELECT COUNT(*) AS c FROM files WHERE root_id = ?",
+                (root_id,),
+            ).fetchone()["c"]
+        )
+        return {
+            "id": int(row["id"]),
+            "path": row["path"],
+            "last_scan_at": row["last_scan_at"],
+            "file_count": file_count,
+            "auto_watch": bool(flag),
+        }
+
+
+def wipe_index_database() -> dict:
+    """
+    Delete and recreate ``index.db`` (#114).
+
+    Removes all indexed metadata / FTS / embeddings. Does **not** touch
+    original user files on disk. Not a forensic secure erase of old DB pages
+    on the volume — for storeable privacy, recreate is the v1.0 bar.
+    """
+    import gc
+    import time
+
+    from db.connection import get_db_path, init_db
+
+    path = get_db_path()
+
+    # Empty via SQL first so a failed unlink still leaves no corpus rows.
+    if path.is_file():
+        with connect(path) as conn:
+            conn.execute("PRAGMA foreign_keys = OFF")
+            for stmt in (
+                "DROP TABLE IF EXISTS embedding_chunks",
+                "DROP TABLE IF EXISTS file_pages_fts",
+                "DROP TABLE IF EXISTS file_content",
+                "DROP TABLE IF EXISTS files",
+                "DROP TABLE IF EXISTS roots",
+            ):
+                try:
+                    conn.execute(stmt)
+                except Exception:
+                    pass
+            # DROP may leave orphan vec virtual tables; ignore.
+            conn.commit()
+        # Encourage Windows to release the handle before unlink.
+        gc.collect()
+        time.sleep(0.05)
+
+    for candidate in (path, Path(str(path) + "-wal"), Path(str(path) + "-shm")):
+        for _ in range(5):
+            try:
+                if candidate.is_file():
+                    candidate.unlink()
+                break
+            except OSError:
+                gc.collect()
+                time.sleep(0.05)
+
+    # If unlink failed, remove leftover file by rename+delete, else SQL-empty + init.
+    if path.is_file():
+        doomed = path.with_suffix(path.suffix + ".wipe")
+        try:
+            if doomed.is_file():
+                doomed.unlink()
+            path.replace(doomed)
+            doomed.unlink(missing_ok=True)
+        except OSError:
+            pass
+
+    init_db(path)
+    status = index_status()
+    return {
+        "ok": True,
+        "path": str(path),
+        "file_count": status["file_count"],
+        "root_count": status["root_count"],
+        "last_indexed_at": status["last_indexed_at"],
+    }
+
+
 
 
 def upsert_file(
@@ -394,6 +497,9 @@ def index_status() -> dict:
                 "id": int(row["id"]),
                 "path": row["path"],
                 "last_scan_at": row["last_scan_at"],
+                "auto_watch": bool(row["auto_watch"])
+                if "auto_watch" in row.keys()
+                else True,
                 "file_count": int(
                     conn.execute(
                         "SELECT COUNT(*) AS c FROM files WHERE root_id = ?",
@@ -402,7 +508,7 @@ def index_status() -> dict:
                 ),
             }
             for row in conn.execute(
-                "SELECT id, path, last_scan_at FROM roots ORDER BY id"
+                "SELECT id, path, last_scan_at, auto_watch FROM roots ORDER BY id"
             )
         ]
         try:

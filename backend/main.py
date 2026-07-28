@@ -8,18 +8,21 @@ from fastapi.responses import JSONResponse
 from capabilities import build_capabilities
 from capabilities.schema import HealthResponse
 from db import init_db
-from indexer import delete_root, index_status, scan_and_save
+from indexer import delete_root, index_status, scan_and_save, set_root_auto_watch, wipe_index_database
 from indexer.schemas import (
     DeleteRootResponse,
     EmbeddingBackfillResponse,
     EmbeddingControlResponse,
     EmbeddingSmokeResponse,
     IndexStatusResponse,
+    RootAutoWatchRequest,
+    RootStatus,
     ScanRequest,
     ScanResponse,
     SearchHit,
     SearchResponse,
     WatchControlResponse,
+    WipeIndexResponse,
 )
 from indexer.search import DEFAULT_LIMIT, MAX_LIMIT
 from indexer.watch import get_watch_manager
@@ -47,7 +50,10 @@ def _reconcile_and_watch_all() -> None:
         except (FileNotFoundError, NotADirectoryError, OSError):
             # Root missing (e.g. unplugged drive) — skip watch until rescan.
             continue
-        manager.watch_root(int(root_id), path)
+        if root.get("auto_watch", True):
+            manager.watch_root(int(root_id), path)
+        else:
+            manager.unwatch_root(int(root_id))
 
 
 @asynccontextmanager
@@ -142,8 +148,47 @@ async def post_index_scan(body: ScanRequest):
     except OSError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
-    get_watch_manager().watch_root(result["root_id"], result["root_path"])
+    status = index_status()
+    root_meta = next(
+        (r for r in (status.get("roots") or []) if r.get("id") == result["root_id"]),
+        None,
+    )
+    if root_meta is None or root_meta.get("auto_watch", True):
+        get_watch_manager().watch_root(result["root_id"], result["root_path"])
+    else:
+        get_watch_manager().unwatch_root(result["root_id"])
     return ScanResponse(**result)
+
+
+@app.patch("/index/roots/{root_id}/auto-watch", response_model=RootStatus)
+async def patch_root_auto_watch(root_id: int, body: RootAutoWatchRequest):
+    """Per-root live watch on/off (#118). Off = Rescan-only for that folder."""
+    result = set_root_auto_watch(root_id, body.auto_watch)
+    if result is None:
+        raise HTTPException(status_code=404, detail=f"Root {root_id} not found")
+    manager = get_watch_manager()
+    if body.auto_watch:
+        manager.watch_root(result["id"], result["path"])
+    else:
+        manager.unwatch_root(result["id"])
+    return RootStatus(**result)
+
+
+@app.post("/index/wipe", response_model=WipeIndexResponse)
+async def post_index_wipe():
+    """
+    Delete and recreate the index database (#114).
+
+    Stops watchers first. Does not delete original files on disk.
+    """
+    manager = get_watch_manager()
+    manager.stop()
+    try:
+        result = await asyncio.to_thread(wipe_index_database)
+    finally:
+        # Empty corpus — restart manager so future scans can attach watchers.
+        manager.start()
+    return WipeIndexResponse(**result)
 
 
 @app.delete("/index/roots/{root_id}", response_model=DeleteRootResponse)

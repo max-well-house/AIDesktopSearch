@@ -9,6 +9,7 @@ const HEALTH_URL = `http://${HOST}:${PORT}/health`
 const INDEX_STATUS_URL = `http://${HOST}:${PORT}/index/status`
 const INDEX_SCAN_URL = `http://${HOST}:${PORT}/index/scan`
 const INDEX_ROOTS_URL = `http://${HOST}:${PORT}/index/roots`
+const INDEX_WIPE_URL = `http://${HOST}:${PORT}/index/wipe`
 const INDEX_EMBEDDINGS_SMOKE_URL = `http://${HOST}:${PORT}/index/embeddings/smoke`
 const INDEX_EMBEDDINGS_BACKFILL_URL = `http://${HOST}:${PORT}/index/embeddings/backfill`
 const INDEX_EMBEDDINGS_PAUSE_URL = `http://${HOST}:${PORT}/index/embeddings/pause`
@@ -71,6 +72,26 @@ async function deleteIndexRoot(rootId, timeoutMs = 10000) {
   return fetchJson(
     `${INDEX_ROOTS_URL}/${encodeURIComponent(rootId)}`,
     { method: 'DELETE' },
+    timeoutMs,
+  )
+}
+
+async function patchRootAutoWatch(rootId, autoWatch, timeoutMs = 10000) {
+  return fetchJson(
+    `${INDEX_ROOTS_URL}/${encodeURIComponent(rootId)}/auto-watch`,
+    {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ auto_watch: Boolean(autoWatch) }),
+    },
+    timeoutMs,
+  )
+}
+
+async function postIndexWipe(timeoutMs = 30000) {
+  return fetchJson(
+    INDEX_WIPE_URL,
+    { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' },
     timeoutMs,
   )
 }
@@ -340,6 +361,8 @@ module.exports = {
   fetchIndexStatus,
   postIndexScan,
   deleteIndexRoot,
+  patchRootAutoWatch,
+  postIndexWipe,
   postEmbeddingsSmoke,
   postEmbeddingsBackfill,
   postEmbeddingsPause,

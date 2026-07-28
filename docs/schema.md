@@ -1,12 +1,21 @@
 # SQLite index schema
 
-Local file metadata, document body text (FTS5), and embedding chunk metadata for semantic search. Source of truth: [`backend/db/schema.py`](../backend/db/schema.py). Applied on API startup via `init_db()` (`PRAGMA user_version = 3`). The `vec_chunks` virtual table is created at runtime when sqlite-vec loads ([`backend/embeddings/vec.py`](../backend/embeddings/vec.py)).
+Local file metadata, document body text (FTS5), and embedding chunk metadata for semantic search. Source of truth: [`backend/db/schema.py`](../backend/db/schema.py). Applied on API startup via `init_db()` (`PRAGMA user_version = 4`). The `vec_chunks` virtual table is created at runtime when sqlite-vec loads ([`backend/embeddings/vec.py`](../backend/embeddings/vec.py)).
 
 Default path: repo `data/index.db` (gitignored). Override with `AIDESKTOP_DB`.
 
 ## Purpose
 
 Store **opt-in folder roots**, **filename metadata**, **document body text (FTS5)**, and **chunk embeddings** so `GET /search` can find files by name/content always, and by meaning when vectors exist (Decision #006 / #007 / #008 / #54–#56 / #62 / #67).
+
+## Privacy (VACUUM vs wipe)
+
+| Action | What it does | What it does **not** do |
+|--------|----------------|-------------------------|
+| Remove folder (#40) | Deletes root + cascaded rows, then `VACUUM` (reclaim free pages) | Forensic erase of old DB pages on disk |
+| **Wipe search index (#114)** | Deletes `index.db` (+ wal/shm) and recreates empty schema | Touch original user files; overwrite every freed sector |
+
+Use wipe when you accidentally indexed something sensitive and want a clean empty index. Original documents stay on disk.
 
 ## Tables
 
@@ -20,6 +29,7 @@ One row per user-chosen corpus folder (#40).
 | `path` | TEXT NOT NULL UNIQUE | Absolute folder path |
 | `added_at` | TEXT NOT NULL | ISO timestamp when the root was first added |
 | `last_scan_at` | TEXT | ISO timestamp of the latest successful scan of this root |
+| `auto_watch` | INTEGER NOT NULL DEFAULT 1 | `#118` — `1` live watch, `0` Rescan-only |
 
 Deleting a root cascades to its `files` rows (and `file_content` / `embedding_chunks` via FK), then the API runs `VACUUM` (light reclaim — not a forensic wipe; see #114). FTS and vec rows are cleared by DELETE triggers.
 

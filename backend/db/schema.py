@@ -5,14 +5,15 @@ Embedding chunk metadata (#67); vec0 virtual table is created at runtime
 when sqlite-vec loads (see embeddings.vec.ensure_vec_schema).
 """
 
-SCHEMA_VERSION = 3
+SCHEMA_VERSION = 4
 
 SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS roots (
     id INTEGER PRIMARY KEY,
     path TEXT NOT NULL UNIQUE,
     added_at TEXT NOT NULL,
-    last_scan_at TEXT
+    last_scan_at TEXT,
+    auto_watch INTEGER NOT NULL DEFAULT 1
 );
 
 CREATE TABLE IF NOT EXISTS files (
