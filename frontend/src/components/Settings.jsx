@@ -32,7 +32,9 @@ function ollamaLabel(ollama) {
 function ollamaTone(ollama) {
   if (!ollama) return 'idle'
   if (ollama.status === 'available') return 'online'
-  if (ollama.status === 'unavailable') return 'loading'
+  if (ollama.status === 'unavailable' || ollama.status === 'not_installed') {
+    return 'off'
+  }
   return 'idle'
 }
 
@@ -48,7 +50,7 @@ function vectorStoreLabel(vectorStore) {
 
 function vectorStoreTone(vectorStore) {
   if (!vectorStore) return 'idle'
-  return vectorStore.available ? 'online' : 'loading'
+  return vectorStore.available ? 'online' : 'off'
 }
 
 function embeddingLabel(models) {
@@ -58,7 +60,7 @@ function embeddingLabel(models) {
 
 function embeddingTone(models) {
   if (!models) return 'idle'
-  return models.embedding ? 'online' : 'loading'
+  return models.embedding ? 'online' : 'off'
 }
 
 function gpuLabel(gpu) {
@@ -75,7 +77,7 @@ function gpuLabel(gpu) {
 function gpuTone(gpu) {
   if (!gpu) return 'idle'
   if (gpu.available === true) return 'online'
-  if (gpu.available === false) return 'loading'
+  if (gpu.available === false) return 'off'
   return 'idle'
 }
 
@@ -512,7 +514,7 @@ export default function Settings({ onBack }) {
   let semanticTone = 'idle'
   if (embedPaused) {
     semanticSummary = `Embedding paused · ${embedQueueDepth.toLocaleString()} queued`
-    semanticTone = 'loading'
+    semanticTone = 'off'
   } else if (embedQueueDepth > 0) {
     semanticSummary = `Embedding… ${embedQueueDepth.toLocaleString()} queued`
     semanticTone = 'loading'
@@ -654,6 +656,7 @@ export default function Settings({ onBack }) {
                   sx={{
                     border: `1px solid ${colors.border}`,
                     backgroundColor: colors.surface,
+                    borderRadius: 1.5,
                     px: 1.25,
                     py: 1,
                   }}
@@ -819,7 +822,7 @@ export default function Settings({ onBack }) {
                 </p>
                 <p
                   className={`status status-${
-                    indexStatus?.embed_paused ? 'loading' : 'online'
+                    indexStatus?.embed_paused ? 'off' : 'online'
                   }`}
                 >
                   <span className="status-label">Embed queue:</span>{' '}

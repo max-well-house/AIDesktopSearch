@@ -5,6 +5,7 @@ from pathlib import Path
 import pytest
 
 from db import init_db
+from db.connection import connect
 from indexer import delete_root, ensure_root, index_status, replace_root_files
 
 
@@ -14,6 +15,21 @@ def temp_db(tmp_path, monkeypatch):
     monkeypatch.setenv("AIDESKTOP_DB", str(db_path))
     init_db(db_path)
     return db_path
+
+
+def _checkpoint(db_path: Path) -> None:
+    with connect(db_path) as conn:
+        conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+
+
+def _db_payload(db_path: Path) -> bytes:
+    """Main DB + WAL/SHM (WAL mode may keep recent rows off the main file)."""
+    data = db_path.read_bytes()
+    for suffix in ("-wal", "-shm"):
+        side = Path(f"{db_path}{suffix}")
+        if side.exists():
+            data += side.read_bytes()
+    return data
 
 
 def test_delete_root_removes_files_and_root(temp_db, tmp_path):
@@ -53,12 +69,13 @@ def test_delete_root_vacuums_path_out_of_db_file(temp_db, tmp_path):
 
     root_id = ensure_root(folder)
     replace_root_files(root_id, [file_a])
+    _checkpoint(temp_db)
 
     root_path = str(folder.resolve())
     path_bytes = root_path.encode("utf-8")
-    assert path_bytes in temp_db.read_bytes()
+    assert path_bytes in _db_payload(temp_db)
 
     delete_root(root_id)
 
-    assert path_bytes not in temp_db.read_bytes()
-    assert b"payroll.txt" not in temp_db.read_bytes()
+    assert path_bytes not in _db_payload(temp_db)
+    assert b"payroll.txt" not in _db_payload(temp_db)

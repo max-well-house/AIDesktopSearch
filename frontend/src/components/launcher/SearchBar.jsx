@@ -41,8 +41,8 @@ const SearchBar = forwardRef(function SearchBar(
         boxShadow: '0 8px 32px rgba(0, 0, 0, 0.35)',
         transition: 'border-color 160ms ease, box-shadow 160ms ease',
         '&:focus-within': {
-          borderColor: 'rgba(0, 229, 168, 0.45)',
-          boxShadow: '0 8px 32px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(0, 229, 168, 0.22)',
+          borderColor: colors.accentTeal,
+          boxShadow: `0 8px 32px rgba(0, 0, 0, 0.45), 0 0 0 1px ${colors.mosaicGlowTeal}`,
         },
       }}
     >

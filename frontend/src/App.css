@@ -32,6 +32,12 @@ body {
   color: #8ca3a0;
 }
 
+/* Unavailable / preferred-off — not cyan (#86) */
+.status-off {
+  color: #8ca3a0;
+}
+
+/* In-progress only (checking, embedding queue) */
 .status-loading {
   color: #06b6d4;
 }

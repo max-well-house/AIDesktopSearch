@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Box from '@mui/material/Box'
 import { colors } from '../../theme'
 
@@ -6,13 +6,38 @@ const CELL = 7
 const GAP = 3
 const STRIDE = CELL + GAP
 
+const GLOW_BASE = [
+  colors.mosaicGlowTeal,
+  colors.mosaicGlowCyan,
+  colors.mosaicGlowBlue,
+]
+
+/** Replace the alpha channel in an rgba(...) token. */
+function withAlpha(rgba, alpha) {
+  return String(rgba).replace(/[\d.]+\s*\)$/, `${alpha})`)
+}
+
 /**
  * Idle-state brand surface: a dormant grid of file-tiles.
  * Stays mounted permanently; parent controls visibility/opacity.
+ * RAF pauses when inactive or when the document is hidden (#85).
  */
 export default function MosaicCanvas({ active = true }) {
   const canvasRef = useRef(null)
   const rafRef = useRef(0)
+  const [pageVisible, setPageVisible] = useState(
+    () => typeof document === 'undefined' || document.visibilityState !== 'hidden',
+  )
+
+  useEffect(() => {
+    const onVisibility = () => {
+      setPageVisible(document.visibilityState !== 'hidden')
+    }
+    document.addEventListener('visibilitychange', onVisibility)
+    return () => document.removeEventListener('visibilitychange', onVisibility)
+  }, [])
+
+  const animate = active && pageVisible
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -23,7 +48,7 @@ export default function MosaicCanvas({ active = true }) {
     let height = 0
     let cols = 0
     let rows = 0
-    /** Sparse glow cells: { c, r, phase } */
+    /** Sparse glow cells: { c, r, phase, hue } */
     let glows = []
 
     function resize() {
@@ -65,12 +90,9 @@ export default function MosaicCanvas({ active = true }) {
       for (const glow of glows) {
         const pulse = 0.35 + 0.65 * (0.5 + 0.5 * Math.sin(t * 0.7 + glow.phase))
         const alpha = 0.07 + pulse * 0.14
-        const palette = [
-          `rgba(0, 229, 168, ${alpha})`,
-          `rgba(6, 182, 212, ${alpha * 0.9})`,
-          `rgba(37, 99, 235, ${alpha * 0.85})`,
-        ]
-        ctx.fillStyle = palette[glow.hue % palette.length]
+        const base = GLOW_BASE[glow.hue % GLOW_BASE.length]
+        const scale = glow.hue === 1 ? 0.9 : glow.hue === 2 ? 0.85 : 1
+        ctx.fillStyle = withAlpha(base, alpha * scale)
         ctx.fillRect(glow.c * STRIDE, glow.r * STRIDE, CELL, CELL)
       }
 
@@ -85,17 +107,19 @@ export default function MosaicCanvas({ active = true }) {
         }
       }
 
-      rafRef.current = requestAnimationFrame(draw)
+      if (animate) {
+        rafRef.current = requestAnimationFrame(draw)
+      }
     }
 
     const ro = new ResizeObserver(() => resize())
     if (canvas.parentElement) ro.observe(canvas.parentElement)
     resize()
 
-    if (active) {
+    if (animate) {
       rafRef.current = requestAnimationFrame(draw)
     } else {
-      // One static frame while faded out / inactive
+      // One static frame while faded out / inactive / hidden
       draw(0)
     }
 
@@ -103,7 +127,7 @@ export default function MosaicCanvas({ active = true }) {
       ro.disconnect()
       cancelAnimationFrame(rafRef.current)
     }
-  }, [active])
+  }, [animate])
 
   return (
     <Box

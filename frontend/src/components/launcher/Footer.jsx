@@ -25,7 +25,7 @@ const DEFAULT_SHORTCUTS = [
 
 const TONE_COLOR = {
   on: colors.accentGreen,
-  degraded: '#EAB308',
+  degraded: colors.caution,
   off: colors.textSecondary,
 }
 

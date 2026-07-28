@@ -442,9 +442,11 @@ def vacuum_index() -> None:
     """Rewrite the DB file to reclaim free pages after deletes (#40).
 
     Not a forensic secure erase — that remains a later privacy feature.
+    Under WAL (#85), checkpoint so reclaimed pages leave the main file.
     """
     with connect() as conn:
         conn.execute("VACUUM")
+        conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
 
 
 def delete_root(root_id: int) -> dict | None:

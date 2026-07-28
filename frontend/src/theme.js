@@ -24,11 +24,14 @@ export const colors = {
   // Primary interactive accent (wordmark "AI", focus rings, search glyph)
   accent: '#00E5A8',
 
-  // Mosaic idle grid
+  // Mosaic glow tokens (fixed alpha); MosaicCanvas varies alpha via withAlpha
   mosaicDim: 'rgba(0, 229, 168, 0.045)',
   mosaicGlowTeal: 'rgba(0, 229, 168, 0.22)',
   mosaicGlowCyan: 'rgba(6, 182, 212, 0.18)',
   mosaicGlowBlue: 'rgba(37, 99, 235, 0.16)',
+
+  // Footer degraded / caution (#120 / #86)
+  caution: '#EAB308',
 }
 
 const theme = createTheme({

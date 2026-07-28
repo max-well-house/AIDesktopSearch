@@ -189,14 +189,14 @@ Must-ship (board):
 - **#124** Product slim — auto-embed again; summary + contextual Pause; lab under Details — **done**
 - **#80** Settings — corpus home; AppMark → Settings; prefs persist — **done**
 - **#125** Show app version in Settings (support / About — not launcher chrome) — **done**
-- **#86** Polish UI — concrete visual consistency (tones, radius, tokens, honest EmptyState)
-- **#121** Hide native menu bar; theme window chrome / scrollbars
-- **#120** Footer capability lights (Semantic live; AI off/yellow until v1.1)
+- **#86** Polish UI — concrete visual consistency (tones, radius, tokens, honest EmptyState) — **done**
+- **#121** Hide native menu bar; theme window chrome / scrollbars — **done**
+- **#120** Footer capability lights (Semantic live; AI off/yellow until v1.1) — **done**
 - **#118** Per-root auto-watch toggle — **done**
 - **#114** Privacy: stronger index.db wipe — **done**
 - **#111** Ship Python/FastAPI with packaged release (+ coherent app icon)
-- **#83** Keyboard navigation (close gaps)
-- **#85** Performance (narrow: mosaic idle, embed load, startup)
+- **#83** Keyboard navigation (close gaps) — **done**
+- **#85** Performance (narrow: mosaic idle, embed load, startup) — **done**
 - **#88–#90** Installation guide / User guide / Release notes
 
 Demoted from v1.0 → nice to have: #81 history, #82 favorites, #84 recent files, #87 UI icons.
