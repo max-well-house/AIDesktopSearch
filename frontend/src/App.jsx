@@ -13,11 +13,12 @@ import appConfig from '@app-config'
 export default function App() {
   const [view, setView] = useState('launcher')
 
-  // LauncherWindow owns Escape dismiss (clear → hide). Settings view only needs hide.
+  // Escape on Settings: return to launcher, then hide (so reopen is search-first).
   useEffect(() => {
     if (view !== 'settings') return undefined
     return window.api?.onDismiss?.(() => {
-      window.api?.hideLauncher?.()
+      setView('launcher')
+      window.api?.hideLauncher?.({ scrubNextShow: true })
     })
   }, [view])
 

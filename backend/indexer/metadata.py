@@ -84,6 +84,9 @@ def wipe_index_database() -> dict:
             conn.execute("PRAGMA foreign_keys = OFF")
             for stmt in (
                 "DROP TABLE IF EXISTS embedding_chunks",
+                # vec0 virtual table is not cascaded by DROP embedding_chunks;
+                # leftover chunk_id PKs cause UNIQUE failures on re-embed (#114).
+                "DROP TABLE IF EXISTS vec_chunks",
                 "DROP TABLE IF EXISTS file_pages_fts",
                 "DROP TABLE IF EXISTS file_content",
                 "DROP TABLE IF EXISTS files",
@@ -93,7 +96,6 @@ def wipe_index_database() -> dict:
                     conn.execute(stmt)
                 except Exception:
                     pass
-            # DROP may leave orphan vec virtual tables; ignore.
             conn.commit()
         # Encourage Windows to release the handle before unlink.
         gc.collect()

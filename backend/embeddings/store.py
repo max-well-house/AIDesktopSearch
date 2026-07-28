@@ -115,6 +115,16 @@ def replace_file_embeddings(
             "DELETE FROM embedding_chunks WHERE file_id = ? AND model_id = ?",
             (int(file_id), model_id),
         )
+        # Defensive: clear any orphan vec rows left after a partial wipe / missed trigger.
+        try:
+            conn.execute(
+                """
+                DELETE FROM vec_chunks
+                WHERE chunk_id NOT IN (SELECT id FROM embedding_chunks)
+                """
+            )
+        except Exception:
+            pass
 
         inserted = 0
         now = _utc_now()
@@ -147,10 +157,20 @@ def replace_file_embeddings(
             )
             chunk_id = int(cur.lastrowid)
             blob = serialize_f32(chunk.embedding)
-            conn.execute(
-                "INSERT INTO vec_chunks(chunk_id, embedding) VALUES (?, ?)",
-                (chunk_id, blob),
-            )
+            try:
+                conn.execute(
+                    "INSERT INTO vec_chunks(chunk_id, embedding) VALUES (?, ?)",
+                    (chunk_id, blob),
+                )
+            except Exception:
+                # Last resort if an orphan PK still blocks insert.
+                conn.execute(
+                    "DELETE FROM vec_chunks WHERE chunk_id = ?", (chunk_id,)
+                )
+                conn.execute(
+                    "INSERT INTO vec_chunks(chunk_id, embedding) VALUES (?, ?)",
+                    (chunk_id, blob),
+                )
             inserted += 1
 
         conn.commit()

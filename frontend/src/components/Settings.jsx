@@ -805,10 +805,6 @@ export default function Settings({ onBack }) {
                     <dd>{formatCheckedAt(payload.timestamp)}</dd>
                   </div>
                   <div>
-                    <dt>GPU</dt>
-                    <dd>{gpuLabel(gpu)}</dd>
-                  </div>
-                  <div>
                     <dt>Embed dim</dt>
                     <dd>{vectorStore?.dimension ?? 768}</dd>
                   </div>
