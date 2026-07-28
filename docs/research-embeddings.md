@@ -224,10 +224,11 @@ Decision #002 order stays: classic → semantic when needed → LLM when reasoni
 
 ## Open questions (hand off)
 
-1. **#67:** sqlite-vec load path on Windows; single DB vs sidecar; chunk metadata shape?
-2. **#66:** Default chunk size/overlap and page-aware strategy for PDFs?
-3. **#65/#66:** Which embedding model fits 8GB VRAM with OS + Electron + FastAPI (+ optional later chat)?
-4. **#69:** Escalate to semantic on empty classic hits only, or also on “question-shaped” queries?
+1. ~~**#67:** sqlite-vec load path on Windows; single DB vs sidecar; chunk metadata shape?~~ → Done (same `index.db`, Decision #008).
+2. ~~**#66:** Default chunk size/overlap and page-aware strategy for PDFs?~~ → Done (page-aware chunks in generate path).
+3. ~~**#65/#66:** Which embedding model fits 8GB VRAM…?~~ → `nomic-embed-text` (768-d) locked for v0.7.
+4. ~~**#69:** Escalate on empty classic only, or also “question-shaped”?~~ → Empty classic escalates; short concepts / NL → hybrid; `*.ext` with hits stay classic-only.
+5. **Later:** offline / local query-embed (today query path needs live Ollama); stronger classic+cosine score fusion.
 
 ---
 

@@ -88,11 +88,11 @@ curl.exe http://127.0.0.1:11434/api/version
 
 Expect JSON with a `version`. If connection fails, start **Ollama** from the Start menu / tray and retry.
 
-**In the app:** System Status → **Ollama: Available** (with version). Footer **Semantic Search** / **AI** stay off until generate/search (#66 / #68) and chat wiring (#70) land — that is expected.
+**In the app:** System Status → **Ollama: Available** (with version). Footer **Semantic Search** shows Available when vectors exist **and** the embed model can answer query embeds (`semantic_query_ready`). **AI** stays off until chat/RAG (#70).
 
-**Vector store (#67):** after `pip install -r backend/requirements.txt`, System Status → **Check System Status** should show **Vector store: Available (sqlite-vec …)**. With at least one indexed folder/file, **Verify vector store** runs a throwaway k-NN round-trip (no rows left behind). Classic search still works if the extension fails to load.
+**Vector store (#67):** after `pip install -r backend/requirements.txt`, System Status → **Check** should show **Vector store: Available (sqlite-vec …)**. With at least one indexed folder/file, Diagnostics → **Advanced** → **Verify vector store** runs a throwaway k-NN round-trip (no rows left behind). Classic search still works if the extension fails to load.
 
-**Optional embed model** (for #66; default for v0.7):
+**Optional embed model** (default for v0.7):
 
 ```powershell
 ollama pull nomic-embed-text
@@ -100,7 +100,9 @@ ollama pull nomic-embed-text
 
 Bare `ollama` may open an interactive menu — Esc out; MosAIq only needs the background server on `127.0.0.1:11434`.
 
-**Generate embeddings (#66):** System Status → **Check System Status** should show **Embedding model: Available** after the pull. Use **Embed pending** to queue files that have classic FTS text but no vectors yet. **Pause embed** / **Resume embed** control the background worker. Chunk counts rise under Vector store / Index as files finish. Footer **Semantic Search** stays Disabled until the query path (#68).
+**Generate vs query:** Building vectors (**generate**) is opt-in — System Status → **Start embedding** after content is indexed. Searching by meaning (**query**) embeds the search box text at query time (needs Ollama + `nomic-embed-text`); stored chunks alone are not enough if the embedder is down.
+
+**Start embedding (#122):** System Status → **Check** should show **Embedding model: Available** after the pull. Content sync / rescan does **not** enqueue vectors automatically. When files have FTS text but no chunks, **Start embedding (N)** appears; when the run finishes you get a short done confirmation. **Pause** / **Resume** show only while a queue is active (or paused). **Verify vector store** lives under **Advanced**.
 
 ### Other commands
 

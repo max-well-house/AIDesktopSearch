@@ -226,9 +226,9 @@ async def resume_embeddings():
 @app.post("/index/embeddings/backfill", response_model=EmbeddingBackfillResponse)
 async def backfill_embeddings():
     """
-    Enqueue files that have FTS text but no chunks for the default model (#66).
+    Opt-in Start embedding (#122): enqueue files with FTS text but no chunks.
 
-    Use after installing nomic-embed-text or upgrading from store-only (#67).
+    Content sync no longer auto-enqueues; the UI calls this after the user starts.
     """
     pending = await asyncio.to_thread(list_pending_embed_file_ids)
     manager = get_embed_queue()

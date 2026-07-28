@@ -174,6 +174,6 @@ Why?
 
 Local vector search inside the existing SQLite brain (Decision #008). Same process as FastAPI indexer; joins to `files` / FTS5 for hybrid (#69).
 
-Package: `sqlite-vec` (pip). Loaded per connection in `backend/db/connection.py`; soft-fail if missing. Schema + store API: `backend/embeddings/` (#67). Default dim **768** (`nomic-embed-text`). System Status shows Vector store + **Verify vector store** smoke.
+Package: `sqlite-vec` (pip). Loaded per connection in `backend/db/connection.py`; soft-fail if missing. Schema + store API: `backend/embeddings/` (#67). Default dim **768** (`nomic-embed-text`). System Status shows Vector store; **Verify vector store** smoke is under Diagnostics → Advanced (#122). Embedding generate is opt-in via **Start embedding** (no auto-enqueue on content sync).
 
 Escape hatch: LanceDB if brute-force or packaging fails. Chroma demoted (was early placeholder only).

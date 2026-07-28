@@ -222,6 +222,7 @@ Live in `backend/search/routing.py` (#69 / audit follow-ups 2026-07-28):
 - `*.ext` (and empty) → classic-only when classic hits; **empty classic escalates** to semantic when vectors + query embedder are ready.
 - Short concepts / phrases (`pokemon`, `fire dragon`, NL intent words) → **hybrid** (classic first, semantic fills; cosine distance ≤ `SEMANTIC_MAX_DISTANCE`, always keep nearest).
 - Soft-fail to classic if Ollama cannot embed the query. LLM still v0.8.
+- **Generate is opt-in (#122):** content sync / watch does not enqueue embeddings; System Status **Start embedding** (backfill) drains pending files and confirms when the run finishes.
 
 ```
 Question comes in

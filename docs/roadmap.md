@@ -171,9 +171,11 @@ Implementation order (dependency-correct):
 3. **#68** Semantic search endpoint — query embed + k-NN + `run_semantic`. **Done.**
 4. **#69** Hybrid search — classic-first escalate/merge (Decision #002). **Done.**
 5. **#112** GPU capability detection — NVIDIA-first `nvidia-smi` on `/health` + System Status; capability gates via `gpu_preferred`. **Done.**
-6. **#122** System Status diagnostics UX wrap — after #66–#69 core path ← **next**
+6. **#122** System Status diagnostics UX wrap — Status vs Advanced, opt-in **Start embedding** + done confirmation (no auto-enqueue on content sync). **Done.**
 
 Defaults locked for this phase: sqlite-vec in same `index.db`; `nomic-embed-text`; page-aware PDF chunks; classic wins filename-like queries.
+
+**v0.7.0 complete** (#63–#69, #112, #122).
 
 ---
 

@@ -435,3 +435,22 @@ Next:
 1. Manual smoke: `pokemon`, `fire dragon`, `Charizard.pdf` in the launcher
 2. **#122** Diagnostics UX / v0.7 close
 
+## 2026-07-28 — #122 Diagnostics UX / v0.7 wrap
+
+Goal:
+Daily-user Diagnostics: Status vs Advanced, opt-in Start embedding + done confirmation, then close v0.7.0.
+
+What I did:
+- Content sync no longer auto-enqueues embeddings; pending stays discoverable until **Start embedding** (backfill)
+- System Status: Check / Start / Pause·Resume primary; **Verify vector store** under Advanced; live queue shows done/failed; run done confirmation
+- Docs/README: generate vs query once; roadmap/architecture/tech-stack/research open-Qs cleaned
+- Routing smoke (API / unit): short-concept hybrid + filename classic covered by `tests/test_query_routing.py`; launcher checklist still worth a quick eye-pass
+
+What I learned:
+- Lab buttons need grouping + contextual visibility, not essay copy
+- Done confirmation needs a wasActive/fast-finish race guard so empty-queue snapshots do not false-confirm
+
+Next:
+1. Close #122 + milestone v0.7.0 on the board
+2. v0.8 RAG / LLM (#70) when ready; offline query-embed + score fusion stay deferred
+

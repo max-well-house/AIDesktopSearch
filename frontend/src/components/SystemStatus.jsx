@@ -117,6 +117,9 @@ export default function SystemStatus({ onBack }) {
   const [corpusMessage, setCorpusMessage] = useState(null)
   const [corpusTone, setCorpusTone] = useState('online')
   const [diagnosticsOpen, setDiagnosticsOpen] = useState(false)
+  const [advancedOpen, setAdvancedOpen] = useState(false)
+  /** Active Start-embedding run: baselines for done confirmation (#122). */
+  const [embedRun, setEmbedRun] = useState(null)
 
   async function refreshIndexStatus() {
     if (!window.api?.getIndexStatus) return
@@ -142,16 +145,59 @@ export default function SystemStatus({ onBack }) {
     void refreshIndexStatus()
   }, [])
 
-  // Live embed progress while the queue is draining (#122 interim).
+  // Live embed progress while the queue is draining or a started run is active (#122).
   const embedQueueDepth = indexStatus?.embed_queue_depth ?? 0
+  const embedPaused = Boolean(indexStatus?.embed_paused)
+  const pollEmbed =
+    embedQueueDepth > 0 || (embedRun != null && embedPaused)
   useEffect(() => {
-    if (embedQueueDepth <= 0) return undefined
+    if (!pollEmbed) return undefined
     const id = setInterval(() => {
       void refreshIndexStatus()
       void refreshHealthQuiet()
     }, 2000)
     return () => clearInterval(id)
-  }, [embedQueueDepth])
+  }, [pollEmbed])
+
+  // Done confirmation when a started embed run finishes (#122).
+  useEffect(() => {
+    if (!embedRun || !indexStatus) return
+    const depth = indexStatus.embed_queue_depth ?? 0
+    const paused = Boolean(indexStatus.embed_paused)
+    const completed =
+      (indexStatus.embed_completed ?? 0) - (embedRun.baselineCompleted ?? 0)
+    const failed =
+      (indexStatus.embed_failed ?? 0) - (embedRun.baselineFailed ?? 0)
+
+    if (!embedRun.wasActive) {
+      if (depth > 0 || paused) {
+        setEmbedRun((prev) => (prev ? { ...prev, wasActive: true } : prev))
+        return
+      }
+      // Fast path: work finished before we observed a non-empty queue.
+      if (completed <= 0 && failed <= 0) return
+    } else if (depth > 0 || paused) {
+      return
+    }
+
+    const chunksNow = indexStatus.embedding_chunk_count ?? 0
+    const chunkDelta = Math.max(
+      0,
+      chunksNow - (embedRun.chunksAtStart ?? 0),
+    )
+    const parts = [
+      `Embedded ${Math.max(0, completed).toLocaleString()} file(s)`,
+    ]
+    if (chunkDelta > 0) {
+      parts.push(`${chunkDelta.toLocaleString()} chunk(s)`)
+    }
+    if (failed > 0) {
+      parts.push(`${failed.toLocaleString()} failed`)
+    }
+    setCorpusTone(failed > 0 && completed <= 0 ? 'error' : 'online')
+    setCorpusMessage(parts.join(' · '))
+    setEmbedRun(null)
+  }, [embedRun, indexStatus])
 
   async function checkSystemStatus() {
     setPhase('loading')
@@ -229,22 +275,38 @@ export default function SystemStatus({ onBack }) {
     }
   }
 
-  async function embedPending() {
+  async function startEmbedding() {
     if (!window.api?.embeddingsBackfill) {
-      setCorpusFeedback('error', 'Electron bridge missing for embed backfill.')
+      setCorpusFeedback('error', 'Electron bridge missing for Start embedding.')
       return
     }
-    setBusyKey('embeddings-backfill')
+    setBusyKey('embeddings-start')
     try {
+      const baselineCompleted = indexStatus?.embed_completed ?? 0
+      const baselineFailed = indexStatus?.embed_failed ?? 0
+      const chunksAtStart = indexStatus?.embedding_chunk_count ?? 0
       const result = await window.api.embeddingsBackfill()
       if (!result.ok) {
-        setCorpusFeedback('error', result.error || 'Embed backfill failed')
+        setCorpusFeedback('error', result.error || 'Start embedding failed')
         return
       }
       const data = result.data
+      const enqueued = data.enqueued ?? 0
+      if (enqueued <= 0) {
+        setCorpusFeedback('online', 'Nothing to embed.')
+        await refreshIndexStatus()
+        return
+      }
+      setEmbedRun({
+        baselineCompleted,
+        baselineFailed,
+        chunksAtStart,
+        startedPending: enqueued,
+        wasActive: false,
+      })
       setCorpusFeedback(
         'online',
-        `Queued ${data.enqueued?.toLocaleString?.() ?? data.enqueued} file(s) for embedding (queue depth ${data.queue_depth}).`,
+        `Started embedding ${enqueued.toLocaleString()} file(s)…`,
       )
       await refreshIndexStatus()
     } catch (err) {
@@ -263,7 +325,6 @@ export default function SystemStatus({ onBack }) {
         setCorpusFeedback('error', result.error || 'Pause failed')
         return
       }
-      // Apply pause immediately so the same button flips to Resume.
       setIndexStatus((prev) =>
         prev
           ? {
@@ -273,10 +334,7 @@ export default function SystemStatus({ onBack }) {
             }
           : prev,
       )
-      setCorpusFeedback(
-        'online',
-        'Embedding queue paused — click Resume embed on the same button to continue.',
-      )
+      setCorpusFeedback('online', 'Paused.')
       await refreshIndexStatus()
     } catch (err) {
       setCorpusFeedback('error', err?.message || String(err))
@@ -303,7 +361,7 @@ export default function SystemStatus({ onBack }) {
             }
           : prev,
       )
-      setCorpusFeedback('online', 'Embedding queue resumed.')
+      setCorpusFeedback('online', 'Resumed.')
       await refreshIndexStatus()
     } catch (err) {
       setCorpusFeedback('error', err?.message || String(err))
@@ -625,15 +683,25 @@ export default function SystemStatus({ onBack }) {
                   }`}
                 >
                   <span className="status-label">Embed queue:</span>{' '}
-                  {indexStatus?.embed_paused ? 'Paused' : 'Running'}
+                  {indexStatus?.embed_paused
+                    ? 'Paused'
+                    : embedQueueDepth > 0
+                      ? 'Running'
+                      : 'Idle'}
                   {indexStatus?.embed_queue_depth != null
                     ? ` · ${indexStatus.embed_queue_depth} queued`
                     : ''}
-                  {indexStatus?.embed_pending_files != null
-                    ? ` · ${indexStatus.embed_pending_files} file(s) need embed`
+                  {(indexStatus?.embed_pending_files ?? 0) > 0
+                    ? ` · ${indexStatus.embed_pending_files} pending`
                     : ''}
                   {indexStatus?.embedding_chunk_count != null
-                    ? ` · ${indexStatus.embedding_chunk_count} chunks stored`
+                    ? ` · ${indexStatus.embedding_chunk_count} chunks`
+                    : ''}
+                  {indexStatus?.embed_completed != null
+                    ? ` · ${indexStatus.embed_completed} done`
+                    : ''}
+                  {(indexStatus?.embed_failed ?? 0) > 0
+                    ? ` · ${indexStatus.embed_failed} failed`
                     : ''}
                   {embedQueueDepth > 0 && !indexStatus?.embed_paused
                     ? ' · updating…'
@@ -652,7 +720,7 @@ export default function SystemStatus({ onBack }) {
                 ) : null}
                 {indexStatus?.embed_last_error ? (
                   <Typography variant="body2" color="error" sx={{ mb: 1 }}>
-                    Last embed error: {indexStatus.embed_last_error}
+                    Last error: {indexStatus.embed_last_error}
                   </Typography>
                 ) : null}
 
@@ -695,6 +763,7 @@ export default function SystemStatus({ onBack }) {
                 flexWrap: 'wrap',
                 gap: 1,
                 alignItems: 'center',
+                mb: 1,
               }}
             >
               <Button
@@ -703,24 +772,18 @@ export default function SystemStatus({ onBack }) {
                 onClick={checkSystemStatus}
                 disabled={phase === 'loading'}
               >
-                Check System Status
-              </Button>
-              <Button
-                variant="outlined"
-                color="primary"
-                onClick={verifyVectorStore}
-                disabled={busy || phase === 'loading'}
-              >
-                Verify vector store
+                Check
               </Button>
               {(indexStatus?.embed_pending_files ?? 0) > 0 ? (
                 <Button
-                  variant="outlined"
+                  variant="contained"
                   color="primary"
-                  onClick={embedPending}
+                  onClick={startEmbedding}
                   disabled={busy || phase === 'loading'}
                 >
-                  {`Embed ${indexStatus.embed_pending_files} pending`}
+                  {busyKey === 'embeddings-start'
+                    ? 'Starting…'
+                    : `Start embedding (${indexStatus.embed_pending_files})`}
                 </Button>
               ) : null}
               {indexStatus?.embed_paused ||
@@ -735,10 +798,51 @@ export default function SystemStatus({ onBack }) {
                   }
                   disabled={busy || phase === 'loading'}
                 >
-                  {indexStatus?.embed_paused ? 'Resume embed' : 'Pause embed'}
+                  {indexStatus?.embed_paused ? 'Resume' : 'Pause'}
                 </Button>
               ) : null}
             </Box>
+
+            <Accordion
+              disableGutters
+              elevation={0}
+              expanded={advancedOpen}
+              onChange={(_event, expanded) => setAdvancedOpen(expanded)}
+              sx={{
+                backgroundColor: 'transparent',
+                border: `1px solid ${colors.border}`,
+                '&:before': { display: 'none' },
+              }}
+            >
+              <AccordionSummary
+                expandIcon={<ExpandIcon />}
+                sx={{
+                  minHeight: 40,
+                  px: 1,
+                  '& .MuiAccordionSummary-content': { my: 0.75 },
+                }}
+              >
+                <Typography
+                  variant="body2"
+                  sx={{ fontWeight: 600, color: colors.textSecondary }}
+                >
+                  Advanced
+                </Typography>
+              </AccordionSummary>
+              <AccordionDetails sx={{ px: 1, pt: 0, pb: 1 }}>
+                <Button
+                  variant="outlined"
+                  color="primary"
+                  size="small"
+                  onClick={verifyVectorStore}
+                  disabled={busy || phase === 'loading'}
+                >
+                  {busyKey === 'embeddings-smoke'
+                    ? 'Verifying…'
+                    : 'Verify vector store'}
+                </Button>
+              </AccordionDetails>
+            </Accordion>
           </AccordionDetails>
         </Accordion>
 

@@ -114,7 +114,7 @@ Why it matters: Decision #006 keeps #54–#57 on rails (FastAPI-only parse, soft
 
 ### 07/27/2026 — Embeddings: generate vs query
 
-What I learned: For MosAIq, embeddings are a second index over **chunks** of already-extracted text — not a replacement for FTS and not the same as RAG. Building vectors needs a live embedder (usually Ollama); **searching stored vectors does not**. Local-by-default fits Decision #003; cloud APIs are explicit opt-in. Embedding models are much smaller than chat LLMs, so Phase 7 should not wait on a chat-sized model.
+What I learned: For MosAIq, embeddings are a second index over **chunks** of already-extracted text — not a replacement for FTS and not the same as RAG. Building vectors needs a live embedder (usually Ollama). **Query-time semantic search also needs a live query embed today** (audit 2026-07-28); if Ollama is down, auto soft-falls to classic while stored chunks wait in sqlite-vec. Local-by-default fits Decision #003; cloud APIs are explicit opt-in. Embedding models are much smaller than chat LLMs, so Phase 7 should not wait on a chat-sized model.
 
 Why it matters: Keeps #63 notes honest for #65–#69 (and the architecture “vectors ready” mode) without locking Chroma or a model SKU before #64/#66.
 
@@ -126,7 +126,7 @@ Why it matters: Decision #008 replaces the early Chroma placeholder before #67 s
 
 ### 07/27/2026 — Ollama install vs feature lights
 
-What I learned: #65 is “runner on the machine + detect,” not “turn on Semantic/AI in the footer.” System Status **Ollama: Available** means `:11434` answers; footer Semantic/AI stay off until #66–#68 / #70. Install is system-wide (script/winget/exe) — never into the repo. On Windows, use `curl.exe` to probe the API; bare `curl` is `Invoke-WebRequest`.
+What I learned: #65 is “runner on the machine + detect,” not “turn on Semantic/AI in the footer.” System Status **Ollama: Available** means `:11434` answers. Footer **Semantic Search** uses `semantic_query_ready` (chunks + embed model); **AI** stays off until #70. Install is system-wide (script/winget/exe) — never into the repo. On Windows, use `curl.exe` to probe the API; bare `curl` is `Invoke-WebRequest`.
 
 Why it matters: Keeps #65 closable without pretending embeddings or RAG shipped, and avoids confusing Max when classic search works but footer lights stay dark.
 
@@ -135,4 +135,10 @@ Why it matters: Keeps #65 closable without pretending embeddings or RAG shipped,
 What I learned: Issue titles say “generate then store,” but implementation order is the reverse for the schema: **#67** loads sqlite-vec and creates chunk/vec tables so **#66** has a write target. Soft-fail if the extension cannot load — classic search must keep working (Decision #008).
 
 Why it matters: Avoids an in-memory embedding detour and keeps Decision #008 rules visible on System Status before any Ollama embed calls.
+
+### 07/28/2026 — Opt-in Start embedding (#122)
+
+What I learned: Auto-enqueue on content sync made embedding feel uncontrolled. Lasting UX is **Start embedding** for pending files, live queue progress, and a short **done confirmation** — not instructional walls in Diagnostics. Verify/smoke belongs under **Advanced**.
+
+Why it matters: Generate stays intentional; query readiness (`semantic_query_ready`) stays a separate signal from “files were indexed.”
 
