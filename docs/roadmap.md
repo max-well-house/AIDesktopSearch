@@ -188,12 +188,12 @@ Polish and package so someone can download it and think “this works.” RAG an
 Must-ship (board):
 - **#124** Product slim — auto-embed again; summary + contextual Pause; lab under Details — **done**
 - **#80** Settings — corpus home; AppMark → Settings; prefs persist — **done**
-- **#125** Show app version in Settings (support / About — not launcher chrome)
+- **#125** Show app version in Settings (support / About — not launcher chrome) — **done**
 - **#86** Polish UI — concrete visual consistency (tones, radius, tokens, honest EmptyState)
 - **#121** Hide native menu bar; theme window chrome / scrollbars
 - **#120** Footer capability lights (Semantic live; AI off/yellow until v1.1)
-- **#118** Per-root auto-watch toggle
-- **#114** Privacy: stronger index.db wipe
+- **#118** Per-root auto-watch toggle — **done**
+- **#114** Privacy: stronger index.db wipe — **done**
 - **#111** Ship Python/FastAPI with packaged release (+ coherent app icon)
 - **#83** Keyboard navigation (close gaps)
 - **#85** Performance (narrow: mosaic idle, embed load, startup)
