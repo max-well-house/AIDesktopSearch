@@ -78,6 +78,22 @@ ipcMain.handle('api:open-path', async (_event, filePath) => {
     return { ok: false, error: err.message || String(err) }
   }
 })
+ipcMain.handle('prefs:get-open-at-login', async () => {
+  try {
+    return { ok: true, enabled: getOpenAtLogin() }
+  } catch (err) {
+    return { ok: false, error: err?.message || String(err) }
+  }
+})
+ipcMain.handle('prefs:set-open-at-login', async (_event, enabled) => {
+  try {
+    setOpenAtLogin(Boolean(enabled))
+    rebuildTrayMenu()
+    return { ok: true, enabled: getOpenAtLogin() }
+  } catch (err) {
+    return { ok: false, error: err?.message || String(err) }
+  }
+})
 ipcMain.handle('dialog:pick-folder', async () => {
   const result = await dialog.showOpenDialog(mainWindow ?? undefined, {
     title: 'Choose a folder to index',

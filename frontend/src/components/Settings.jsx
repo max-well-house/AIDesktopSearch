@@ -3,6 +3,8 @@ import Accordion from '@mui/material/Accordion'
 import AccordionDetails from '@mui/material/AccordionDetails'
 import AccordionSummary from '@mui/material/AccordionSummary'
 import Button from '@mui/material/Button'
+import FormControlLabel from '@mui/material/FormControlLabel'
+import Switch from '@mui/material/Switch'
 import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
 import AppMark from './brand/AppMark'
@@ -100,13 +102,11 @@ function ExpandIcon() {
 }
 
 /**
- * Corpus + diagnostics screen (#40 / #124).
+ * Settings — corpus home + preferences (#80 / #124).
  * Primary: folders, summary, contextual Pause. Lab under Details.
- * Will move into Settings in #80.
- *
  * This page scrolls; launcher stays non-scrolling.
  */
-export default function SystemStatus({ onBack }) {
+export default function Settings({ onBack }) {
   const [phase, setPhase] = useState('idle')
   const [payload, setPayload] = useState(null)
   const [error, setError] = useState(null)
@@ -116,6 +116,7 @@ export default function SystemStatus({ onBack }) {
   const [corpusMessage, setCorpusMessage] = useState(null)
   const [corpusTone, setCorpusTone] = useState('online')
   const [detailsOpen, setDetailsOpen] = useState(false)
+  const [openAtLogin, setOpenAtLoginState] = useState(null)
 
   async function refreshIndexStatus() {
     if (!window.api?.getIndexStatus) return
@@ -139,7 +140,37 @@ export default function SystemStatus({ onBack }) {
 
   useEffect(() => {
     void refreshIndexStatus()
+    if (!window.api?.getOpenAtLogin) return
+    void window.api.getOpenAtLogin().then((result) => {
+      if (result?.ok) setOpenAtLoginState(Boolean(result.enabled))
+    })
   }, [])
+
+  async function toggleOpenAtLogin(next) {
+    if (!window.api?.setOpenAtLogin) {
+      setCorpusFeedback('error', 'Electron bridge missing for Start with Windows.')
+      return
+    }
+    setBusyKey('open-at-login')
+    try {
+      const result = await window.api.setOpenAtLogin(next)
+      if (!result.ok) {
+        setCorpusFeedback('error', result.error || 'Could not update Start with Windows')
+        return
+      }
+      setOpenAtLoginState(Boolean(result.enabled))
+      setCorpusFeedback(
+        'online',
+        result.enabled
+          ? 'Will start with Windows (hidden in tray).'
+          : 'Won’t start with Windows.',
+      )
+    } catch (err) {
+      setCorpusFeedback('error', err?.message || String(err))
+    } finally {
+      setBusyKey(null)
+    }
+  }
 
   const embedQueueDepth = indexStatus?.embed_queue_depth ?? 0
   const embedPaused = Boolean(indexStatus?.embed_paused)
@@ -155,7 +186,7 @@ export default function SystemStatus({ onBack }) {
     return () => clearInterval(id)
   }, [pollEmbed])
 
-  async function checkSystemStatus() {
+  async function checkHealth() {
     setPhase('loading')
     setError(null)
     setPayload(null)
@@ -407,11 +438,34 @@ export default function SystemStatus({ onBack }) {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
           <AppMark size={36} />
           <Typography variant="h4" component="h1" sx={{ m: 0 }}>
-            System Status
+            Settings
           </Typography>
         </Box>
 
         <Box sx={{ mb: 2 }}>
+          <Typography
+            variant="subtitle2"
+            sx={{ mb: 1, color: colors.textPrimary, fontWeight: 600 }}
+          >
+            Preferences
+          </Typography>
+          <FormControlLabel
+            sx={{ mb: 1.5, ml: 0, alignItems: 'center' }}
+            control={
+              <Switch
+                checked={Boolean(openAtLogin)}
+                disabled={busy || openAtLogin == null}
+                onChange={(event) => void toggleOpenAtLogin(event.target.checked)}
+                size="small"
+              />
+            }
+            label={
+              <Typography variant="body2" color="text.primary">
+                Start with Windows
+              </Typography>
+            }
+          />
+
           <p className={`status status-${indexStatus ? 'online' : 'idle'}`}>
             <span className="status-label">Index:</span>{' '}
             {formatIndexed(indexStatus?.file_count)}
@@ -706,7 +760,7 @@ export default function SystemStatus({ onBack }) {
               <Button
                 variant="contained"
                 color="primary"
-                onClick={checkSystemStatus}
+                onClick={checkHealth}
                 disabled={phase === 'loading'}
               >
                 Check

@@ -44,7 +44,7 @@ React → Electron (IPC) → FastAPI → Electron → React
 ### What to click
 
 1. Launcher opens with the search field focused — type a filename substring (classic search; no Ollama required).
-2. Top-right mark opens **System Status** — add / rescan / remove opt-in folder roots, plus backend / Ollama health.
+2. Top-right mark opens **Settings** — add / rescan / remove opt-in folder roots, preferences, plus backend / Ollama health under Details.
 3. **Alt+Space** show/focus (falls back to **Ctrl+Shift+Space** if Alt+Space is taken). Remapping later via Settings.
 4. Tray: left-click show/hide; right-click Show, optional **Start with Windows**, Quit. Window size sticks for the session; **Quit** resets to the default size next launch.
 5. Quit Electron → if Electron spawned the backend, port 8000 should be free again.
@@ -88,9 +88,9 @@ curl.exe http://127.0.0.1:11434/api/version
 
 Expect JSON with a `version`. If connection fails, start **Ollama** from the Start menu / tray and retry.
 
-**In the app:** System Status → **Ollama: Available** (with version). Footer **Semantic Search** shows Available when vectors exist **and** the embed model can answer query embeds (`semantic_query_ready`). **AI** stays off until chat/RAG (#70).
+**In the app:** Settings → **Details** → **Ollama: Available** (with version). Footer **Semantic Search** shows Available when vectors exist **and** the embed model can answer query embeds (`semantic_query_ready`). **AI** stays off until chat/RAG (#70).
 
-**Vector store (#67):** after `pip install -r backend/requirements.txt`, System Status → **Check** should show **Vector store: Available (sqlite-vec …)**. With at least one indexed folder/file, Diagnostics → **Advanced** → **Verify vector store** runs a throwaway k-NN round-trip (no rows left behind). Classic search still works if the extension fails to load.
+**Vector store (#67):** after `pip install -r backend/requirements.txt`, Settings → **Details** → **Check** should show **Vector store: Available (sqlite-vec …)**. With at least one indexed folder/file, **Verify vector store** runs a throwaway k-NN round-trip (no rows left behind). Classic search still works if the extension fails to load.
 
 **Optional embed model** (default for v0.7):
 
@@ -102,7 +102,7 @@ Bare `ollama` may open an interactive menu — Esc out; MosAIq only needs the ba
 
 **Generate vs query:** Building vectors (**generate**) happens automatically when content is indexed (Pause if the machine bogs down). Searching by meaning (**query**) embeds the search box text at query time (needs Ollama + `nomic-embed-text`); stored chunks alone are not enough if the embedder is down.
 
-**Embeddings:** After `ollama pull nomic-embed-text`, System Status → **Details** → **Check** should show **Embedding model: Available**. Add/rescan folders enqueue embeddings in the background. **Pause** / **Resume** show only while a queue is active (or paused). **Verify vector store** lives under **Details**.
+**Embeddings:** After `ollama pull nomic-embed-text`, Settings → **Details** → **Check** should show **Embedding model: Available**. Add/rescan folders enqueue embeddings in the background. **Pause** / **Resume** show only while a queue is active (or paused). **Verify vector store** lives under **Details**.
 
 ### Other commands
 

@@ -13,6 +13,9 @@ contextBridge.exposeInMainWorld('api', {
     ipcRenderer.invoke('api:search', query, limit, mode),
   openPath: (filePath) => ipcRenderer.invoke('api:open-path', filePath),
   pickFolder: () => ipcRenderer.invoke('dialog:pick-folder'),
+  getOpenAtLogin: () => ipcRenderer.invoke('prefs:get-open-at-login'),
+  setOpenAtLogin: (enabled) =>
+    ipcRenderer.invoke('prefs:set-open-at-login', enabled),
   hideLauncher: (opts) => ipcRenderer.invoke('launcher:hide', opts),
   notifyShowPrepared: () => ipcRenderer.invoke('launcher:show-prepared'),
   onDismiss: (callback) => {
