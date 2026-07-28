@@ -23,6 +23,10 @@ const {
   MIN_HEIGHT,
   clearSavedWindowSize,
 } = require('./windowState')
+const {
+  getPreferSemanticSearch,
+  setPreferSemanticSearch,
+} = require('./prefs')
 
 const RENDERER_DEV_URL = process.env.ELECTRON_RENDERER_URL || 'http://127.0.0.1:5173'
 const LAUNCHER_SHORTCUT = 'Alt+Space'
@@ -100,6 +104,24 @@ ipcMain.handle('prefs:set-open-at-login', async (_event, enabled) => {
     setOpenAtLogin(Boolean(enabled))
     rebuildTrayMenu()
     return { ok: true, enabled: getOpenAtLogin() }
+  } catch (err) {
+    return { ok: false, error: err?.message || String(err) }
+  }
+})
+ipcMain.handle('prefs:get-prefer-semantic', async () => {
+  try {
+    return { ok: true, enabled: getPreferSemanticSearch() }
+  } catch (err) {
+    return { ok: false, error: err?.message || String(err) }
+  }
+})
+ipcMain.handle('prefs:set-prefer-semantic', async (_event, enabled) => {
+  try {
+    const next = setPreferSemanticSearch(Boolean(enabled))
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('prefs:prefer-semantic-changed', next)
+    }
+    return { ok: true, enabled: next }
   } catch (err) {
     return { ok: false, error: err?.message || String(err) }
   }
@@ -291,6 +313,25 @@ function createTray() {
   })
 }
 
+function installApplicationMenu() {
+  if (app.isPackaged) {
+    Menu.setApplicationMenu(null)
+    return
+  }
+  // Dev-only: Reload + DevTools without the permanent File/Edit/View bar chrome.
+  const template = [
+    {
+      label: 'View',
+      submenu: [
+        { role: 'reload' },
+        { role: 'forceReload' },
+        { role: 'toggleDevTools' },
+      ],
+    },
+  ]
+  Menu.setApplicationMenu(Menu.buildFromTemplate(template))
+}
+
 function createWindow({ show = true } = {}) {
   mainWindow = new BrowserWindow({
     width: DEFAULT_BOUNDS.width,
@@ -300,6 +341,7 @@ function createWindow({ show = true } = {}) {
     center: true,
     show,
     backgroundColor: '#0D1117',
+    autoHideMenuBar: true,
     title: appConfig.name,
     icon: ICON_PATH,
     webPreferences: {
@@ -353,6 +395,7 @@ function registerLauncherShortcut() {
 
 app.whenReady().then(async () => {
   clearSavedWindowSize()
+  installApplicationMenu()
   await ensureBackend()
   const startHidden = shouldStartHidden()
   createWindow({ show: !startHidden })

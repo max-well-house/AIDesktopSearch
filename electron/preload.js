@@ -19,6 +19,16 @@ contextBridge.exposeInMainWorld('api', {
   getOpenAtLogin: () => ipcRenderer.invoke('prefs:get-open-at-login'),
   setOpenAtLogin: (enabled) =>
     ipcRenderer.invoke('prefs:set-open-at-login', enabled),
+  getPreferSemanticSearch: () =>
+    ipcRenderer.invoke('prefs:get-prefer-semantic'),
+  setPreferSemanticSearch: (enabled) =>
+    ipcRenderer.invoke('prefs:set-prefer-semantic', enabled),
+  onPreferSemanticChanged: (callback) => {
+    const handler = (_event, enabled) => callback(Boolean(enabled))
+    ipcRenderer.on('prefs:prefer-semantic-changed', handler)
+    return () =>
+      ipcRenderer.removeListener('prefs:prefer-semantic-changed', handler)
+  },
   hideLauncher: (opts) => ipcRenderer.invoke('launcher:hide', opts),
   notifyShowPrepared: () => ipcRenderer.invoke('launcher:show-prepared'),
   onDismiss: (callback) => {

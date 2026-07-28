@@ -119,6 +119,7 @@ export default function Settings({ onBack }) {
   const [corpusTone, setCorpusTone] = useState('online')
   const [detailsOpen, setDetailsOpen] = useState(false)
   const [openAtLogin, setOpenAtLoginState] = useState(null)
+  const [preferSemantic, setPreferSemanticState] = useState(null)
 
   async function refreshIndexStatus() {
     if (!window.api?.getIndexStatus) return
@@ -142,10 +143,16 @@ export default function Settings({ onBack }) {
 
   useEffect(() => {
     void refreshIndexStatus()
-    if (!window.api?.getOpenAtLogin) return
-    void window.api.getOpenAtLogin().then((result) => {
-      if (result?.ok) setOpenAtLoginState(Boolean(result.enabled))
-    })
+    if (window.api?.getOpenAtLogin) {
+      void window.api.getOpenAtLogin().then((result) => {
+        if (result?.ok) setOpenAtLoginState(Boolean(result.enabled))
+      })
+    }
+    if (window.api?.getPreferSemanticSearch) {
+      void window.api.getPreferSemanticSearch().then((result) => {
+        if (result?.ok) setPreferSemanticState(Boolean(result.enabled))
+      })
+    }
   }, [])
 
   async function toggleOpenAtLogin(next) {
@@ -166,6 +173,32 @@ export default function Settings({ onBack }) {
         result.enabled
           ? 'Will start with Windows (hidden in tray).'
           : 'Won’t start with Windows.',
+      )
+    } catch (err) {
+      setCorpusFeedback('error', err?.message || String(err))
+    } finally {
+      setBusyKey(null)
+    }
+  }
+
+  async function togglePreferSemantic(next) {
+    if (!window.api?.setPreferSemanticSearch) {
+      setCorpusFeedback('error', 'Electron bridge missing for Semantic preference.')
+      return
+    }
+    setBusyKey('prefer-semantic')
+    try {
+      const result = await window.api.setPreferSemanticSearch(next)
+      if (!result.ok) {
+        setCorpusFeedback('error', result.error || 'Could not update Semantic preference')
+        return
+      }
+      setPreferSemanticState(Boolean(result.enabled))
+      setCorpusFeedback(
+        'online',
+        result.enabled
+          ? 'Semantic search preferred when ready (footer light).'
+          : 'Semantic footer light off — search routing unchanged.',
       )
     } catch (err) {
       setCorpusFeedback('error', err?.message || String(err))
@@ -527,6 +560,25 @@ export default function Settings({ onBack }) {
               </Typography>
             }
           />
+          <FormControlLabel
+            sx={{ mb: 1.5, ml: 0, alignItems: 'center' }}
+            control={
+              <Switch
+                checked={preferSemantic !== false}
+                disabled={busy || preferSemantic == null}
+                onChange={(event) => void togglePreferSemantic(event.target.checked)}
+                size="small"
+              />
+            }
+            label={
+              <Typography variant="body2" color="text.primary">
+                Prefer semantic search
+              </Typography>
+            }
+          />
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5, ml: 0 }}>
+            Footer light only — does not change how search runs. Preferred on but not ready shows yellow.
+          </Typography>
 
           <p className={`status status-${indexStatus ? 'online' : 'idle'}`}>
             <span className="status-label">Index:</span>{' '}

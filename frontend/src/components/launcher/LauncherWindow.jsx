@@ -29,7 +29,7 @@ function formatIndexedLabel(count, lastIndexedAt) {
 /** Cheap signal that SQLite changed — not a hot search loop (#52-friendly). */
 function indexFingerprint(data) {
   if (!data) return ''
-  return `${data.file_count ?? 0}|${data.last_indexed_at ?? ''}|${data.queue_depth ?? 0}|${data.embedding_chunk_count ?? 0}|${data.semantic_query_ready ? 1 : 0}`
+  return `${data.file_count ?? 0}|${data.last_indexed_at ?? ''}|${data.queue_depth ?? 0}|${data.embedding_chunk_count ?? 0}|${data.semantic_query_ready ? 1 : 0}|${data.embed_queue_depth ?? 0}|${data.embed_paused ? 1 : 0}`
 }
 
 /**
@@ -41,10 +41,17 @@ export default function LauncherWindow() {
   const hitsRef = useRef([])
   const selectedIndexRef = useRef(0)
   const indexFpRef = useRef('')
+  const preferSemanticRef = useRef(true)
   const [query, setQuery] = useState('')
   const [searchKey, setSearchKey] = useState(0)
   const [indexedLabel, setIndexedLabel] = useState('—')
-  const [semanticLabel, setSemanticLabel] = useState('Disabled')
+  const [semanticFooter, setSemanticFooter] = useState({
+    value: 'Disabled',
+    tone: 'off',
+    title: 'Semantic search is not ready',
+  })
+  const [preferSemantic, setPreferSemantic] = useState(true)
+  const [indexSnapshot, setIndexSnapshot] = useState(null)
   const [hits, setHits] = useState([])
   const [status, setStatus] = useState('idle')
   const [selectedIndex, setSelectedIndex] = useState(0)
@@ -53,19 +60,53 @@ export default function LauncherWindow() {
 
   hitsRef.current = hits
   selectedIndexRef.current = selectedIndex
+  preferSemanticRef.current = preferSemantic
+
+  function deriveSemanticFooter(data, prefer) {
+    if (!prefer) {
+      return {
+        value: 'Off',
+        tone: 'off',
+        title: 'Semantic search is turned off in Settings',
+      }
+    }
+    const ready =
+      data?.semantic_query_ready === true ||
+      (data?.semantic_query_ready == null &&
+        (data?.embedding_chunk_count ?? 0) > 0 &&
+        data?.vector_store_available === true)
+    if (ready) {
+      return {
+        value: 'Available',
+        tone: 'on',
+        title: 'Meaning search is ready (Ollama + embeddings)',
+      }
+    }
+    const queue = data?.embed_queue_depth ?? 0
+    if (queue > 0 || data?.embed_paused) {
+      return {
+        value: data?.embed_paused ? 'Paused' : `Embedding… ${queue}`,
+        tone: 'degraded',
+        title: data?.embed_paused
+          ? 'Embedding paused — resume in Settings'
+          : 'Embeddings are still building; meaning search will turn green when ready',
+      }
+    }
+    return {
+      value: 'Unavailable',
+      tone: 'degraded',
+      title:
+        'Preferred on, but not ready — need Ollama, nomic-embed-text, and embedded files',
+    }
+  }
 
   function applyIndexStatus(data) {
     if (!data) return
     const count = data.file_count ?? 0
     const lastIndexedAt = data.last_indexed_at ?? null
     setIndexedLabel(formatIndexedLabel(count, lastIndexedAt))
-    // Chunks alone are not enough — query embed still needs Ollama + model.
-    const ready =
-      data.semantic_query_ready === true ||
-      (data.semantic_query_ready == null &&
-        (data.embedding_chunk_count ?? 0) > 0 &&
-        data.vector_store_available === true)
-    setSemanticLabel(ready ? 'Available' : 'Disabled')
+    setIndexSnapshot(data)
+    setSemanticFooter(deriveSemanticFooter(data, preferSemanticRef.current))
     indexFpRef.current = indexFingerprint(data)
   }
 
@@ -105,11 +146,33 @@ export default function LauncherWindow() {
       if (cancelled || !result.ok) return
       applyIndexStatus(result.data)
     }
+    async function loadPreferSemantic() {
+      if (!window.api?.getPreferSemanticSearch) return
+      const result = await window.api.getPreferSemanticSearch()
+      if (cancelled || !result?.ok) return
+      setPreferSemantic(Boolean(result.enabled))
+    }
     void loadIndexStatus()
+    void loadPreferSemantic()
+    // Light footer refresh while idle (embedding → ready).
+    const idlePoll = setInterval(() => {
+      void loadIndexStatus()
+    }, 3000)
+    const unsubPrefer = window.api?.onPreferSemanticChanged?.((enabled) => {
+      setPreferSemantic(enabled)
+    })
     return () => {
       cancelled = true
+      clearInterval(idlePoll)
+      unsubPrefer?.()
     }
   }, [])
+
+  // Re-derive footer when prefer toggles after status is known.
+  useEffect(() => {
+    if (!indexSnapshot) return
+    setSemanticFooter(deriveSemanticFooter(indexSnapshot, preferSemantic))
+  }, [preferSemantic, indexSnapshot])
 
   // Debounced classic filename search (#43).
   useEffect(() => {
@@ -254,8 +317,18 @@ export default function LauncherWindow() {
 
   const footerStatus = [
     { label: 'Indexed', value: indexedLabel },
-    { label: 'Semantic Search', value: semanticLabel },
-    { label: 'AI', value: 'Offline' },
+    {
+      label: 'Semantic Search',
+      value: semanticFooter.value,
+      tone: semanticFooter.tone,
+      title: semanticFooter.title,
+    },
+    {
+      label: 'AI',
+      value: 'Offline',
+      tone: 'degraded',
+      title: 'Local AI answers ship in v1.1 — chat is not available yet',
+    },
   ]
 
   let resultsBody = null

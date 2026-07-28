@@ -94,6 +94,22 @@ const theme = createTheme({
           backgroundColor: colors.background,
           color: colors.textPrimary,
         },
+        // Dark scrollbars (#121) — WebKit/Chromium (Electron)
+        '*::-webkit-scrollbar': {
+          width: 10,
+          height: 10,
+        },
+        '*::-webkit-scrollbar-track': {
+          backgroundColor: colors.background,
+        },
+        '*::-webkit-scrollbar-thumb': {
+          backgroundColor: colors.border,
+          borderRadius: 8,
+          border: `2px solid ${colors.background}`,
+        },
+        '*::-webkit-scrollbar-thumb:hover': {
+          backgroundColor: colors.textSecondary,
+        },
       },
     },
     MuiButton: {

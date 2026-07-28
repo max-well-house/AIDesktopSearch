@@ -4,8 +4,18 @@ import { colors } from '../../theme'
 
 const DEFAULT_STATUS = [
   { label: 'Indexed', value: '—' },
-  { label: 'Semantic Search', value: 'Disabled' },
-  { label: 'AI', value: 'Offline' },
+  {
+    label: 'Semantic Search',
+    value: 'Disabled',
+    tone: 'off',
+    title: 'Semantic search is not ready',
+  },
+  {
+    label: 'AI',
+    value: 'Offline',
+    tone: 'degraded',
+    title: 'Local AI answers ship in v1.1',
+  },
 ]
 
 const DEFAULT_SHORTCUTS = [
@@ -13,9 +23,15 @@ const DEFAULT_SHORTCUTS = [
   { keys: 'Esc', action: 'Dismiss' },
 ]
 
+const TONE_COLOR = {
+  on: colors.accentGreen,
+  degraded: '#EAB308',
+  off: colors.textSecondary,
+}
+
 /**
- * Launcher chrome: capability/status stubs + keyboard hints.
- * Values become live as indexer / AI land — Indexed count + date live (#41 / #115).
+ * Launcher chrome: capability lights + keyboard hints (#120).
+ * Indexed stays plain text; Semantic/AI use tone + hover explanation.
  */
 export default function Footer({
   status = DEFAULT_STATUS,
@@ -38,16 +54,50 @@ export default function Footer({
       }}
     >
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: { xs: 1.5, sm: 2.5 } }}>
-        {status.map((item) => (
-          <Typography key={item.label} variant="caption" sx={{ color: colors.textSecondary }}>
-            <Box component="span" sx={{ color: colors.textSecondary, opacity: 0.75 }}>
-              {item.label}:
-            </Box>{' '}
-            <Box component="span" sx={{ color: colors.textPrimary, opacity: 0.9 }}>
-              {item.value}
-            </Box>
-          </Typography>
-        ))}
+        {status.map((item) => {
+          const tone = item.tone
+          const valueColor = tone ? TONE_COLOR[tone] || colors.textPrimary : colors.textPrimary
+          const ariaLabel = item.ariaLabel || (
+            item.title
+              ? `${item.label}: ${item.value}. ${item.title}`
+              : undefined
+          )
+          return (
+            <Typography
+              key={item.label}
+              variant="caption"
+              title={item.title || undefined}
+              aria-label={ariaLabel}
+              sx={{
+                color: colors.textSecondary,
+                cursor: item.title ? 'help' : undefined,
+              }}
+            >
+              <Box component="span" sx={{ color: colors.textSecondary, opacity: 0.75 }}>
+                {item.label}:
+              </Box>{' '}
+              {tone ? (
+                <Box
+                  component="span"
+                  aria-hidden
+                  sx={{
+                    display: 'inline-block',
+                    width: 7,
+                    height: 7,
+                    borderRadius: '50%',
+                    bgcolor: valueColor,
+                    mr: 0.6,
+                    verticalAlign: 'middle',
+                    mb: '1px',
+                  }}
+                />
+              ) : null}
+              <Box component="span" sx={{ color: valueColor, opacity: 0.95 }}>
+                {item.value}
+              </Box>
+            </Typography>
+          )
+        })}
       </Box>
 
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
