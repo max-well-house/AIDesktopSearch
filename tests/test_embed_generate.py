@@ -43,8 +43,8 @@ def test_chunk_pages_global_index():
     assert {c.page for c in chunks} <= {1, 2}
 
 
-def test_content_sync_does_not_enqueue(temp_db, tmp_path):
-    """#122: content sync marks pending only; Start/backfill enqueues."""
+def test_content_sync_enqueues(temp_db, tmp_path):
+    """#124: content sync auto-enqueues embeddings; Pause remains the escape hatch."""
     folder = tmp_path / "corpus"
     folder.mkdir()
     path = folder / "note.txt"
@@ -57,15 +57,15 @@ def test_content_sync_does_not_enqueue(temp_db, tmp_path):
     from embeddings.queue import get_embed_queue
 
     q = get_embed_queue()
-    before = q.status()["queue_depth"]
+    # replace_root_files may already have synced+enqueued; clear and force a rewrite.
+    with q._lock:
+        q._pending.clear()
+    path.write_text(
+        "Piplup is a water-type starter Pokemon. Updated for re-embed.",
+        encoding="utf-8",
+    )
     sync_file_content(file_id, path, path.stat().st_mtime)
-    assert file_id in list_pending_embed_file_ids()
-    assert q.status()["queue_depth"] == before
-
-    enqueued = q.enqueue_many([file_id])
-    assert enqueued == 1
-    assert q.status()["queue_depth"] == before + 1
-    # Clear without running the daemon worker so other tests stay isolated.
+    assert q.status()["queue_depth"] == 1
     with q._lock:
         q._pending.clear()
 

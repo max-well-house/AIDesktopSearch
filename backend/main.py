@@ -226,9 +226,9 @@ async def resume_embeddings():
 @app.post("/index/embeddings/backfill", response_model=EmbeddingBackfillResponse)
 async def backfill_embeddings():
     """
-    Opt-in Start embedding (#122): enqueue files with FTS text but no chunks.
+    Recovery enqueue for files with FTS text but no chunks (#66 / #124).
 
-    Content sync no longer auto-enqueues; the UI calls this after the user starts.
+    Content sync auto-enqueues; this remains for tests and catching-up orphans.
     """
     pending = await asyncio.to_thread(list_pending_embed_file_ids)
     manager = get_embed_queue()

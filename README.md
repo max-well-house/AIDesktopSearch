@@ -100,9 +100,9 @@ ollama pull nomic-embed-text
 
 Bare `ollama` may open an interactive menu — Esc out; MosAIq only needs the background server on `127.0.0.1:11434`.
 
-**Generate vs query:** Building vectors (**generate**) is opt-in — System Status → **Start embedding** after content is indexed. Searching by meaning (**query**) embeds the search box text at query time (needs Ollama + `nomic-embed-text`); stored chunks alone are not enough if the embedder is down.
+**Generate vs query:** Building vectors (**generate**) happens automatically when content is indexed (Pause if the machine bogs down). Searching by meaning (**query**) embeds the search box text at query time (needs Ollama + `nomic-embed-text`); stored chunks alone are not enough if the embedder is down.
 
-**Start embedding (#122):** System Status → **Check** should show **Embedding model: Available** after the pull. Content sync / rescan does **not** enqueue vectors automatically. When files have FTS text but no chunks, **Start embedding (N)** appears; when the run finishes you get a short done confirmation. **Pause** / **Resume** show only while a queue is active (or paused). **Verify vector store** lives under **Advanced**.
+**Embeddings:** After `ollama pull nomic-embed-text`, System Status → **Details** → **Check** should show **Embedding model: Available**. Add/rescan folders enqueue embeddings in the background. **Pause** / **Resume** show only while a queue is active (or paused). **Verify vector store** lives under **Details**.
 
 ### Other commands
 

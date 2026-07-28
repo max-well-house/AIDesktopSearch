@@ -142,8 +142,7 @@ def sync_file_content(file_id: int, path: Path | str, mtime: float | None) -> No
         )
         conn.commit()
 
-    # No extractable text → drop stale vectors. Embedding is opt-in (#122):
-    # content sync leaves pending files; Start embedding / backfill enqueues.
+    # No extractable text → drop stale vectors; else enqueue generate (#124).
     if not fts_rows:
         try:
             from embeddings.store import clear_file_embeddings
@@ -151,6 +150,14 @@ def sync_file_content(file_id: int, path: Path | str, mtime: float | None) -> No
             clear_file_embeddings(file_id)
         except Exception:
             pass
+        return
+
+    try:
+        from embeddings.queue import get_embed_queue
+
+        get_embed_queue().enqueue(file_id)
+    except Exception:
+        logger.debug("embed enqueue skipped for file_id=%s", file_id, exc_info=True)
 
 
 # Backward-compatible alias (#55 / tests / bench).

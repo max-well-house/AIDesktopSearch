@@ -100,11 +100,10 @@ function ExpandIcon() {
 }
 
 /**
- * Capability / health screen from v0.1.x.
- * Kept for diagnostics; launcher is the primary surface.
- * Will move into Settings later.
+ * Corpus + diagnostics screen (#40 / #124).
+ * Primary: folders, summary, contextual Pause. Lab under Details.
+ * Will move into Settings in #80.
  *
- * Indexed folders (#40): add / rescan / remove opt-in corpus roots.
  * This page scrolls; launcher stays non-scrolling.
  */
 export default function SystemStatus({ onBack }) {
@@ -116,10 +115,7 @@ export default function SystemStatus({ onBack }) {
   const [busyKey, setBusyKey] = useState(null)
   const [corpusMessage, setCorpusMessage] = useState(null)
   const [corpusTone, setCorpusTone] = useState('online')
-  const [diagnosticsOpen, setDiagnosticsOpen] = useState(false)
-  const [advancedOpen, setAdvancedOpen] = useState(false)
-  /** Active Start-embedding run: baselines for done confirmation (#122). */
-  const [embedRun, setEmbedRun] = useState(null)
+  const [detailsOpen, setDetailsOpen] = useState(false)
 
   async function refreshIndexStatus() {
     if (!window.api?.getIndexStatus) return
@@ -145,11 +141,11 @@ export default function SystemStatus({ onBack }) {
     void refreshIndexStatus()
   }, [])
 
-  // Live embed progress while the queue is draining or a started run is active (#122).
   const embedQueueDepth = indexStatus?.embed_queue_depth ?? 0
   const embedPaused = Boolean(indexStatus?.embed_paused)
-  const pollEmbed =
-    embedQueueDepth > 0 || (embedRun != null && embedPaused)
+  const showEmbedPause = embedQueueDepth > 0 || embedPaused
+  const pollEmbed = showEmbedPause
+
   useEffect(() => {
     if (!pollEmbed) return undefined
     const id = setInterval(() => {
@@ -158,46 +154,6 @@ export default function SystemStatus({ onBack }) {
     }, 2000)
     return () => clearInterval(id)
   }, [pollEmbed])
-
-  // Done confirmation when a started embed run finishes (#122).
-  useEffect(() => {
-    if (!embedRun || !indexStatus) return
-    const depth = indexStatus.embed_queue_depth ?? 0
-    const paused = Boolean(indexStatus.embed_paused)
-    const completed =
-      (indexStatus.embed_completed ?? 0) - (embedRun.baselineCompleted ?? 0)
-    const failed =
-      (indexStatus.embed_failed ?? 0) - (embedRun.baselineFailed ?? 0)
-
-    if (!embedRun.wasActive) {
-      if (depth > 0 || paused) {
-        setEmbedRun((prev) => (prev ? { ...prev, wasActive: true } : prev))
-        return
-      }
-      // Fast path: work finished before we observed a non-empty queue.
-      if (completed <= 0 && failed <= 0) return
-    } else if (depth > 0 || paused) {
-      return
-    }
-
-    const chunksNow = indexStatus.embedding_chunk_count ?? 0
-    const chunkDelta = Math.max(
-      0,
-      chunksNow - (embedRun.chunksAtStart ?? 0),
-    )
-    const parts = [
-      `Embedded ${Math.max(0, completed).toLocaleString()} file(s)`,
-    ]
-    if (chunkDelta > 0) {
-      parts.push(`${chunkDelta.toLocaleString()} chunk(s)`)
-    }
-    if (failed > 0) {
-      parts.push(`${failed.toLocaleString()} failed`)
-    }
-    setCorpusTone(failed > 0 && completed <= 0 ? 'error' : 'online')
-    setCorpusMessage(parts.join(' · '))
-    setEmbedRun(null)
-  }, [embedRun, indexStatus])
 
   async function checkSystemStatus() {
     setPhase('loading')
@@ -210,7 +166,7 @@ export default function SystemStatus({ onBack }) {
           'Electron bridge missing. Use the Electron window from `npm run dev`, not a browser tab on :5173.',
         )
         setPhase('error')
-        setDiagnosticsOpen(true)
+        setDetailsOpen(true)
         return
       }
 
@@ -226,11 +182,11 @@ export default function SystemStatus({ onBack }) {
 
       setError(result.error)
       setPhase('error')
-      setDiagnosticsOpen(true)
+      setDetailsOpen(true)
     } catch (err) {
       setError(err?.message || String(err))
       setPhase('error')
-      setDiagnosticsOpen(true)
+      setDetailsOpen(true)
     }
   }
 
@@ -268,47 +224,6 @@ export default function SystemStatus({ onBack }) {
         const health = await window.api.checkHealth()
         if (health.ok) setPayload(health.data)
       }
-    } catch (err) {
-      setCorpusFeedback('error', err?.message || String(err))
-    } finally {
-      setBusyKey(null)
-    }
-  }
-
-  async function startEmbedding() {
-    if (!window.api?.embeddingsBackfill) {
-      setCorpusFeedback('error', 'Electron bridge missing for Start embedding.')
-      return
-    }
-    setBusyKey('embeddings-start')
-    try {
-      const baselineCompleted = indexStatus?.embed_completed ?? 0
-      const baselineFailed = indexStatus?.embed_failed ?? 0
-      const chunksAtStart = indexStatus?.embedding_chunk_count ?? 0
-      const result = await window.api.embeddingsBackfill()
-      if (!result.ok) {
-        setCorpusFeedback('error', result.error || 'Start embedding failed')
-        return
-      }
-      const data = result.data
-      const enqueued = data.enqueued ?? 0
-      if (enqueued <= 0) {
-        setCorpusFeedback('online', 'Nothing to embed.')
-        await refreshIndexStatus()
-        return
-      }
-      setEmbedRun({
-        baselineCompleted,
-        baselineFailed,
-        chunksAtStart,
-        startedPending: enqueued,
-        wasActive: false,
-      })
-      setCorpusFeedback(
-        'online',
-        `Started embedding ${enqueued.toLocaleString()} file(s)…`,
-      )
-      await refreshIndexStatus()
     } catch (err) {
       setCorpusFeedback('error', err?.message || String(err))
     } finally {
@@ -467,6 +382,19 @@ export default function SystemStatus({ onBack }) {
   const roots = indexStatus?.roots ?? []
   const busy = busyKey != null
 
+  let semanticSummary = 'Semantic: not ready'
+  let semanticTone = 'idle'
+  if (embedPaused) {
+    semanticSummary = `Embedding paused · ${embedQueueDepth.toLocaleString()} queued`
+    semanticTone = 'loading'
+  } else if (embedQueueDepth > 0) {
+    semanticSummary = `Embedding… ${embedQueueDepth.toLocaleString()} queued`
+    semanticTone = 'loading'
+  } else if (indexStatus?.semantic_query_ready) {
+    semanticSummary = 'Semantic ready'
+    semanticTone = 'online'
+  }
+
   return (
     <Box
       sx={{
@@ -490,8 +418,11 @@ export default function SystemStatus({ onBack }) {
             {indexStatus?.root_count
               ? ` · ${indexStatus.root_count} folder${indexStatus.root_count === 1 ? '' : 's'}`
               : ''}
-            {indexStatus?.embedding_chunk_count != null
-              ? ` · ${indexStatus.embedding_chunk_count.toLocaleString()} embedding chunk${
+          </p>
+          <p className={`status status-${semanticTone}`} style={{ marginBottom: '0.5rem' }}>
+            <span className="status-label">Search:</span> {semanticSummary}
+            {indexStatus?.embedding_chunk_count != null && embedQueueDepth === 0 && !embedPaused
+              ? ` · ${indexStatus.embedding_chunk_count.toLocaleString()} chunk${
                   indexStatus.embedding_chunk_count === 1 ? '' : 's'
                 }`
               : ''}
@@ -521,8 +452,8 @@ export default function SystemStatus({ onBack }) {
 
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
             Only folders you add are indexed. Whole-PC / whole-disk crawling is out
-            of scope for defaults. New, deleted, and renamed files in those folders
-            update the index automatically.
+            of scope for defaults. New and changed files update the index automatically;
+            embeddings follow in the background (Pause if the machine bogs down).
           </Typography>
 
           <Typography
@@ -604,15 +535,38 @@ export default function SystemStatus({ onBack }) {
             </Box>
           )}
 
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={addFolder}
-            disabled={busy}
-            sx={{ mb: 1 }}
+          <Box
+            sx={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: 1,
+              alignItems: 'center',
+              mb: 1,
+            }}
           >
-            {busyKey === 'add' ? 'Adding…' : 'Add folder…'}
-          </Button>
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={addFolder}
+              disabled={busy}
+            >
+              {busyKey === 'add' ? 'Adding…' : 'Add folder…'}
+            </Button>
+            {showEmbedPause ? (
+              <Button
+                variant={embedPaused ? 'contained' : 'outlined'}
+                color="primary"
+                onClick={embedPaused ? resumeEmbeddings : pauseEmbeddings}
+                disabled={busy}
+              >
+                {busyKey === 'embeddings-pause' || busyKey === 'embeddings-resume'
+                  ? '…'
+                  : embedPaused
+                    ? 'Resume'
+                    : 'Pause'}
+              </Button>
+            ) : null}
+          </Box>
           {corpusMessage ? (
             <Typography
               variant="body2"
@@ -627,8 +581,8 @@ export default function SystemStatus({ onBack }) {
         <Accordion
           disableGutters
           elevation={0}
-          expanded={diagnosticsOpen}
-          onChange={(_event, expanded) => setDiagnosticsOpen(expanded)}
+          expanded={detailsOpen}
+          onChange={(_event, expanded) => setDetailsOpen(expanded)}
           sx={{
             mb: 2,
             backgroundColor: 'transparent',
@@ -645,7 +599,7 @@ export default function SystemStatus({ onBack }) {
             }}
           >
             <Typography variant="subtitle2" sx={{ fontWeight: 600, color: colors.textPrimary }}>
-              Diagnostics
+              Details
             </Typography>
             <Typography variant="body2" color="text.secondary" component="span">
               Backend: {apiLabel}
@@ -694,30 +648,13 @@ export default function SystemStatus({ onBack }) {
                   {(indexStatus?.embed_pending_files ?? 0) > 0
                     ? ` · ${indexStatus.embed_pending_files} pending`
                     : ''}
-                  {indexStatus?.embedding_chunk_count != null
-                    ? ` · ${indexStatus.embedding_chunk_count} chunks`
-                    : ''}
                   {indexStatus?.embed_completed != null
                     ? ` · ${indexStatus.embed_completed} done`
                     : ''}
                   {(indexStatus?.embed_failed ?? 0) > 0
                     ? ` · ${indexStatus.embed_failed} failed`
                     : ''}
-                  {embedQueueDepth > 0 && !indexStatus?.embed_paused
-                    ? ' · updating…'
-                    : ''}
                 </p>
-                {(indexStatus?.embedded_files?.length ?? 0) > 0 ? (
-                  <Typography
-                    variant="body2"
-                    sx={{ mb: 1.25, color: colors.textPrimary, lineHeight: 1.45 }}
-                  >
-                    <span className="status-label">Embedded:</span>{' '}
-                    {indexStatus.embedded_files
-                      .map((f) => `${f.name} (${f.chunks})`)
-                      .join(' · ')}
-                  </Typography>
-                ) : null}
                 {indexStatus?.embed_last_error ? (
                   <Typography variant="body2" color="error" sx={{ mb: 1 }}>
                     Last error: {indexStatus.embed_last_error}
@@ -774,75 +711,18 @@ export default function SystemStatus({ onBack }) {
               >
                 Check
               </Button>
-              {(indexStatus?.embed_pending_files ?? 0) > 0 ? (
-                <Button
-                  variant="contained"
-                  color="primary"
-                  onClick={startEmbedding}
-                  disabled={busy || phase === 'loading'}
-                >
-                  {busyKey === 'embeddings-start'
-                    ? 'Starting…'
-                    : `Start embedding (${indexStatus.embed_pending_files})`}
-                </Button>
-              ) : null}
-              {indexStatus?.embed_paused ||
-              (indexStatus?.embed_queue_depth ?? 0) > 0 ? (
-                <Button
-                  variant={indexStatus?.embed_paused ? 'contained' : 'outlined'}
-                  color="primary"
-                  onClick={
-                    indexStatus?.embed_paused
-                      ? resumeEmbeddings
-                      : pauseEmbeddings
-                  }
-                  disabled={busy || phase === 'loading'}
-                >
-                  {indexStatus?.embed_paused ? 'Resume' : 'Pause'}
-                </Button>
-              ) : null}
-            </Box>
-
-            <Accordion
-              disableGutters
-              elevation={0}
-              expanded={advancedOpen}
-              onChange={(_event, expanded) => setAdvancedOpen(expanded)}
-              sx={{
-                backgroundColor: 'transparent',
-                border: `1px solid ${colors.border}`,
-                '&:before': { display: 'none' },
-              }}
-            >
-              <AccordionSummary
-                expandIcon={<ExpandIcon />}
-                sx={{
-                  minHeight: 40,
-                  px: 1,
-                  '& .MuiAccordionSummary-content': { my: 0.75 },
-                }}
+              <Button
+                variant="outlined"
+                color="primary"
+                size="small"
+                onClick={verifyVectorStore}
+                disabled={busy || phase === 'loading'}
               >
-                <Typography
-                  variant="body2"
-                  sx={{ fontWeight: 600, color: colors.textSecondary }}
-                >
-                  Advanced
-                </Typography>
-              </AccordionSummary>
-              <AccordionDetails sx={{ px: 1, pt: 0, pb: 1 }}>
-                <Button
-                  variant="outlined"
-                  color="primary"
-                  size="small"
-                  onClick={verifyVectorStore}
-                  disabled={busy || phase === 'loading'}
-                >
-                  {busyKey === 'embeddings-smoke'
-                    ? 'Verifying…'
-                    : 'Verify vector store'}
-                </Button>
-              </AccordionDetails>
-            </Accordion>
+                {busyKey === 'embeddings-smoke'
+                  ? 'Verifying…'
+                  : 'Verify vector store'}
+              </Button>
+            </Box>
           </AccordionDetails>
         </Accordion>
 

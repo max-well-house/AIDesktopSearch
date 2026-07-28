@@ -20,7 +20,7 @@ export default function EmptyState() {
         Start typing to search your files.
       </Typography>
       <Typography variant="body2" sx={{ color: colors.textSecondary, lineHeight: 1.55 }}>
-        Search by filename, document contents, or ask a question in natural language.
+        Search by filename, document contents, or meaning — then open the file.
       </Typography>
     </Box>
   )
