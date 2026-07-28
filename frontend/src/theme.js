@@ -14,6 +14,7 @@ export const colors = {
   // Surfaces
   background: '#0D1117',
   surface: '#151B24',
+  drawer: '#080B10',
   border: '#243040',
   hover: '#1A2433',
 

@@ -533,10 +533,11 @@ export default function Settings({ onBack }) {
         height: '100%',
         overflow: 'auto',
         WebkitOverflowScrolling: 'touch',
+        bgcolor: colors.drawer,
       }}
     >
-      <Box className="page" component="main" sx={{ maxWidth: '36rem', pb: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+      <Box className="page" component="main" sx={{ maxWidth: '36rem', pb: 3, pt: 1.5 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2.5 }}>
           <AppMark size={36} />
           <Typography variant="h4" component="h1" sx={{ m: 0 }}>
             Settings
@@ -781,15 +782,28 @@ export default function Settings({ onBack }) {
         <Accordion
           disableGutters
           elevation={0}
+          square={false}
           expanded={detailsOpen}
           onChange={(_event, expanded) => setDetailsOpen(expanded)}
           sx={{
             mb: 2,
             backgroundColor: colors.surface,
             border: `1px solid ${colors.border}`,
-            borderRadius: '12px !important',
+            borderRadius: '12px',
             overflow: 'hidden',
             '&:before': { display: 'none' },
+            '&.Mui-expanded': {
+              margin: 0,
+              mb: 2,
+              borderRadius: '12px',
+            },
+            '& .MuiAccordionSummary-root': {
+              borderRadius: '12px',
+            },
+            '&.Mui-expanded .MuiAccordionSummary-root': {
+              borderBottomLeftRadius: 0,
+              borderBottomRightRadius: 0,
+            },
           }}
         >
           <AccordionSummary
@@ -969,7 +983,7 @@ export default function Settings({ onBack }) {
 
         {onBack ? (
           <Button variant="outlined" color="primary" onClick={onBack}>
-            Back to search
+            Close
           </Button>
         ) : null}
       </Box>

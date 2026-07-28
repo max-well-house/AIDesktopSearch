@@ -1,13 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
 import { flushSync } from 'react-dom'
 import Box from '@mui/material/Box'
+import IconButton from '@mui/material/IconButton'
+import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
 import SearchBar from './SearchBar'
 import MosaicCanvas from './MosaicCanvas'
 import EmptyState from './EmptyState'
 import ResultsList, { resultOptionId } from './ResultsList'
 import Footer from './Footer'
+import AppMark from '../brand/AppMark'
 import { colors } from '../../theme'
+import appConfig from '@app-config'
 
 const SEARCH_DEBOUNCE_MS = 200
 /** Light status poll while a query is open — refresh hits when the index fingerprint changes (v0.4). */
@@ -36,12 +40,13 @@ function indexFingerprint(data) {
  * Permanent launcher shell. Structure is stable for v1:
  * Search → (Mosaic idle | Results slot) → Footer.
  */
-export default function LauncherWindow() {
+export default function LauncherWindow({ onOpenSettings, settingsOpen = false }) {
   const inputRef = useRef(null)
   const hitsRef = useRef([])
   const selectedIndexRef = useRef(0)
   const indexFpRef = useRef('')
   const preferSemanticRef = useRef(true)
+  const settingsOpenRef = useRef(false)
   const [query, setQuery] = useState('')
   const [searchKey, setSearchKey] = useState(0)
   const [indexedLabel, setIndexedLabel] = useState('—')
@@ -61,6 +66,7 @@ export default function LauncherWindow() {
   hitsRef.current = hits
   selectedIndexRef.current = selectedIndex
   preferSemanticRef.current = preferSemantic
+  settingsOpenRef.current = settingsOpen
 
   function deriveSemanticFooter(data, prefer) {
     if (!prefer) {
@@ -248,6 +254,8 @@ export default function LauncherWindow() {
     }
 
     const unsubDismiss = window.api?.onDismiss?.(() => {
+      // Settings drawer owns the first Esc; keep query until drawer closes.
+      if (settingsOpenRef.current) return
       clearSearch()
       // Let Chromium paint the empty field before hide (avoids caching a stale frame).
       afterPaint(() => {
@@ -401,17 +409,72 @@ export default function LauncherWindow() {
           pb: 2,
         }}
       >
-        <Box sx={{ maxWidth: 720, mx: 'auto' }}>
-          <SearchBar
-            key={searchKey}
-            ref={inputRef}
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            onKeyDown={handleSearchKeyDown}
-            activeDescendantId={
-              hits.length > 0 ? resultOptionId(selectedIndex) : undefined
-            }
-          />
+        <Box
+          sx={{
+            maxWidth: 720,
+            mx: 'auto',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.25,
+          }}
+        >
+          <Box sx={{ flex: 1, minWidth: 0 }}>
+            <SearchBar
+              key={searchKey}
+              ref={inputRef}
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              onClear={() => setQuery('')}
+              onKeyDown={handleSearchKeyDown}
+              activeDescendantId={
+                hits.length > 0 ? resultOptionId(selectedIndex) : undefined
+              }
+            />
+          </Box>
+          {onOpenSettings ? (
+            <Tooltip
+              title="Settings"
+              placement="bottom"
+              slotProps={{
+                tooltip: {
+                  sx: {
+                    bgcolor: colors.surface,
+                    color: colors.textPrimary,
+                    border: `1px solid ${colors.border}`,
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    px: 1,
+                    py: 0.5,
+                  },
+                },
+              }}
+            >
+              <IconButton
+                aria-label={`${appConfig.name} — open Settings`}
+                onClick={onOpenSettings}
+                size="small"
+                sx={{
+                  WebkitAppRegion: 'no-drag',
+                  flexShrink: 0,
+                  width: 48,
+                  height: 48,
+                  p: 0.75,
+                  borderRadius: 2,
+                  border: `1px solid ${colors.border}`,
+                  bgcolor: colors.surface,
+                  transition:
+                    'background-color 160ms ease, border-color 160ms ease, transform 160ms ease',
+                  '&:hover': {
+                    bgcolor: colors.hover,
+                    borderColor: colors.accentTeal,
+                    transform: 'scale(1.03)',
+                  },
+                }}
+              >
+                <AppMark size={32} />
+              </IconButton>
+            </Tooltip>
+          ) : null}
         </Box>
       </Box>
 
