@@ -1,31 +1,82 @@
-"""Hybrid query routing — classic first (#98 / Decision #002 / #68).
+"""Hybrid query routing — classic first (#98 / Decision #002 / #68 / #69).
 
-Semantic path: embed query → k-NN over stored chunks. Full merge/rank is #69.
-LLM/RAG remains a stub (v0.8).
+Order: classic → semantic when needed → LLM later (v0.8 stub).
+Full hybrid (#69): merge classic + semantic; filename-like queries stay classic-only.
 """
 
 from __future__ import annotations
 
 import logging
+import re
 from typing import Literal
 
 from indexer.search import DEFAULT_LIMIT, MAX_LIMIT, search_filenames
 
 logger = logging.getLogger(__name__)
 
-SearchMode = Literal["classic", "semantic", "llm", "auto"]
+SearchMode = Literal["classic", "semantic", "hybrid", "llm", "auto"]
 
 STAGES_LATER: tuple[str, ...] = ("semantic", "llm")
 
+_QUESTION_WORDS = frozenset(
+    {
+        "what",
+        "how",
+        "why",
+        "when",
+        "where",
+        "who",
+        "which",
+        "whom",
+        "whose",
+        "summarize",
+        "explain",
+        "describe",
+        "compare",
+        "find",
+        "show",
+        "list",
+        "tell",
+    }
+)
 
-def classify_query(query: str) -> Literal["classic"]:
-    """
-    Pick the primary search stage for this query.
+_EXT_SUFFIX = re.compile(r"\.[a-z0-9]{1,8}$", re.IGNORECASE)
 
-    Stub: always classic. Escalation heuristics stay in #69.
+
+def is_filename_like(query: str) -> bool:
     """
-    _ = (query or "").strip()
-    return "classic"
+    True when classic should own the query alone (Decision #002 example: invoice.pdf).
+
+    Short token / extension lookups stay milliseconds-fast without embedding.
+    """
+    q = (query or "").strip()
+    if not q:
+        return True
+    lower = q.lower()
+    tokens = q.split()
+    first = tokens[0].lower().rstrip("?.,!;:") if tokens else ""
+    if lower.endswith("?"):
+        return False
+    if first in _QUESTION_WORDS:
+        return False
+    if _EXT_SUFFIX.search(tokens[-1] if tokens else ""):
+        return True
+    # One or two short tokens → treat as name/keyword classic path.
+    if len(tokens) <= 2 and all(len(t) <= 40 for t in tokens):
+        return True
+    return False
+
+
+def classify_query(query: str) -> Literal["classic", "hybrid"]:
+    """
+    Pick classic-only vs hybrid (classic + semantic merge).
+
+    LLM never selected here (v0.8).
+    """
+    q = (query or "").strip()
+    if not q or is_filename_like(q):
+        return "classic"
+    return "hybrid"
 
 
 def run_classic(query: str, *, limit: int = DEFAULT_LIMIT) -> list[dict]:
@@ -74,7 +125,6 @@ def run_semantic(query: str, *, limit: int = DEFAULT_LIMIT) -> list[dict]:
     if not vectors:
         return []
 
-    # Over-fetch chunks so file-level dedupe can still fill ``limit``.
     knn_k = min(max(capped * 4, 16), 80)
     try:
         chunk_hits = knn_chunks(
@@ -156,23 +206,71 @@ def _vectors_ready() -> bool:
         return False
 
 
+def merge_hybrid_results(
+    classic: list[dict],
+    semantic: list[dict],
+    *,
+    limit: int,
+) -> list[dict]:
+    """
+    Merge classic + semantic hits (#69).
+
+    Classic order wins for overlapping files; semantic fills gaps and may
+    supply a page when classic had none. Match becomes ``hybrid`` when both
+    paths contributed the same file.
+    """
+    capped = max(1, min(int(limit), MAX_LIMIT))
+    by_id: dict[int, dict] = {}
+    order: list[int] = []
+
+    for hit in classic:
+        fid = int(hit["id"])
+        if fid in by_id:
+            continue
+        by_id[fid] = dict(hit)
+        order.append(fid)
+
+    for hit in semantic:
+        fid = int(hit["id"])
+        if fid in by_id:
+            existing = by_id[fid]
+            if existing.get("page") is None and hit.get("page") is not None:
+                existing["page"] = hit["page"]
+            if existing.get("match") != "semantic":
+                existing["match"] = "hybrid"
+            continue
+        by_id[fid] = dict(hit)
+        order.append(fid)
+
+    out: list[dict] = []
+    for fid in order:
+        row = by_id[fid]
+        row.pop("_rank", None)
+        out.append(row)
+        if len(out) >= capped:
+            break
+    return out
+
+
 def execute_search(
     query: str,
     *,
     limit: int = DEFAULT_LIMIT,
-    mode: Literal["classic", "semantic", "auto"] = "classic",
+    mode: Literal["classic", "semantic", "auto", "hybrid"] = "classic",
 ) -> dict:
     """
-    Route and run search.
+    Route and run search (Decision #002 / #69).
 
-    - classic (default): filename/FTS only; semantic/LLM skipped.
-    - semantic: meaning search only (#68).
-    - auto: classic first; if zero hits and vectors exist, one semantic retry (#68 test wire).
+    - classic: filename/FTS only.
+    - semantic: meaning search only.
+    - auto / hybrid: classify; filename-like → classic only; else merge classic
+      + semantic when vectors exist. Soft-fails to classic-only if semantic empty
+      (Ollama down). Never calls LLM.
     """
     q = (query or "").strip()
     capped = max(1, min(int(limit), MAX_LIMIT))
     requested = (mode or "classic").strip().lower()
-    if requested not in ("classic", "semantic", "auto"):
+    if requested not in ("classic", "semantic", "auto", "hybrid"):
         requested = "classic"
 
     if requested == "semantic":
@@ -185,9 +283,8 @@ def execute_search(
             "stages_skipped": ["classic", "llm"],
         }
 
-    # classic or auto — always try classic first (Decision #002).
-    results = run_classic(q, limit=capped)
     if requested == "classic":
+        results = run_classic(q, limit=capped)
         return {
             "query": q,
             "count": len(results),
@@ -196,18 +293,31 @@ def execute_search(
             "stages_skipped": list(STAGES_LATER),
         }
 
-    # auto: empty-classic salvage via semantic when vectors are ready.
-    if results or not q or not _vectors_ready():
+    # auto / hybrid
+    intent = classify_query(q)
+    classic_hits = run_classic(q, limit=capped)
+
+    if intent == "classic" or not q or not _vectors_ready():
         return {
             "query": q,
-            "count": len(results),
-            "results": results,
+            "count": len(classic_hits),
+            "results": classic_hits,
             "mode": "classic",
             "stages_skipped": list(STAGES_LATER),
         }
 
     semantic_hits = run_semantic(q, limit=capped)
-    if semantic_hits:
+    if not semantic_hits:
+        # Usable with LLM/Ollama off — classic still returned.
+        return {
+            "query": q,
+            "count": len(classic_hits),
+            "results": classic_hits,
+            "mode": "classic",
+            "stages_skipped": list(STAGES_LATER),
+        }
+
+    if not classic_hits:
         return {
             "query": q,
             "count": len(semantic_hits),
@@ -216,10 +326,11 @@ def execute_search(
             "stages_skipped": ["llm"],
         }
 
+    merged = merge_hybrid_results(classic_hits, semantic_hits, limit=capped)
     return {
         "query": q,
-        "count": 0,
-        "results": [],
-        "mode": "classic",
-        "stages_skipped": list(STAGES_LATER),
+        "count": len(merged),
+        "results": merged,
+        "mode": "hybrid",
+        "stages_skipped": ["llm"],
     }

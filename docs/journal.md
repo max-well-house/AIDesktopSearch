@@ -386,3 +386,18 @@ Next:
 1. **#69** Hybrid search (Decision #002)
 2. **#112** GPU detection (parallel); **#122** Diagnostics UX after core path
 
+## 2026-07-27 — #69 Hybrid search (in progress)
+
+Goal:
+Merge classic + semantic so meaning queries get both keyword hits and vector fills; filename-like stays classic-only.
+
+What I did:
+- `classify_query` / `is_filename_like` — short names and `*.ext` stay classic
+- `merge_hybrid_results` — classic order wins; semantic fills; overlap → `match: hybrid`
+- `mode=auto|hybrid` uses merge when vectors ready; soft-falls to classic if Ollama down (LLM still off)
+- Manual: `fire dragon p` → Charizard.pdf/docx + other meaning hits; footer Semantic Available
+
+Next:
+1. **#112** GPU detection and/or **#122** Diagnostics UX
+2. Milestone v0.7.0 close when #112/#122 resolved or deferred
+

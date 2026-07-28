@@ -247,11 +247,11 @@ async def get_search(
     limit: int = Query(DEFAULT_LIMIT, ge=1, le=MAX_LIMIT),
     mode: str = Query(
         "classic",
-        description="classic | semantic | auto (classic then empty→semantic)",
+        description="classic | semantic | auto | hybrid",
     ),
 ):
-    """Routed search — classic default; semantic / auto for #68."""
-    allowed = {"classic", "semantic", "auto"}
+    """Routed search — classic / semantic / hybrid (#68 / #69)."""
+    allowed = {"classic", "semantic", "auto", "hybrid"}
     resolved = (mode or "classic").strip().lower()
     if resolved not in allowed:
         resolved = "classic"
