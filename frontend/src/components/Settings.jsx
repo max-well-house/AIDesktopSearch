@@ -122,6 +122,8 @@ export default function Settings({ onBack }) {
   const [detailsOpen, setDetailsOpen] = useState(false)
   const [openAtLogin, setOpenAtLoginState] = useState(null)
   const [preferSemantic, setPreferSemanticState] = useState(null)
+  const [labMessage, setLabMessage] = useState(null)
+  const [labTone, setLabTone] = useState('online')
 
   async function refreshIndexStatus() {
     if (!window.api?.getIndexStatus) return
@@ -263,37 +265,39 @@ export default function Settings({ onBack }) {
     setCorpusMessage(message)
   }
 
+  function setLabFeedback(tone, message) {
+    setLabTone(tone)
+    setLabMessage(message)
+  }
+
   async function verifyVectorStore() {
     if (!window.api?.embeddingsSmoke) {
-      setCorpusFeedback('error', 'Electron bridge missing for vector store check.')
+      setLabFeedback('error', 'Electron bridge missing for vector store check.')
+      setDetailsOpen(true)
       return
     }
     setBusyKey('embeddings-smoke')
-    setCorpusFeedback('online', 'Verifying vector store…')
+    setDetailsOpen(true)
+    setLabFeedback('online', 'Verifying…')
     try {
       const result = await window.api.embeddingsSmoke()
       if (!result.ok) {
-        setCorpusFeedback('error', result.error || 'Vector store check failed')
+        setLabFeedback('error', result.error || 'Vector store check failed')
         return
       }
       const data = result.data
       if (!data?.ok) {
-        setCorpusFeedback('error', data?.error || 'Vector store check failed')
+        setLabFeedback('error', data?.error || 'Vector store check failed')
         return
       }
-      const dist =
-        typeof data.distance === 'number' ? data.distance.toFixed(6) : '?'
-      setCorpusFeedback(
-        'online',
-        `Vector store OK — self-match distance ${dist} on ${data.file_name || 'file'}`,
-      )
+      setLabFeedback('online', 'Vector store verified.')
       await refreshIndexStatus()
       if (phase === 'online') {
         const health = await window.api.checkHealth()
         if (health.ok) setPayload(health.data)
       }
     } catch (err) {
-      setCorpusFeedback('error', err?.message || String(err))
+      setLabFeedback('error', err?.message || String(err))
     } finally {
       setBusyKey(null)
     }
@@ -760,7 +764,14 @@ export default function Settings({ onBack }) {
             <Typography
               variant="body2"
               className={`status status-${corpusTone === 'error' ? 'error' : 'online'}`}
-              sx={{ m: 0 }}
+              sx={{
+                m: 0,
+                px: 1.25,
+                py: 0.85,
+                borderRadius: 1.5,
+                border: `1px solid ${colors.border}`,
+                bgcolor: colors.surface,
+              }}
             >
               {corpusMessage}
             </Typography>
@@ -774,8 +785,10 @@ export default function Settings({ onBack }) {
           onChange={(_event, expanded) => setDetailsOpen(expanded)}
           sx={{
             mb: 2,
-            backgroundColor: 'transparent',
+            backgroundColor: colors.surface,
             border: `1px solid ${colors.border}`,
+            borderRadius: '12px !important',
+            overflow: 'hidden',
             '&:before': { display: 'none' },
           }}
         >
@@ -908,6 +921,23 @@ export default function Settings({ onBack }) {
                   : 'Verify vector store'}
               </Button>
             </Box>
+            {labMessage ? (
+              <Typography
+                variant="body2"
+                className={`status status-${labTone === 'error' ? 'error' : 'online'}`}
+                sx={{
+                  m: 0,
+                  mt: 1,
+                  px: 1.25,
+                  py: 0.85,
+                  borderRadius: 1.5,
+                  border: `1px solid ${colors.border}`,
+                  bgcolor: colors.hover,
+                }}
+              >
+                {labMessage}
+              </Typography>
+            ) : null}
           </AccordionDetails>
         </Accordion>
 

@@ -315,12 +315,17 @@ export default function LauncherWindow() {
     }
   }
 
-  const footerShortcuts = [
-    { keys: '↑↓', action: 'Select' },
-    { keys: 'Enter', action: 'Open' },
-    { keys: 'Alt+Space', action: 'Toggle' },
-    { keys: 'Esc', action: 'Dismiss' },
-  ]
+  const footerShortcuts = isIdle
+    ? [
+        { keys: 'Alt+Space', action: 'Toggle' },
+        { keys: 'Esc', action: 'Dismiss' },
+      ]
+    : [
+        { keys: '↑↓', action: 'Select' },
+        { keys: 'Enter', action: 'Open' },
+        { keys: 'Alt+Space', action: 'Toggle' },
+        { keys: 'Esc', action: 'Dismiss' },
+      ]
 
   const footerStatus = [
     { label: 'Indexed', value: indexedLabel },
@@ -383,7 +388,7 @@ export default function LauncherWindow() {
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        height: '100vh',
+        height: '100%',
         bgcolor: colors.background,
         overflow: 'hidden',
       }}

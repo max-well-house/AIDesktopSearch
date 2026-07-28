@@ -31,7 +31,7 @@ const TONE_COLOR = {
 
 /**
  * Launcher chrome: capability lights + keyboard hints (#120).
- * Indexed stays plain text; Semantic/AI use tone + hover explanation.
+ * Explanations live in aria-label (no native white tooltips / help cursor).
  */
 export default function Footer({
   status = DEFAULT_STATUS,
@@ -44,16 +44,25 @@ export default function Footer({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        gap: 2,
-        flexWrap: 'wrap',
+        gap: 1.5,
+        flexWrap: 'nowrap',
         px: 2.5,
-        py: 1.25,
+        py: 0.85,
         borderTop: `1px solid ${colors.border}`,
         bgcolor: colors.surface,
-        minHeight: 44,
+        minHeight: 36,
+        overflow: 'hidden',
       }}
     >
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: { xs: 1.5, sm: 2.5 } }}>
+      <Box
+        sx={{
+          display: 'flex',
+          flexWrap: 'nowrap',
+          gap: 2,
+          minWidth: 0,
+          overflow: 'hidden',
+        }}
+      >
         {status.map((item) => {
           const tone = item.tone
           const valueColor = tone ? TONE_COLOR[tone] || colors.textPrimary : colors.textPrimary
@@ -66,11 +75,10 @@ export default function Footer({
             <Typography
               key={item.label}
               variant="caption"
-              title={item.title || undefined}
               aria-label={ariaLabel}
               sx={{
                 color: colors.textSecondary,
-                cursor: item.title ? 'help' : undefined,
+                whiteSpace: 'nowrap',
               }}
             >
               <Box component="span" sx={{ color: colors.textSecondary, opacity: 0.75 }}>
@@ -86,7 +94,7 @@ export default function Footer({
                     height: 7,
                     borderRadius: '50%',
                     bgcolor: valueColor,
-                    mr: 0.6,
+                    mr: 0.55,
                     verticalAlign: 'middle',
                     mb: '1px',
                   }}
@@ -100,7 +108,14 @@ export default function Footer({
         })}
       </Box>
 
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          flexWrap: 'nowrap',
+          gap: 1.5,
+          flexShrink: 0,
+        }}
+      >
         {shortcuts.map((item) => (
           <Typography key={item.keys} variant="caption" sx={{ color: colors.textSecondary }}>
             <Box
@@ -109,13 +124,13 @@ export default function Footer({
                 fontFamily: 'inherit',
                 color: colors.textPrimary,
                 opacity: 0.85,
-                px: 0.6,
-                py: 0.15,
+                px: 0.55,
+                py: 0.1,
                 borderRadius: 0.75,
                 border: `1px solid ${colors.border}`,
                 bgcolor: colors.hover,
-                fontSize: '0.7rem',
-                mr: 0.6,
+                fontSize: '0.68rem',
+                mr: 0.5,
               }}
             >
               {item.keys}

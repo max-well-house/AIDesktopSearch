@@ -342,6 +342,13 @@ function createWindow({ show = true } = {}) {
     show,
     backgroundColor: '#0D1117',
     autoHideMenuBar: true,
+    // Dark native caption (kills the white Windows title strip — #121 follow-up).
+    titleBarStyle: 'hidden',
+    titleBarOverlay: {
+      color: '#0D1117',
+      symbolColor: '#E8EEF2',
+      height: 32,
+    },
     title: appConfig.name,
     icon: ICON_PATH,
     webPreferences: {
