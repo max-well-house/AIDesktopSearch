@@ -15,6 +15,7 @@ const SearchBar = forwardRef(function SearchBar(
     onKeyDown,
     placeholder = 'Search your computer...',
     autoFocus = true,
+    activeDescendantId,
   },
   ref,
 ) {
@@ -55,6 +56,8 @@ const SearchBar = forwardRef(function SearchBar(
         fullWidth
         inputProps={{
           'aria-label': 'Search your computer',
+          'aria-controls': activeDescendantId ? 'search-results' : undefined,
+          'aria-activedescendant': activeDescendantId || undefined,
           spellCheck: false,
           autoComplete: 'off',
           autoCorrect: 'off',

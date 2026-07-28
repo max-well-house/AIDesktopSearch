@@ -1,9 +1,14 @@
+import { useEffect, useRef } from 'react'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import { colors } from '../../theme'
 
+export function resultOptionId(index) {
+  return `search-result-${index}`
+}
+
 /**
- * Flat Spotlight-style filename hits (#43 / #44).
+ * Flat Spotlight-style filename hits (#43 / #44 / #83).
  * Click or Enter (from SearchBar) opens via parent onActivate.
  * Page caption only for PDF content hits (#57 / #62).
  */
@@ -12,11 +17,21 @@ export default function ResultsList({
   selectedIndex = 0,
   onActivate,
 }) {
+  const selectedRef = useRef(null)
+
+  useEffect(() => {
+    selectedRef.current?.scrollIntoView?.({
+      block: 'nearest',
+      inline: 'nearest',
+    })
+  }, [selectedIndex, hits?.length])
+
   if (!hits?.length) return null
 
   return (
     <Box
       component="ul"
+      id="search-results"
       role="listbox"
       aria-label="Search results"
       sx={{
@@ -34,6 +49,8 @@ export default function ResultsList({
           <Box
             component="li"
             key={hit.id ?? hit.path}
+            id={resultOptionId(index)}
+            ref={selected ? selectedRef : undefined}
             role="option"
             aria-selected={selected}
             onClick={() => onActivate?.(hit, index)}

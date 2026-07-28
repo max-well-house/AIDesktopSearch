@@ -5,7 +5,7 @@ import Typography from '@mui/material/Typography'
 import SearchBar from './SearchBar'
 import MosaicCanvas from './MosaicCanvas'
 import EmptyState from './EmptyState'
-import ResultsList from './ResultsList'
+import ResultsList, { resultOptionId } from './ResultsList'
 import Footer from './Footer'
 import { colors } from '../../theme'
 
@@ -304,16 +304,23 @@ export default function LauncherWindow() {
     if (isIdle || hits.length === 0) return
     if (event.key === 'ArrowDown') {
       event.preventDefault()
-      setSelectedIndex((i) => Math.min(i + 1, hits.length - 1))
+      setSelectedIndex((i) => (i + 1) % hits.length)
     } else if (event.key === 'ArrowUp') {
       event.preventDefault()
-      setSelectedIndex((i) => Math.max(i - 1, 0))
+      setSelectedIndex((i) => (i - 1 + hits.length) % hits.length)
     } else if (event.key === 'Enter') {
       event.preventDefault()
       const hit = hits[selectedIndex]
       if (hit) void openHit(hit, selectedIndex)
     }
   }
+
+  const footerShortcuts = [
+    { keys: '↑↓', action: 'Select' },
+    { keys: 'Enter', action: 'Open' },
+    { keys: 'Alt+Space', action: 'Toggle' },
+    { keys: 'Esc', action: 'Dismiss' },
+  ]
 
   const footerStatus = [
     { label: 'Indexed', value: indexedLabel },
@@ -396,6 +403,9 @@ export default function LauncherWindow() {
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             onKeyDown={handleSearchKeyDown}
+            activeDescendantId={
+              hits.length > 0 ? resultOptionId(selectedIndex) : undefined
+            }
           />
         </Box>
       </Box>
@@ -454,7 +464,7 @@ export default function LauncherWindow() {
         ) : null}
       </Box>
 
-      <Footer status={footerStatus} />
+      <Footer status={footerStatus} shortcuts={footerShortcuts} />
     </Box>
   )
 }
