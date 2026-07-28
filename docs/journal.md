@@ -454,3 +454,23 @@ Next:
 1. Close #122 + milestone v0.7.0 on the board
 2. v0.8 RAG / LLM (#70) when ready; offline query-embed + score fusion stay deferred
 
+## 2026-07-28 — Board slim for v1.0 foundation
+
+Goal:
+Storeable classic+semantic search as v1.0; RAG/Images after; cool features → nice to have.
+
+What I did:
+- Opened **#124** Product slim (auto-embed, Pause stays, lab under Details)
+- Expanded #80 Settings, concrete #86 Polish, narrowed #120 / #85 / #83 / #111
+- Demoted #81/#82/#84/#87 to nice to have (after v1.0 + v2.x)
+- Retitled milestones: v0.7 closed; **v2.0 Local AI** (was 0.8); **v2.1 Images** (was 0.9); v1.0 = search Daily Driver
+- Roadmap / ideas updated to match
+
+What I learned:
+- v1.0 was overweight; fewer features done well beats Favorites/History on day one
+- Opt-in Start embedding fought the product promise — auto-embed + Pause is the daily path
+
+Next:
+1. Implement **#124** product slim (code)
+2. #80 Settings rehome → #121 chrome → #120 footer → packaging #111
+

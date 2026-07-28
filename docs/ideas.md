@@ -1,6 +1,6 @@
 # Future Ideas
 
-Tracked on GitHub as **nice to have** issues (unmilestoned — not MVP). See board audit `docs/audit-2026-07-15.md`.
+Tracked on GitHub as **nice to have** issues (unmilestoned — not MVP). Build these **after v1.0 and v2.x**. See board audit `docs/audit-2026-07-15.md`.
 
 | Idea | Issue |
 |------|-------|
@@ -16,8 +16,14 @@ Tracked on GitHub as **nice to have** issues (unmilestoned — not MVP). See boa
 | Mobile companion app | #108 |
 | Plugin system | #109 |
 | Knowledge graph visualization | #110 |
-| Tray “Reset window size” without Quit | — (session size is Quit-reset today; promote if needed) |
-| Zero-hit suggestions / fuzzy “did you mean” / idle recents | — (classic IR polish; not #98; semantic empty-escalation is #69) |
-| System Status diagnostics UX (fewer lab buttons, live copy) | #122 done (v0.7 wrap) |
+| Tray “Reset window size” without Quit | #116 |
+| Zero-hit suggestions / fuzzy “did you mean” / idle recents | #117 |
+| Error handling / notification center | #119 |
+| Mapped schema view | #123 |
+| Search history | #81 (demoted from v1.0) |
+| Favorites | #82 (demoted from v1.0) |
+| Recent files | #84 (demoted from v1.0) |
+| Better UI icons (beyond packaged app icon) | #87 (demoted from v1.0) |
+| System Status diagnostics UX (fewer lab buttons, live copy) | #122 done (v0.7); product slim follow-up **#124** on v1.0 |
 
 Add new ideas here first; promote to a milestone only when a daily-driver gap appears.

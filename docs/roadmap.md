@@ -175,31 +175,46 @@ Implementation order (dependency-correct):
 
 Defaults locked for this phase: sqlite-vec in same `index.db`; `nomic-embed-text`; page-aware PDF chunks; classic wins filename-like queries.
 
-**v0.7.0 complete** (#63–#69, #112, #122).
-
----
-
-# Version 0.8.0
-
-Local AI
-
-RAG answers + citations (GPU-preferred; AI optional if Ollama down)
-
----
-
-# Version 0.9.0
-
-Images
-
-OCR / screenshot search
+**v0.7.0 complete** (#63–#69, #112, #122). GitHub milestone closed 2026-07-28.
 
 ---
 
 # Version 1.0.0
 
-Daily Driver
+Daily Driver — storeable **classic + semantic** search
 
-Settings, polish, guides; ship Python with packaged release (#111); stronger index.db privacy wipe beyond VACUUM (#114); per-root auto-watch toggle (#118); footer capability lights (#120); hide native menu bar / theme window chrome & scrollbars (#121)
+Polish and package so someone can download it and think “this works.” RAG and Images ship after (v2.0 / v2.1). Nice to Haves wait until after v1.0 **and** v2.x.
+
+Must-ship (board):
+- **#124** Product slim — auto-embed again; summary + contextual Pause; lab under Details
+- **#80** Settings — corpus home; AppMark → Settings; prefs persist
+- **#86** Polish UI — concrete visual consistency (tones, radius, tokens, honest EmptyState)
+- **#121** Hide native menu bar; theme window chrome / scrollbars
+- **#120** Footer capability lights (Semantic live; AI off/yellow until v2.0)
+- **#118** Per-root auto-watch toggle
+- **#114** Privacy: stronger index.db wipe
+- **#111** Ship Python/FastAPI with packaged release (+ coherent app icon)
+- **#83** Keyboard navigation (close gaps)
+- **#85** Performance (narrow: mosaic idle, embed load, startup)
+- **#88–#90** Installation guide / User guide / Release notes
+
+Demoted from v1.0 → nice to have: #81 history, #82 favorites, #84 recent files, #87 UI icons.
+
+---
+
+# Version 2.0.0
+
+Local AI (was v0.8)
+
+RAG answers + citations (GPU-preferred; AI optional if Ollama down). Issues #70–#75.
+
+---
+
+# Version 2.1.0
+
+Images (was v0.9)
+
+OCR / screenshot search. Issues #76–#79.
 
 ---
 
