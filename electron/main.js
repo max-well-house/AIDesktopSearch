@@ -50,13 +50,15 @@ ipcMain.handle('api:embeddings-smoke', async () => postEmbeddingsSmoke())
 ipcMain.handle('api:embeddings-backfill', async () => postEmbeddingsBackfill())
 ipcMain.handle('api:embeddings-pause', async () => postEmbeddingsPause())
 ipcMain.handle('api:embeddings-resume', async () => postEmbeddingsResume())
-ipcMain.handle('api:search', async (_event, query, limit) => {
+ipcMain.handle('api:search', async (_event, query, limit, mode) => {
   const q = query == null ? '' : String(query)
   const capped = limit == null ? 50 : Number(limit)
   if (!Number.isFinite(capped) || capped < 1) {
     return { ok: false, error: 'Valid limit required', url: null }
   }
-  return fetchSearch(q, Math.min(Math.floor(capped), 200))
+  const searchMode =
+    mode == null || mode === '' ? 'auto' : String(mode)
+  return fetchSearch(q, Math.min(Math.floor(capped), 200), searchMode)
 })
 ipcMain.handle('api:open-path', async (_event, filePath) => {
   if (!filePath || typeof filePath !== 'string') {

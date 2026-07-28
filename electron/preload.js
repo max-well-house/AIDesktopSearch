@@ -9,7 +9,8 @@ contextBridge.exposeInMainWorld('api', {
   embeddingsBackfill: () => ipcRenderer.invoke('api:embeddings-backfill'),
   embeddingsPause: () => ipcRenderer.invoke('api:embeddings-pause'),
   embeddingsResume: () => ipcRenderer.invoke('api:embeddings-resume'),
-  search: (query, limit) => ipcRenderer.invoke('api:search', query, limit),
+  search: (query, limit, mode) =>
+    ipcRenderer.invoke('api:search', query, limit, mode),
   openPath: (filePath) => ipcRenderer.invoke('api:open-path', filePath),
   pickFolder: () => ipcRenderer.invoke('dialog:pick-folder'),
   hideLauncher: (opts) => ipcRenderer.invoke('launcher:hide', opts),

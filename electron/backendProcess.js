@@ -107,10 +107,11 @@ async function postEmbeddingsResume(timeoutMs = 10000) {
   )
 }
 
-async function fetchSearch(query, limit = 50, timeoutMs = 5000) {
+async function fetchSearch(query, limit = 50, mode = 'classic', timeoutMs = 15000) {
   const params = new URLSearchParams()
   params.set('q', query == null ? '' : String(query))
   if (limit != null) params.set('limit', String(limit))
+  if (mode) params.set('mode', String(mode))
   return fetchJson(`${SEARCH_URL}?${params.toString()}`, {}, timeoutMs)
 }
 

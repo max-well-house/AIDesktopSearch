@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 
 from db import init_db
 from indexer import ensure_root, replace_root_files
-from search import classify_query, execute_search, run_llm, run_semantic
+from search import classify_query, execute_search, run_llm
 
 
 @pytest.fixture()
@@ -55,22 +55,21 @@ def test_execute_search_empty_query(seeded_index):
     assert payload["mode"] == "classic"
 
 
-def test_semantic_and_llm_hooks_not_called(seeded_index, monkeypatch):
+def test_semantic_and_llm_hooks_not_called_on_classic(seeded_index, monkeypatch):
     def boom_semantic(*_args, **_kwargs):
-        raise AssertionError("run_semantic must not be called on stub path")
+        raise AssertionError("run_semantic must not be called on classic mode")
 
     def boom_llm(*_args, **_kwargs):
-        raise AssertionError("run_llm must not be called on stub path")
+        raise AssertionError("run_llm must not be called yet")
 
     monkeypatch.setattr("search.routing.run_semantic", boom_semantic)
     monkeypatch.setattr("search.routing.run_llm", boom_llm)
-    payload = execute_search("Invoice")
+    payload = execute_search("Invoice", mode="classic")
     assert payload["mode"] == "classic"
     assert len(payload["results"]) >= 1
 
 
-def test_stub_hooks_return_empty():
-    assert run_semantic("anything") == []
+def test_stub_llm_returns_none():
     assert run_llm("anything") is None
 
 
@@ -78,7 +77,7 @@ def test_get_search_reports_mode(seeded_index):
     from main import app
 
     client = TestClient(app)
-    response = client.get("/search", params={"q": "Invoice"})
+    response = client.get("/search", params={"q": "Invoice", "mode": "classic"})
     assert response.status_code == 200
     body = response.json()
     assert body["mode"] == "classic"

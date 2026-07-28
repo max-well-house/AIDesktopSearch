@@ -371,3 +371,18 @@ Next (pick up here):
 2. **#69** Hybrid search (Decision #002)
 3. **#112** GPU detection (parallel); **#122** Diagnostics UX after core path
 
+## 2026-07-27 — #68 Semantic search (in progress)
+
+Goal:
+Query by meaning using stored vectors + query embed; thin launcher wire before full hybrid (#69).
+
+What I did:
+- `run_semantic` — Ollama embed query → knn → file hits (`match: semantic`)
+- `GET /search?mode=classic|semantic|auto` (auto = classic then empty→semantic)
+- Launcher uses `auto`; footer Semantic **Available** when chunk count > 0
+- Manual: `fire dragon pokemon` → Charizard.pdf (Page 4) via semantic salvage
+
+Next:
+1. **#69** Hybrid search (Decision #002)
+2. **#112** GPU detection (parallel); **#122** Diagnostics UX after core path
+

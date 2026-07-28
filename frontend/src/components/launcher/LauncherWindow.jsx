@@ -29,7 +29,7 @@ function formatIndexedLabel(count, lastIndexedAt) {
 /** Cheap signal that SQLite changed — not a hot search loop (#52-friendly). */
 function indexFingerprint(data) {
   if (!data) return ''
-  return `${data.file_count ?? 0}|${data.last_indexed_at ?? ''}|${data.queue_depth ?? 0}`
+  return `${data.file_count ?? 0}|${data.last_indexed_at ?? ''}|${data.queue_depth ?? 0}|${data.embedding_chunk_count ?? 0}`
 }
 
 /**
@@ -44,6 +44,7 @@ export default function LauncherWindow() {
   const [query, setQuery] = useState('')
   const [searchKey, setSearchKey] = useState(0)
   const [indexedLabel, setIndexedLabel] = useState('—')
+  const [semanticLabel, setSemanticLabel] = useState('Disabled')
   const [hits, setHits] = useState([])
   const [status, setStatus] = useState('idle')
   const [selectedIndex, setSelectedIndex] = useState(0)
@@ -58,6 +59,8 @@ export default function LauncherWindow() {
     const count = data.file_count ?? 0
     const lastIndexedAt = data.last_indexed_at ?? null
     setIndexedLabel(formatIndexedLabel(count, lastIndexedAt))
+    const chunks = data.embedding_chunk_count ?? 0
+    setSemanticLabel(chunks > 0 ? 'Available' : 'Disabled')
     indexFpRef.current = indexFingerprint(data)
   }
 
@@ -68,7 +71,7 @@ export default function LauncherWindow() {
       setStatus('error')
       return
     }
-    const result = await window.api.search(q)
+    const result = await window.api.search(q, undefined, 'auto')
     if (isCancelled?.()) return
     if (!result.ok) {
       setHits([])
@@ -246,7 +249,7 @@ export default function LauncherWindow() {
 
   const footerStatus = [
     { label: 'Indexed', value: indexedLabel },
-    { label: 'Semantic Search', value: 'Disabled' },
+    { label: 'Semantic Search', value: semanticLabel },
     { label: 'AI', value: 'Offline' },
   ]
 

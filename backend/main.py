@@ -243,11 +243,19 @@ async def backfill_embeddings():
 
 @app.get("/search", response_model=SearchResponse)
 async def get_search(
-    q: str = Query("", description="Filename substring (case-insensitive)"),
+    q: str = Query("", description="Search query"),
     limit: int = Query(DEFAULT_LIMIT, ge=1, le=MAX_LIMIT),
+    mode: str = Query(
+        "classic",
+        description="classic | semantic | auto (classic then empty→semantic)",
+    ),
 ):
-    """Routed search — classic-first stub; no Ollama (#42 / #98)."""
-    payload = execute_search(q, limit=limit)
+    """Routed search — classic default; semantic / auto for #68."""
+    allowed = {"classic", "semantic", "auto"}
+    resolved = (mode or "classic").strip().lower()
+    if resolved not in allowed:
+        resolved = "classic"
+    payload = execute_search(q, limit=limit, mode=resolved)  # type: ignore[arg-type]
     return SearchResponse(
         query=payload["query"],
         count=payload["count"],
