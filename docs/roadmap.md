@@ -183,14 +183,15 @@ Defaults locked for this phase: sqlite-vec in same `index.db`; `nomic-embed-text
 
 Daily Driver — storeable **classic + semantic** search
 
-Polish and package so someone can download it and think “this works.” RAG and Images ship after (v2.0 / v2.1). Nice to Haves wait until after v1.0 **and** v2.x.
+Polish and package so someone can download it and think “this works.” RAG and Images ship after as **v1.1 / v1.2**. A true **v2.0** waits for a later product era. Nice to Haves wait until after v1.0 **and** the 1.x AI/Images layers.
 
 Must-ship (board):
 - **#124** Product slim — auto-embed again; summary + contextual Pause; lab under Details
 - **#80** Settings — corpus home; AppMark → Settings; prefs persist
+- **#125** Show app version in Settings (support / About — not launcher chrome)
 - **#86** Polish UI — concrete visual consistency (tones, radius, tokens, honest EmptyState)
 - **#121** Hide native menu bar; theme window chrome / scrollbars
-- **#120** Footer capability lights (Semantic live; AI off/yellow until v2.0)
+- **#120** Footer capability lights (Semantic live; AI off/yellow until v1.1)
 - **#118** Per-root auto-watch toggle
 - **#114** Privacy: stronger index.db wipe
 - **#111** Ship Python/FastAPI with packaged release (+ coherent app icon)
@@ -202,7 +203,7 @@ Demoted from v1.0 → nice to have: #81 history, #82 favorites, #84 recent files
 
 ---
 
-# Version 2.0.0
+# Version 1.1.0
 
 Local AI (was v0.8)
 
@@ -210,11 +211,17 @@ RAG answers + citations (GPU-preferred; AI optional if Ollama down). Issues #70�
 
 ---
 
-# Version 2.1.0
+# Version 1.2.0
 
 Images (was v0.9)
 
 OCR / screenshot search. Issues #76–#79.
+
+---
+
+# Version 2.0.0
+
+Later product era (TBD) — not “RAG exists.” Plan when 1.x foundation is solid.
 
 ---
 

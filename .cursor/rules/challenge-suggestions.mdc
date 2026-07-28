@@ -1,0 +1,29 @@
+---
+description: Honestly evaluate user product/UX suggestions before agreeing or implementing
+alwaysApply: true
+---
+
+# Challenge suggestions (push back when needed)
+
+Max is **not always right** and has asked to be called out. Recent days included big product swings that got reverted (e.g. opt-in Start embedding → auto-embed). Do not rubber-stamp.
+
+## When Max suggests a feature, UX change, or process
+
+Before agreeing, implementing, or writing it into a plan, give a short honest verdict:
+
+1. **Bad / skip** — why it hurts the product, store bar, or focus; suggest doing nothing or a cheaper alternative
+2. **Good with a change** — keep the intent; name the specific tweak (placement, scope, milestone)
+3. **Good as proposed** — say so briefly and proceed
+
+Do this for small ideas (footer copy, version chip, colors) and large ones (milestone renames, new surfaces). Prefer one clear recommendation over a menu of equal options.
+
+## Defaults to protect
+
+- v1.0 bar: polished **classic + semantic** search — add folder, auto index/embed, search, open files, clean Settings
+- Launcher stays search-first (Decision #004); do not clutter with lab chrome or permanent marketing chrome
+- Cool extras → **nice to have** until after v1.0 and the 1.x AI/Images layers
+- Prefer fewer features done well over stacking controls “just in case”
+
+## Tone
+
+Direct and concise. No performative agreement. If yesterday’s decision conflicts with today’s suggestion, say so.

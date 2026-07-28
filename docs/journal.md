@@ -474,3 +474,22 @@ Next:
 1. Implement **#124** product slim (code)
 2. #80 Settings rehome → #121 chrome → #120 footer → packaging #111
 
+## 2026-07-28 — Semver: 1.1 / 1.2 not 2.0 for RAG/Images
+
+Goal:
+Same product grows as 1.x; save v2.0 for a later era.
+
+What I did:
+- Retitled milestones to **v1.1.0 Local AI** and **v1.2.0 Images**; v1.0 description notes true v2.0 is TBD
+- Opened **#125** — show version in Settings (not launcher watermark)
+- Added Cursor rule `challenge-suggestions.mdc` — push back on weak or flip-flop suggestions
+- Roadmap synced
+
+What I learned:
+- Version in-app is useful for support; floating corner chrome is clutter
+- Max asked to be challenged when suggestions are bad or half-baked
+
+Next:
+1. **#124** product slim code
+2. #80 / #125 version line when Settings lands
+

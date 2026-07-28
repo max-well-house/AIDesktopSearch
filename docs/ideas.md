@@ -26,4 +26,6 @@ Tracked on GitHub as **nice to have** issues (unmilestoned — not MVP). Build t
 | Better UI icons (beyond packaged app icon) | #87 (demoted from v1.0) |
 | System Status diagnostics UX (fewer lab buttons, live copy) | #122 done (v0.7); product slim follow-up **#124** on v1.0 |
 
+**Versioning:** v1.0 search → v1.1 Local AI → v1.2 Images → v2.0 later (TBD). Nice to Haves after the 1.x foundation.
+
 Add new ideas here first; promote to a milestone only when a daily-driver gap appears.
