@@ -132,10 +132,10 @@ Vision: **local by default**; cloud optional and explicit.
 
 ### Implications for Decision #003
 
-1. **Generate vs query are different.** Building embeddings needs a live embedder (usually Ollama). **Searching over already-stored vectors does not** — matches architecture’s “Classic + semantic when vectors ready” and Decision #003 rule 2 (“later semantic search still works” when Ollama is down).
+1. **Generate vs query are different.** Building embeddings needs a live embedder (usually Ollama). **Query-time semantic search also needs a live query embed** today (`run_semantic` → `embed_texts` via Ollama) before k-NN over stored vectors. If Ollama is down, auto soft-falls to classic; already-stored chunks remain in sqlite-vec for when the embedder returns. (A future offline query-embed path could change this.)
 2. **Defaults fit 16GB + 8GB VRAM.** Embedding models are typically **much smaller** than chat LLMs. Prefer a small local embed model so Phase 7 does not wait on a large chat model (chat is v0.8).
 3. **Cloud is an explicit upgrade path**, not the default index path. If offered later: opt-in, clear copy that text leaves the device, and never block classic search when the API is missing.
-4. **Capability Principle.** `/health` already stubs `models.embedding`. When #65/#66 land, report whether embedding generation is available; semantic *query* capability can be “vectors present” even if generation is offline.
+4. **Capability Principle.** `/health` reports `models.embedding`; `/index/status` reports `semantic_query_ready` (chunks + model reachable) so the launcher footer only says Semantic Available when meaning search can actually run.
 5. **Same architecture, tiered settings** — weaker machines: smaller model or classic-only until vectors exist; stronger machines: larger embed model via settings, same pipeline.
 
 ### Recommendation (direction, not a locked Decision)
@@ -206,7 +206,7 @@ Decision #002 order stays: classic → semantic when needed → LLM when reasoni
 
 ### GPU (#112)
 
-- Capability beyond stub so GPU-preferred defaults are honest
+- NVIDIA-first `nvidia-smi` on `/health`; `gpu_preferred()` gates on `available is True` only; System Status shows name when known. **Done.**
 
 ---
 

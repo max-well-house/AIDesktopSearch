@@ -73,7 +73,7 @@ Simple local API for the desktop app backend
 In repo now:
 
 - `backend/main.py` with `GET /health` (and `GET /` shim) — `status`, `version`, `timestamp`, `capabilities`
-- `backend/capabilities/` — Ollama probe + extensible schema (gpu/models stubs)
+- `backend/capabilities/` — Ollama + NVIDIA-first GPU probes + extensible schema (models.chat stub until #70)
 - Deps: `backend/requirements.txt` (`fastapi`, `uvicorn`, `httpx`, `pydantic`)
 - Dev server: `python -m uvicorn main:app --reload` from `backend/` (use project `.venv`)
 - Default URL: `http://127.0.0.1:8000/health`

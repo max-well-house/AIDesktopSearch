@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import time
 from typing import Sequence
 
 import httpx
@@ -15,6 +16,9 @@ logger = logging.getLogger(__name__)
 OLLAMA_BASE_URL = "http://127.0.0.1:11434"
 EMBED_TIMEOUT_SECONDS = 120.0
 TAGS_TIMEOUT_SECONDS = 3.0
+# Avoid hammering /api/tags from frequent /index/status polls.
+_MODEL_CACHE_TTL_SECONDS = 15.0
+_model_cache: dict[str, tuple[float, bool]] = {}
 
 
 class EmbedClientError(RuntimeError):
@@ -54,11 +58,20 @@ def model_available(
     want = model.strip().lower()
     if not want:
         return False
+    cache_key = f"{base_url.rstrip('/')}|{want}"
+    now = time.monotonic()
+    cached = _model_cache.get(cache_key)
+    if cached is not None and now - cached[0] < _MODEL_CACHE_TTL_SECONDS:
+        return cached[1]
+
+    found = False
     for name in list_ollama_models(base_url=base_url):
         n = name.lower()
         if n == want or n.startswith(want + ":"):
-            return True
-    return False
+            found = True
+            break
+    _model_cache[cache_key] = (now, found)
+    return found
 
 
 def embed_texts(

@@ -57,6 +57,24 @@ function embeddingTone(models) {
   return models.embedding ? 'online' : 'loading'
 }
 
+function gpuLabel(gpu) {
+  if (!gpu) return 'Unknown'
+  if (gpu.available === true) {
+    return gpu.name ? `Available (${gpu.name})` : 'Available'
+  }
+  if (gpu.available === false) {
+    return gpu.note || 'Unavailable'
+  }
+  return gpu.note ? `Unknown — ${gpu.note}` : 'Unknown'
+}
+
+function gpuTone(gpu) {
+  if (!gpu) return 'idle'
+  if (gpu.available === true) return 'online'
+  if (gpu.available === false) return 'loading'
+  return 'idle'
+}
+
 function formatIndexed(count) {
   if (count == null) return '—'
   if (count === 0) return '0 files'
@@ -598,6 +616,9 @@ export default function SystemStatus({ onBack }) {
                   <span className="status-label">Embedding model:</span>{' '}
                   {embeddingLabel(models)}
                 </p>
+                <p className={`status status-${gpuTone(gpu)}`}>
+                  <span className="status-label">GPU:</span> {gpuLabel(gpu)}
+                </p>
                 <p
                   className={`status status-${
                     indexStatus?.embed_paused ? 'loading' : 'online'
@@ -646,7 +667,7 @@ export default function SystemStatus({ onBack }) {
                   </div>
                   <div>
                     <dt>GPU</dt>
-                    <dd>{gpu?.note || 'Not detected yet'}</dd>
+                    <dd>{gpuLabel(gpu)}</dd>
                   </div>
                   <div>
                     <dt>Embed dim</dt>

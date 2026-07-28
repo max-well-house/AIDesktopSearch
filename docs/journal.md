@@ -401,3 +401,37 @@ Next:
 1. **#112** GPU detection and/or **#122** Diagnostics UX
 2. Milestone v0.7.0 close when #112/#122 resolved or deferred
 
+## 2026-07-28 — Embed / semantic audit
+
+Goal:
+Confirm nomic-embed-text + sqlite-vec + semantic/hybrid search are set up correctly (pass/fail gates; no routing fixes).
+
+What I did:
+- Gate A: 26 pytest passed (store, generate, semantic, routing, ollama)
+- Gate B: live `/health` + smoke OK (28 chunks, dim 768, model present, GPU detected)
+- Gate C: search matrix — pipeline hard gates green; C4/C8 document ≤2-token auto skip
+- Gate D: doc vs code — query still needs live Ollama embed (research note outdated)
+- Wrote `docs/audit-embed-semantic-2026-07-28.md`
+
+What I learned:
+Pipeline is fine; “pokemon” / “fire dragon” pain is auto routing (classic-only for short queries), not a bad embed model. Forced `mode=semantic` already links `pokemon` → Charizard.docx (piplup) at rank #2.
+
+Next:
+1. Routing follow-ups from audit (empty-classic escalate; short-concept hybrid; optional distance floor)
+2. Align “Semantic Available” / docs with real query requirements
+
+## 2026-07-28 — Audit follow-ups shipped
+
+Goal:
+Make auto search match “barely remember” queries without always burning embeds on exact filenames.
+
+What I did:
+- `is_filename_like` only for empty / `*.ext`; short concepts → hybrid
+- Empty classic escalates to semantic when vectors ready
+- `SEMANTIC_MAX_DISTANCE = 0.52` (keep nearest always)
+- `/index/status.semantic_query_ready` + launcher footer; docs corrected for live query embed
+
+Next:
+1. Manual smoke: `pokemon`, `fire dragon`, `Charizard.pdf` in the launcher
+2. **#122** Diagnostics UX / v0.7 close
+

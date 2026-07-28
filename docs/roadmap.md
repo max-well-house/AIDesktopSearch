@@ -34,7 +34,7 @@ Status: done (2026-07-14) — delivered via #95 + System Status UI (no separate 
 
 - [x] `GET /health` returns healthy API status + version
 - [x] Detect Ollama available / unavailable / not_installed without crashing
-- [x] Extensible `capabilities` schema (ollama, gpu stub, models stub)
+- [x] Extensible `capabilities` schema (ollama, gpu via nvidia-smi, models)
 - [x] React System Status screen shows API + Ollama
 - [x] Capability Principle in vision; Decision #003 capability-based hardware rule
 
@@ -170,8 +170,8 @@ Implementation order (dependency-correct):
 2. **#66** Generate embeddings — chunk + `nomic-embed-text` via Ollama + pauseable queue. **Done.**
 3. **#68** Semantic search endpoint — query embed + k-NN + `run_semantic`. **Done.**
 4. **#69** Hybrid search — classic-first escalate/merge (Decision #002). **Done.**
-5. **#112** GPU capability detection — parallel; not a blocker for stored-vector search ← **next** (or #122 UX wrap)
-6. **#122** System Status diagnostics UX wrap — after #66–#69 core path
+5. **#112** GPU capability detection — NVIDIA-first `nvidia-smi` on `/health` + System Status; capability gates via `gpu_preferred`. **Done.**
+6. **#122** System Status diagnostics UX wrap — after #66–#69 core path ← **next**
 
 Defaults locked for this phase: sqlite-vec in same `index.db`; `nomic-embed-text`; page-aware PDF chunks; classic wins filename-like queries.
 

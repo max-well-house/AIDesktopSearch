@@ -31,6 +31,8 @@ class IndexStatusResponse(BaseModel):
     # Embedding store (#67)
     embedding_chunk_count: int = 0
     vector_store_available: bool = False
+    # True when chunks exist and nomic-embed-text is reachable for query embed.
+    semantic_query_ready: bool = False
     # Embedding generate (#66)
     embed_queue_depth: int = 0
     embed_paused: bool = False
@@ -114,6 +116,7 @@ class SearchHit(BaseModel):
     root_id: int | None = None
     page: int | None = None
     match: str = "filename"
+    distance: float | None = None
 
 
 class SearchResponse(BaseModel):

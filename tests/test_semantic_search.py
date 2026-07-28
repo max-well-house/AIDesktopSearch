@@ -130,3 +130,55 @@ def test_run_semantic_soft_fails_without_ollama(corpus_with_vectors):
         side_effect=EmbedClientError("down"),
     ):
         assert run_semantic("anything") == []
+
+
+def test_run_semantic_applies_distance_floor(corpus_with_vectors, monkeypatch):
+    """Weak neighbors above SEMANTIC_MAX_DISTANCE are dropped; nearest kept."""
+    from search.routing import SEMANTIC_MAX_DISTANCE
+
+    near = {
+        "chunk_id": 1,
+        "file_id": corpus_with_vectors["earnings-notes.md"],
+        "page": 1,
+        "chunk_index": 0,
+        "distance": 0.2,
+        "text_preview": "Q3",
+    }
+    far = {
+        "chunk_id": 2,
+        "file_id": corpus_with_vectors["recipes.txt"],
+        "page": 1,
+        "chunk_index": 0,
+        "distance": SEMANTIC_MAX_DISTANCE + 0.2,
+        "text_preview": "cookies",
+    }
+    monkeypatch.setattr(
+        "embeddings.store.knn_chunks",
+        lambda *_a, **_k: [near, far],
+    )
+    with patch("embeddings.client.embed_texts", return_value=[_unit_vec(0)]):
+        hits = run_semantic("quarterly revenue")
+    names = [h["name"] for h in hits]
+    assert "earnings-notes.md" in names
+    assert "recipes.txt" not in names
+
+
+def test_run_semantic_keeps_nearest_when_all_above_floor(corpus_with_vectors, monkeypatch):
+    from search.routing import SEMANTIC_MAX_DISTANCE
+
+    only = {
+        "chunk_id": 1,
+        "file_id": corpus_with_vectors["earnings-notes.md"],
+        "page": 1,
+        "chunk_index": 0,
+        "distance": SEMANTIC_MAX_DISTANCE + 0.3,
+        "text_preview": "Q3",
+    }
+    monkeypatch.setattr(
+        "embeddings.store.knn_chunks",
+        lambda *_a, **_k: [only],
+    )
+    with patch("embeddings.client.embed_texts", return_value=[_unit_vec(0)]):
+        hits = run_semantic("obscure query")
+    assert len(hits) == 1
+    assert hits[0]["name"] == "earnings-notes.md"

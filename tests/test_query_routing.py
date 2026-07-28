@@ -41,14 +41,86 @@ def seeded_index(temp_db, tmp_path):
 
 def test_filename_like_and_classify():
     assert is_filename_like("invoice.pdf")
-    assert is_filename_like("Charizard")
-    assert is_filename_like("Shopping List")
-    assert classify_query("Invoice") == "classic"
+    assert is_filename_like("Charizard.docx")
+    assert not is_filename_like("Charizard")
+    assert not is_filename_like("Shopping List")
+    assert not is_filename_like("pokemon")
+    assert not is_filename_like("fire dragon")
+    assert classify_query("Invoice") == "hybrid"
     assert classify_query("invoice.pdf") == "classic"
     assert classify_query("") == "classic"
     assert classify_query("fire dragon pokemon") == "hybrid"
+    assert classify_query("pokemon") == "hybrid"
     assert classify_query("summarize my Q3 budget notes") == "hybrid"
     assert classify_query("what is in the earnings report") == "hybrid"
+    assert classify_query("bring all files related to pokemon") == "hybrid"
+
+
+def test_auto_ext_with_hits_skips_semantic(seeded_index, monkeypatch):
+    def boom_semantic(*_args, **_kwargs):
+        raise AssertionError("run_semantic must not run for *.ext with classic hits")
+
+    monkeypatch.setattr("search.routing.run_semantic", boom_semantic)
+    payload = execute_search("invoice.pdf", mode="auto")
+    assert payload["mode"] == "classic"
+    assert len(payload["results"]) >= 1
+
+
+def test_auto_empty_classic_escalates(seeded_index, monkeypatch):
+    semantic = [
+        {
+            "id": 99,
+            "path": "/x/meaning.md",
+            "name": "meaning.md",
+            "extension": "md",
+            "size": 1,
+            "mtime": 1.0,
+            "root_id": 1,
+            "page": 1,
+            "match": "semantic",
+        }
+    ]
+    monkeypatch.setattr("search.routing.run_classic", lambda *_a, **_k: [])
+    monkeypatch.setattr("search.routing.run_semantic", lambda *_a, **_k: semantic)
+    monkeypatch.setattr("search.routing._vectors_ready", lambda: True)
+    payload = execute_search("missing-name.pdf", mode="auto")
+    assert payload["mode"] == "semantic"
+    assert payload["results"][0]["name"] == "meaning.md"
+
+
+def test_auto_short_concept_hybrid(seeded_index, monkeypatch):
+    classic = [
+        {
+            "id": 10,
+            "path": "/x/a.pdf",
+            "name": "a.pdf",
+            "extension": "pdf",
+            "size": 1,
+            "mtime": 1.0,
+            "root_id": 1,
+            "page": None,
+            "match": "content",
+        }
+    ]
+    semantic = [
+        {
+            "id": 20,
+            "path": "/x/b.md",
+            "name": "b.md",
+            "extension": "md",
+            "size": 1,
+            "mtime": 1.0,
+            "root_id": 1,
+            "page": 1,
+            "match": "semantic",
+        }
+    ]
+    monkeypatch.setattr("search.routing.run_classic", lambda *_a, **_k: classic)
+    monkeypatch.setattr("search.routing.run_semantic", lambda *_a, **_k: semantic)
+    monkeypatch.setattr("search.routing._vectors_ready", lambda: True)
+    payload = execute_search("pokemon", mode="auto")
+    assert payload["mode"] == "hybrid"
+    assert [h["id"] for h in payload["results"]] == [10, 20]
 
 
 def test_merge_hybrid_classic_wins_overlap():
@@ -98,16 +170,6 @@ def test_execute_search_empty_query(seeded_index):
     assert payload["results"] == []
     assert payload["count"] == 0
     assert payload["mode"] == "classic"
-
-
-def test_auto_filename_like_skips_semantic(seeded_index, monkeypatch):
-    def boom_semantic(*_args, **_kwargs):
-        raise AssertionError("run_semantic must not run for filename-like auto")
-
-    monkeypatch.setattr("search.routing.run_semantic", boom_semantic)
-    payload = execute_search("invoice.pdf", mode="auto")
-    assert payload["mode"] == "classic"
-    assert len(payload["results"]) >= 1
 
 
 def test_semantic_and_llm_hooks_not_called_on_classic(seeded_index, monkeypatch):

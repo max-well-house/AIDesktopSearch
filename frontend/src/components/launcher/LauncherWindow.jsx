@@ -29,7 +29,7 @@ function formatIndexedLabel(count, lastIndexedAt) {
 /** Cheap signal that SQLite changed — not a hot search loop (#52-friendly). */
 function indexFingerprint(data) {
   if (!data) return ''
-  return `${data.file_count ?? 0}|${data.last_indexed_at ?? ''}|${data.queue_depth ?? 0}|${data.embedding_chunk_count ?? 0}`
+  return `${data.file_count ?? 0}|${data.last_indexed_at ?? ''}|${data.queue_depth ?? 0}|${data.embedding_chunk_count ?? 0}|${data.semantic_query_ready ? 1 : 0}`
 }
 
 /**
@@ -59,8 +59,13 @@ export default function LauncherWindow() {
     const count = data.file_count ?? 0
     const lastIndexedAt = data.last_indexed_at ?? null
     setIndexedLabel(formatIndexedLabel(count, lastIndexedAt))
-    const chunks = data.embedding_chunk_count ?? 0
-    setSemanticLabel(chunks > 0 ? 'Available' : 'Disabled')
+    // Chunks alone are not enough — query embed still needs Ollama + model.
+    const ready =
+      data.semantic_query_ready === true ||
+      (data.semantic_query_ready == null &&
+        (data.embedding_chunk_count ?? 0) > 0 &&
+        data.vector_store_available === true)
+    setSemanticLabel(ready ? 'Available' : 'Disabled')
     indexFpRef.current = indexFingerprint(data)
   }
 

@@ -131,13 +131,19 @@ Always **200** when the API process is up. Ollama missing/stopped never becomes 
       "version": null,
       "base_url": "http://127.0.0.1:11434"
     },
-    "gpu": { "available": null, "name": null, "note": "..." },
+    "gpu": {
+      "available": true,
+      "name": "NVIDIA GeForce …",
+      "note": "GPU preferred for Ollama"
+    },
     "models": { "chat": false, "embedding": false }
   }
 }
 ```
 
 Ollama `status`: `available` | `unavailable` | `not_installed`. Clients ignore unknown capability keys so future fields (`storage`, etc.) do not break older UIs.
+
+GPU (`#112`): NVIDIA-first via `nvidia-smi`. `available` is `true` (GPU found), `false` (tool ran, no GPU), or `null` (tool missing / unknown vendor). Optional `name` is display-only — feature gates use `gpu_preferred()` / `available is True` only (Decision #003 rule 9).
 
 `GET /` returns the same payload (compatibility shim).
 
@@ -177,7 +183,7 @@ AIDesktopSearch/
 
 **Window size (#36):** Session-only. Esc / Alt+Space / tray hide keep the live window size; tray Quit (cold start) resets to 720×480 (min 480×360). No cross-session file.
 
-**Later:** GPU detection beyond stub (#112), freeze Python into installer (#111).
+**Later:** freeze Python into installer (#111). GPU detection shipped (#112).
 
 ---
 
@@ -211,22 +217,25 @@ Details: [research-filesystem-watchers.md](./research-filesystem-watchers.md).
 
 ## Query routing (Decision #002)
 
-v0.3 stub is live (`backend/search/routing.py`, #98): every query runs classic filename search; semantic and LLM stages are named hooks only (not invoked). Full hybrid ranking → #69. Target product flow:
+Live in `backend/search/routing.py` (#69 / audit follow-ups 2026-07-28):
+
+- `*.ext` (and empty) → classic-only when classic hits; **empty classic escalates** to semantic when vectors + query embedder are ready.
+- Short concepts / phrases (`pokemon`, `fire dragon`, NL intent words) → **hybrid** (classic first, semantic fills; cosine distance ≤ `SEMANTIC_MAX_DISTANCE`, always keep nearest).
+- Soft-fail to classic if Ollama cannot embed the query. LLM still v0.8.
 
 ```
 Question comes in
        |
        v
-Can classic search answer this?
+Classic filename / keyword
        |
-   Yes --------> Return instantly
+hits + filename-like? --> Return classic
        |
-       No
+else (or classic empty)
        v
-Use semantic search
+Semantic (query embed + k-NN) when ready
        |
-Need reasoning?
-       |
+Need reasoning? (later)
        v
 Ask LLM (with citations)
 ```
@@ -240,7 +249,7 @@ Still accurate. `/health` already reports Ollama so the UI can degrade; search m
 | Mode | When | Capabilities |
 |------|------|----------------|
 | Classic only | Ollama unavailable / RAM tight / AI off / no vectors | Filename + keyword search |
-| Classic + semantic | Vectors ready | Meaning search without LLM (query does not need live Ollama) |
+| Classic + semantic | Vectors ready **and** query embedder (Ollama + `nomic-embed-text`) up | Meaning search without chat LLM; soft-falls to classic if query embed fails |
 | Full RAG | Ollama healthy + user asks | Answers with citations |
 
 Degrade cleanly. Never crash because AI is missing. Embeddings notes: [research-embeddings.md](./research-embeddings.md) (#63). Vector store: [research-vector-databases.md](./research-vector-databases.md) (#64 / Decision #008 — sqlite-vec).

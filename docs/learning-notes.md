@@ -63,13 +63,13 @@ Why it matters: One-command `npm run dev` can start and stop the backend without
 
 Question: How should the app detect hardware acceleration without baking in "RTX 5060 Ti"?
 
-Approaches to evaluate later:
+Approaches evaluated:
 
-1. **nvidia-smi / NVML** â good for NVIDIA presence + VRAM; Windows-friendly if the driver tools are installed; vendor-specific.
-2. **Ollama runner reports** â once Ollama is up, ask what backend it used (GPU vs CPU); reflects real inference path, not just hardware presence.
-3. **Capability flag only** â expose `gpu.available` / optional `name` for display; never `if device_name == "..."`. Feature gates check capability, not model SKU (Decision #003 rule 9).
+1. **nvidia-smi / NVML** — good for NVIDIA presence + VRAM; Windows-friendly if the driver tools are installed; vendor-specific.
+2. **Ollama runner reports** — once Ollama is up, ask what backend it used (GPU vs CPU); reflects real inference path, not just hardware presence.
+3. **Capability flag only** — expose `gpu.available` / optional `name` for display; never `if device_name == "..."`. Feature gates check capability, not model SKU (Decision #003 rule 9).
 
-Chosen for now: stub `gpu.available: null` in `/health`; implement after Ollama path is real.
+Chosen (#112): NVIDIA-first `nvidia-smi` probe in `backend/capabilities/gpu.py`. `available=true/false` when the tool runs; `available=null` when missing (AMD/Intel/unknown stay null). Gates use `gpu_preferred()` (`available is True` only); `name` is display-only for System Status.
 
 Why it matters: AMD/Intel/CPU-only machines must share the same code path.
 

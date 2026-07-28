@@ -1,7 +1,9 @@
 """Hybrid query routing — classic first (#98 / Decision #002 / #68 / #69).
 
 Order: classic → semantic when needed → LLM later (v0.8 stub).
-Full hybrid (#69): merge classic + semantic; filename-like queries stay classic-only.
+Full hybrid (#69): merge classic + semantic; ``*.ext`` stays classic-only
+unless classic is empty (then escalate to semantic). Short concepts and
+phrases use hybrid so meaning relatives fill in (audit 2026-07-28).
 """
 
 from __future__ import annotations
@@ -17,6 +19,9 @@ logger = logging.getLogger(__name__)
 SearchMode = Literal["classic", "semantic", "hybrid", "llm", "auto"]
 
 STAGES_LATER: tuple[str, ...] = ("semantic", "llm")
+
+# Cosine distance ceiling (sqlite-vec); lower = closer. Nearest file is always kept.
+SEMANTIC_MAX_DISTANCE = 0.52
 
 _QUESTION_WORDS = frozenset(
     {
@@ -37,6 +42,9 @@ _QUESTION_WORDS = frozenset(
         "show",
         "list",
         "tell",
+        "bring",
+        "related",
+        "about",
     }
 )
 
@@ -47,7 +55,8 @@ def is_filename_like(query: str) -> bool:
     """
     True when classic should own the query alone (Decision #002 example: invoice.pdf).
 
-    Short token / extension lookups stay milliseconds-fast without embedding.
+    Only clear filename / extension lookups skip embedding. Short concepts
+    (e.g. ``pokemon``, ``fire dragon``) are hybrid so meaning search can run.
     """
     q = (query or "").strip()
     if not q:
@@ -60,9 +69,6 @@ def is_filename_like(query: str) -> bool:
     if first in _QUESTION_WORDS:
         return False
     if _EXT_SUFFIX.search(tokens[-1] if tokens else ""):
-        return True
-    # One or two short tokens → treat as name/keyword classic path.
-    if len(tokens) <= 2 and all(len(t) <= 40 for t in tokens):
         return True
     return False
 
@@ -82,6 +88,20 @@ def classify_query(query: str) -> Literal["classic", "hybrid"]:
 def run_classic(query: str, *, limit: int = DEFAULT_LIMIT) -> list[dict]:
     """Filename + content keyword path (#42 / #56)."""
     return search_filenames(query, limit=limit)
+
+
+def _filter_by_distance(ordered: list[dict]) -> list[dict]:
+    """Drop weak neighbors; always keep the nearest file when anything matched."""
+    if not ordered:
+        return []
+    kept = [
+        hit
+        for hit in ordered
+        if float(hit["distance"]) <= SEMANTIC_MAX_DISTANCE
+    ]
+    if not kept:
+        return ordered[:1]
+    return kept
 
 
 def run_semantic(query: str, *, limit: int = DEFAULT_LIMIT) -> list[dict]:
@@ -149,7 +169,8 @@ def run_semantic(query: str, *, limit: int = DEFAULT_LIMIT) -> list[dict]:
     ordered = sorted(
         best_by_file.values(),
         key=lambda h: (float(h["distance"]), int(h["file_id"])),
-    )[:capped]
+    )
+    ordered = _filter_by_distance(ordered)[:capped]
     file_ids = [int(h["file_id"]) for h in ordered]
     if not file_ids:
         return []
@@ -185,6 +206,7 @@ def run_semantic(query: str, *, limit: int = DEFAULT_LIMIT) -> list[dict]:
                 "root_id": int(row["root_id"]) if row["root_id"] is not None else None,
                 "page": int(page) if page is not None else None,
                 "match": "semantic",
+                "distance": float(hit["distance"]),
             }
         )
     return results
@@ -252,6 +274,39 @@ def merge_hybrid_results(
     return out
 
 
+def _pack_semantic_or_hybrid(
+    q: str,
+    classic_hits: list[dict],
+    semantic_hits: list[dict],
+    *,
+    capped: int,
+) -> dict:
+    if not semantic_hits:
+        return {
+            "query": q,
+            "count": len(classic_hits),
+            "results": classic_hits,
+            "mode": "classic",
+            "stages_skipped": list(STAGES_LATER),
+        }
+    if not classic_hits:
+        return {
+            "query": q,
+            "count": len(semantic_hits),
+            "results": semantic_hits,
+            "mode": "semantic",
+            "stages_skipped": ["llm"],
+        }
+    merged = merge_hybrid_results(classic_hits, semantic_hits, limit=capped)
+    return {
+        "query": q,
+        "count": len(merged),
+        "results": merged,
+        "mode": "hybrid",
+        "stages_skipped": ["llm"],
+    }
+
+
 def execute_search(
     query: str,
     *,
@@ -263,9 +318,9 @@ def execute_search(
 
     - classic: filename/FTS only.
     - semantic: meaning search only.
-    - auto / hybrid: classify; filename-like → classic only; else merge classic
-      + semantic when vectors exist. Soft-fails to classic-only if semantic empty
-      (Ollama down). Never calls LLM.
+    - auto / hybrid: ``*.ext`` → classic when hits exist; empty classic escalates
+      to semantic; other queries merge classic + semantic when vectors exist.
+      Soft-fails to classic-only if semantic empty (Ollama down). Never calls LLM.
     """
     q = (query or "").strip()
     capped = max(1, min(int(limit), MAX_LIMIT))
@@ -296,8 +351,20 @@ def execute_search(
     # auto / hybrid
     intent = classify_query(q)
     classic_hits = run_classic(q, limit=capped)
+    vectors_ok = bool(q) and _vectors_ready()
 
-    if intent == "classic" or not q or not _vectors_ready():
+    if not vectors_ok:
+        return {
+            "query": q,
+            "count": len(classic_hits),
+            "results": classic_hits,
+            "mode": "classic",
+            "stages_skipped": list(STAGES_LATER),
+        }
+
+    # Filename-like with classic hits: stay classic-only (save an embed).
+    # Empty classic: escalate to semantic (e.g. missing invoice.pdf → meaning).
+    if intent == "classic" and classic_hits:
         return {
             "query": q,
             "count": len(classic_hits),
@@ -307,30 +374,4 @@ def execute_search(
         }
 
     semantic_hits = run_semantic(q, limit=capped)
-    if not semantic_hits:
-        # Usable with LLM/Ollama off — classic still returned.
-        return {
-            "query": q,
-            "count": len(classic_hits),
-            "results": classic_hits,
-            "mode": "classic",
-            "stages_skipped": list(STAGES_LATER),
-        }
-
-    if not classic_hits:
-        return {
-            "query": q,
-            "count": len(semantic_hits),
-            "results": semantic_hits,
-            "mode": "semantic",
-            "stages_skipped": ["llm"],
-        }
-
-    merged = merge_hybrid_results(classic_hits, semantic_hits, limit=capped)
-    return {
-        "query": q,
-        "count": len(merged),
-        "results": merged,
-        "mode": "hybrid",
-        "stages_skipped": ["llm"],
-    }
+    return _pack_semantic_or_hybrid(q, classic_hits, semantic_hits, capped=capped)

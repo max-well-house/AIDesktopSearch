@@ -444,6 +444,21 @@ def index_status() -> dict:
     except Exception:
         pass
 
+    embed_model_ok = False
+    try:
+        from embeddings.client import model_available
+        from embeddings.store import DEFAULT_EMBED_MODEL
+
+        embed_model_ok = model_available(DEFAULT_EMBED_MODEL)
+    except Exception:
+        embed_model_ok = False
+
+    semantic_query_ready = bool(
+        vector_store_available
+        and embedding_chunk_count > 0
+        and embed_model_ok
+    )
+
     return {
         "file_count": file_count,
         "root_count": root_count,
@@ -451,5 +466,6 @@ def index_status() -> dict:
         "roots": roots,
         "embedding_chunk_count": embedding_chunk_count,
         "vector_store_available": vector_store_available,
+        "semantic_query_ready": semantic_query_ready,
         "embedded_files": embedded_files,
     }
