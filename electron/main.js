@@ -1,4 +1,15 @@
-const { app, BrowserWindow, ipcMain, globalShortcut, Tray, Menu, nativeImage, dialog, shell } = require('electron')
+const {
+  app,
+  BrowserWindow,
+  ipcMain,
+  globalShortcut,
+  Tray,
+  Menu,
+  nativeImage,
+  dialog,
+  shell,
+  screen,
+} = require('electron')
 const path = require('node:path')
 const fs = require('node:fs')
 const appConfig = require('../app.config.json')
@@ -36,6 +47,8 @@ const ICON_PATH = path.join(__dirname, '..', 'resources', 'icon.ico')
 let mainWindow = null
 let tray = null
 let isQuitting = false
+/** Ignore a second Alt+Space handler within this window (system menu + globalShortcut). */
+let ignoreToggleUntil = 0
 
 ipcMain.handle('api:health', async () => fetchHealth())
 ipcMain.handle('api:index-status', async () => fetchIndexStatus())
@@ -211,6 +224,10 @@ function dismissLauncher() {
 
 /** Alt+Space: hide+keep query when focused; otherwise show/focus. */
 function toggleLauncher() {
+  const now = Date.now()
+  if (now < ignoreToggleUntil) return
+  ignoreToggleUntil = now + 120
+
   if (!mainWindow || mainWindow.isDestroyed()) {
     createWindow()
     return
@@ -220,6 +237,31 @@ function toggleLauncher() {
     return
   }
   showLauncher()
+}
+
+/**
+ * Windows routes focused-window Alt+Space to the system window menu, which
+ * beats Electron globalShortcut. Detect that trigger (menu at window origin),
+ * suppress the menu, and pause like a focused toggle.
+ */
+function handleSystemContextMenu(event, point) {
+  if (process.platform !== 'win32' || !mainWindow || mainWindow.isDestroyed()) return
+
+  let dip = point
+  try {
+    dip = screen.screenToDipPoint(point)
+  } catch {
+    // keep physical point
+  }
+  const [winX, winY] = mainWindow.getPosition()
+  // Alt+Space opens the menu at the window origin (y can be winY or winY-1).
+  const fromAltSpace =
+    Math.abs(dip.x - winX) <= 2 && Math.abs(dip.y - winY) <= 2
+  if (!fromAltSpace) return
+
+  event.preventDefault()
+  ignoreToggleUntil = Date.now() + 120
+  pauseLauncher()
 }
 
 function shouldStartHidden() {
@@ -370,6 +412,8 @@ function createWindow({ show = true } = {}) {
       dismissLauncher()
     }
   })
+
+  mainWindow.on('system-context-menu', handleSystemContextMenu)
 
   if (!app.isPackaged && process.env.ELECTRON_RENDERER_URL) {
     mainWindow.loadURL(RENDERER_DEV_URL)
