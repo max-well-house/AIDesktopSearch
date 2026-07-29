@@ -16,7 +16,7 @@ Tray: left-click show/hide; right-click for Show, Start with Windows, and Quit. 
 
 - [Installation guide](./docs/install.md) — Windows portable download, first run, optional Ollama
 - [User guide](./docs/user-guide.md) — launch, search, Settings, footer lights
-- [Release notes](./docs/release-notes.md) — v1.0.0 highlights and known limits
+- [Release notes](./docs/release-notes.md) — current release + known limits
 
 ## Quick start (developers)
 
@@ -161,7 +161,7 @@ release/     Packaged builds (gitignored)
 |-----|------------|
 | [install.md](./docs/install.md) | End-user Windows install |
 | [user-guide.md](./docs/user-guide.md) | Daily usage |
-| [release-notes.md](./docs/release-notes.md) | v1.0.0 notes + known limits |
+| [release-notes.md](./docs/release-notes.md) | Current release notes + known limits |
 | [vision.md](./docs/vision.md) | One-page product vision |
 | [architecture.md](./docs/architecture.md) | Process model + design |
 | [schema.md](./docs/schema.md) | SQLite index schema |
