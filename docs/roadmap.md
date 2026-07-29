@@ -194,7 +194,7 @@ Must-ship (board):
 - **#120** Footer capability lights (Semantic live; AI off/yellow until v1.1) — **done**
 - **#118** Per-root auto-watch toggle — **done**
 - **#114** Privacy: stronger index.db wipe — **done**
-- **#111** Ship Python/FastAPI with packaged release (+ coherent app icon)
+- **#111** Ship Python/FastAPI with packaged release (+ coherent app icon) — **done**
 - **#83** Keyboard navigation (close gaps) — **done**
 - **#85** Performance (narrow: mosaic idle, embed load, startup) — **done**
 - **#88–#90** Installation guide / User guide / Release notes

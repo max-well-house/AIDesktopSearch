@@ -143,10 +143,6 @@ let state = {
   error: null,
 }
 
-function hasBackendLayout(dir) {
-  return fs.existsSync(path.join(dir, 'backend', 'main.py'))
-}
-
 function resolvePython(root) {
   if (!root) return null
   const win = path.join(root, '.venv', 'Scripts', 'python.exe')
@@ -157,39 +153,54 @@ function resolvePython(root) {
   return null
 }
 
-function looksLikeProjectRoot(dir) {
-  return hasBackendLayout(dir) && Boolean(resolvePython(dir))
+/** Packaged sidecar: resources/runtime + resources/backend (#111). */
+function resolvePackagedBackend() {
+  const resources = process.resourcesPath
+  if (!resources) return null
+  const backendDir = path.join(resources, 'backend')
+  const python =
+    process.platform === 'win32'
+      ? path.join(resources, 'runtime', 'Scripts', 'python.exe')
+      : path.join(resources, 'runtime', 'bin', 'python')
+  if (!fs.existsSync(python)) return null
+  if (!fs.existsSync(path.join(backendDir, 'main.py'))) return null
+  return { python, backendDir }
 }
 
-function resolveProjectRoot() {
+function resolveDevBackend() {
   if (process.env.AIDESKTOP_ROOT) {
-    return path.resolve(process.env.AIDESKTOP_ROOT)
+    const root = path.resolve(process.env.AIDESKTOP_ROOT)
+    const python = resolvePython(root)
+    if (!python) return null
+    return { python, backendDir: path.join(root, 'backend'), packaged: false }
   }
 
-  if (!app.isPackaged) {
-    return path.join(__dirname, '..')
+  const root = path.join(__dirname, '..')
+  const python = resolvePython(root)
+  if (!python) return null
+  return { python, backendDir: path.join(root, 'backend'), packaged: false }
+}
+
+/**
+ * Resolve python + backend cwd for spawn.
+ * Packaged → staged runtime under resourcesPath; unpackaged → project .venv.
+ */
+function resolveBackendSpawn() {
+  if (app.isPackaged) {
+    const packaged = resolvePackagedBackend()
+    if (!packaged) return null
+    return {
+      ...packaged,
+      packaged: true,
+      env: {
+        ...process.env,
+        AIDESKTOP_DB: path.join(app.getPath('userData'), 'index.db'),
+      },
+    }
   }
-
-  const candidates = [
-    process.cwd(),
-    path.dirname(process.execPath),
-    path.join(path.dirname(process.execPath), '..'),
-    path.join(path.dirname(process.execPath), '..', '..'),
-  ]
-
-  for (const candidate of candidates) {
-    if (looksLikeProjectRoot(candidate)) return candidate
-  }
-
-  let dir = process.cwd()
-  for (let i = 0; i < 5; i += 1) {
-    if (looksLikeProjectRoot(dir)) return dir
-    const parent = path.dirname(dir)
-    if (parent === dir) break
-    dir = parent
-  }
-
-  return null
+  const dev = resolveDevBackend()
+  if (!dev) return null
+  return { ...dev, env: { ...process.env } }
 }
 
 function sleep(ms) {
@@ -262,21 +273,20 @@ async function ensureBackend() {
     return getBackendState()
   }
 
-  const root = resolveProjectRoot()
-  const python = resolvePython(root)
-  if (!python) {
+  const spawnTarget = resolveBackendSpawn()
+  if (!spawnTarget) {
     state = {
       mode: 'missing',
       child: null,
-      error: root
-        ? `No .venv Python found under ${root}. Run first-time setup, or start uvicorn manually.`
-        : 'Could not find project root with .venv (set AIDESKTOP_ROOT), or start uvicorn manually.',
+      error: app.isPackaged
+        ? 'Packaged backend runtime is missing. Reinstall the app, or rebuild with npm run package / package:portable.'
+        : 'No .venv Python found. Run first-time setup (create .venv + pip install), set AIDESKTOP_ROOT, or start uvicorn manually.',
     }
     console.warn('[backend]', state.error)
     return getBackendState()
   }
 
-  const backendDir = path.join(root, 'backend')
+  const { python, backendDir, env } = spawnTarget
   console.log('[backend] spawning', python, 'in', backendDir)
 
   let child
@@ -289,7 +299,7 @@ async function ensureBackend() {
         cwd: backendDir,
         stdio: ['ignore', 'pipe', 'pipe'],
         windowsHide: true,
-        env: { ...process.env },
+        env,
       },
     )
   } catch (err) {

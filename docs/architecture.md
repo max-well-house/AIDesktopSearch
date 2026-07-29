@@ -58,11 +58,11 @@ Override project root with `AIDESKTOP_ROOT` when the working directory is unusua
 
 | Mode | Command | UI source | Backend |
 |------|---------|-----------|---------|
-| Hot reload | `npm run dev` | Vite at `http://127.0.0.1:5173` | Electron attach or spawn |
-| Built in-repo | `npm start` | `frontend/dist` via `loadFile` | Electron attach or spawn |
-| Packaged | `npm run package` / `package:portable` | asar `frontend/dist` | Attach, or spawn if `.venv` visible; Python not bundled |
+| Hot reload | `npm run dev` | Vite at `http://127.0.0.1:5173` | Electron attach or spawn project `.venv` |
+| Built in-repo | `npm start` | `frontend/dist` via `loadFile` | Electron attach or spawn project `.venv` |
+| Packaged | `npm run package` / `package:portable` | asar `frontend/dist` | Attach, or spawn staged runtime under `resources/` (Decision #009) |
 
-Packaging: electron-builder → `release/win-unpacked/` or portable `release/<productName> <version>.exe`. Config: `electron-builder.config.js` (reads `app.config.json`). Does not bundle Python (#111).
+Packaging: electron-builder → `release/win-unpacked/` or portable `release/<productName> <version>.exe`. Config: `electron-builder.config.js` (reads `app.config.json`). `extraResources` ships staged `backend/` + `runtime/` from `.packaging/` (#111 / Decision #009). Packaged `AIDESKTOP_DB` → Electron `userData/index.db`.
 
 ---
 
@@ -113,7 +113,7 @@ IPC result → React System Status UI
 | Renderer UI | `frontend/src/` (Vite + React + MUI) | System Status (API + Ollama) |
 | Theme | `frontend/src/theme.js` | MUI theme |
 | Backend | `backend/main.py` + `backend/capabilities/` + `backend/db/` | Health + capability detection; SQLite init (`data/index.db`) |
-| Packaging | `electron-builder.yml` | Windows portable / unpacked dir under `release/` |
+| Packaging | `electron-builder.config.js` | Windows portable / unpacked dir under `release/`; stages FastAPI sidecar via `extraResources` |
 
 ### `GET /health` contract
 
@@ -183,7 +183,7 @@ AIDesktopSearch/
 
 **Window size (#36):** Session-only. Esc / Alt+Space / tray hide keep the live window size; tray Quit (cold start) resets to 720×480 (min 480×360). No cross-session file.
 
-**Later:** freeze Python into installer (#111). GPU detection shipped (#112).
+**Packaged FastAPI (#111 / Decision #009):** Staged Windows venv + backend sources in `extraResources`; Electron spawns uvicorn from `process.resourcesPath`. GPU detection shipped (#112).
 
 ---
 

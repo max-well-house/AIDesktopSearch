@@ -316,3 +316,45 @@ Full comparison: [research-vector-databases.md](./research-vector-databases.md).
 ## Status
 
 Accepted
+
+---
+
+# Decision #009
+
+## Choice
+
+Ship FastAPI with the Windows packaged app as a **staged runtime sidecar**: build-time venv + backend sources via electron-builder `extraResources` (not PyInstaller).
+
+## Date
+
+July 2026
+
+## Why
+
+- End users must not need a developer `.venv` (#111).
+- Reuses #96 attach / owned spawn / `taskkill` tree cleanup with a different python path under `process.resourcesPath`.
+- Native wheels (`pymupdf`, `sqlite-vec`) install into a normal venv; PyInstaller is a known footgun for those extensions and would burn calendar for little v1.0 benefit.
+- Writable `index.db` stays under Electron `userData` via `AIDESKTOP_DB` when packaged.
+
+## Tradeoffs accepted
+
+- Larger portable artifact (full Windows venv + site-packages).
+- Staging step on every `npm run package*` (`scripts/stage-backend-runtime.js` → `.packaging/`).
+- Windows-first packaging only for v1.0.
+
+## Rules
+
+1. Unpackaged/dev still uses project `.venv` + repo `backend/`.
+2. Packaged spawn: `resources/runtime/.../python` + `cwd=resources/backend`, no `--reload`.
+3. Ollama remains optional and external (Decision #003).
+4. Do not adopt PyInstaller unless staged-venv size or AV false positives force a freeze.
+
+## Revisit when
+
+- Portable size or antivirus false positives become a real support problem
+- macOS/Linux packaging is required
+- A freeze tool reliably bundles sqlite-vec + PyMuPDF on Windows
+
+## Status
+
+Accepted

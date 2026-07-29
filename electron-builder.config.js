@@ -14,6 +14,11 @@ module.exports = {
     buildResources: 'resources',
   },
   files: ['electron/**/*', 'frontend/dist/**/*', 'app.config.json', 'package.json'],
+  // Staged by scripts/stage-backend-runtime.js (#111) — FastAPI sidecar, no developer .venv.
+  extraResources: [
+    { from: '.packaging/backend', to: 'backend' },
+    { from: '.packaging/runtime', to: 'runtime' },
+  ],
   win: {
     icon: 'resources/icon.ico',
     artifactName: '${productName} ${version}.${ext}',

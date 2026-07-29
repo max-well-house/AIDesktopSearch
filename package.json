@@ -1,6 +1,6 @@
 {
   "name": "aidesktopsearch",
-  "version": "0.2.0",
+  "version": "1.0.0",
   "description": "Local-first desktop search that finds files by meaning and keyword",
   "keywords": [
     "electron",
@@ -26,8 +26,9 @@
     "icons": "node scripts/generate-icons.js",
     "predev": "node scripts/sync-app-config.js",
     "prestart": "node scripts/sync-app-config.js",
-    "prepackage": "node scripts/sync-app-config.js",
-    "prepackage:portable": "node scripts/sync-app-config.js",
+    "stage-backend": "node scripts/stage-backend-runtime.js",
+    "prepackage": "node scripts/sync-app-config.js && node scripts/stage-backend-runtime.js",
+    "prepackage:portable": "node scripts/sync-app-config.js && node scripts/stage-backend-runtime.js",
     "dev": "concurrently -k -n vite,electron -c blue,magenta \"npm run dev:vite\" \"npm run dev:electron\"",
     "dev:vite": "vite --config frontend/vite.config.js",
     "dev:electron": "wait-on http://127.0.0.1:5173 && cross-env ELECTRON_RENDERER_URL=http://127.0.0.1:5173 electron .",

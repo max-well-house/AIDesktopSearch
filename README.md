@@ -134,7 +134,7 @@ After `npm run package:portable`, launch the exe named from `app.config.json`, e
 - `release\<name> <version>.exe`, or
 - `release\win-unpacked\<name>.exe`
 
-Packaged builds do **not** bundle Python (#111). If a repo `.venv` is visible (or `AIDESKTOP_ROOT` points at one), Electron can spawn FastAPI; otherwise it attaches to an already-running server or System Status stays offline.
+Packaging stages a Windows Python runtime + backend into the app (`extraResources`; Decision #009 / #111). Electron spawns FastAPI from that sidecar — no developer `.venv` required. Index DB for packaged runs lives under Electron userData (`AIDESKTOP_DB`). Ollama stays optional and separate.
 
 ## Layout
 
@@ -176,4 +176,5 @@ React (e.g. System Status / search)
 - `electron/backendProcess.js` — attach / spawn / stop FastAPI
 - `electron/preload.js` — safe bridge (`window.api`)
 - `frontend/` — launcher + System Status
-- `electron-builder.yml` — packaging config
+- `electron-builder.config.js` — packaging config (+ staged backend runtime)
+- `scripts/stage-backend-runtime.js` — build-time FastAPI sidecar for packages
