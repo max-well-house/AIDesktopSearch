@@ -66,7 +66,7 @@ Status: done (2026-07-22) — primary issue #96
 - [x] Manage FastAPI process from Electron (#96)
 - [x] README reflects one-command (or attach) workflow
 
-Bridge before heavy v0.2.0 launcher work. (Freezing Python into the installer is later — #111.)
+Bridge before heavy v0.2.0 launcher work. (Python ships with the portable via Decision #009 / #111.)
 
 ---
 
@@ -197,7 +197,9 @@ Must-ship (board):
 - **#111** Ship Python/FastAPI with packaged release (+ coherent app icon) — **done**
 - **#83** Keyboard navigation (close gaps) — **done**
 - **#85** Performance (narrow: mosaic idle, embed load, startup) — **done**
-- **#88–#90** Installation guide / User guide / Release notes
+- **#88–#90** Installation guide / User guide / Release notes — **done**
+
+**v1.0.0 Daily Driver complete** (board must-ship closed 2026-07-28).
 
 Demoted from v1.0 → nice to have: #81 history, #82 favorites, #84 recent files, #87 UI icons.
 

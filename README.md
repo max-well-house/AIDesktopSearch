@@ -12,7 +12,13 @@ Local-first desktop search that finds your files by meaning and keyword.
 
 Tray: left-click show/hide; right-click for Show, Start with Windows, and Quit. Escape dismisses and clears; Alt+Space toggles and keeps the query.
 
-## Quick start
+## For users
+
+- [Installation guide](./docs/install.md) — Windows portable download, first run, optional Ollama
+- [User guide](./docs/user-guide.md) — launch, search, Settings, footer lights
+- [Release notes](./docs/release-notes.md) — v1.0.0 highlights and known limits
+
+## Quick start (developers)
 
 **Prerequisites:** Python 3.x, Node.js + npm. **Ollama is optional** (classic filename/content search works without it).
 
@@ -153,6 +159,9 @@ release/     Packaged builds (gitignored)
 
 | Doc | What it is |
 |-----|------------|
+| [install.md](./docs/install.md) | End-user Windows install |
+| [user-guide.md](./docs/user-guide.md) | Daily usage |
+| [release-notes.md](./docs/release-notes.md) | v1.0.0 notes + known limits |
 | [vision.md](./docs/vision.md) | One-page product vision |
 | [architecture.md](./docs/architecture.md) | Process model + design |
 | [schema.md](./docs/schema.md) | SQLite index schema |
