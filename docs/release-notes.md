@@ -1,5 +1,18 @@
 # Release notes
 
+## v1.0.1 — Hotfix
+
+Patch release for the Windows portable build.
+
+- **Alt+Space** while focused no longer opens the Windows system menu; it toggles/hides the launcher as intended
+- **Single-instance** — a second launch focuses the existing app instead of stacking processes
+- **Quit cleanup** — tray Quit waits for the owned backend process tree to exit so the portable `.exe` can be deleted/replaced without Task Manager
+
+### Docs
+
+- [Installation](./install.md)
+- [User guide](./user-guide.md)
+
 ## v1.0.0 — Daily Driver
 
 First storeable **classic + semantic** search release for Windows. Add folders, auto index + auto embed, search, open files, Settings, tray/hotkey chrome.

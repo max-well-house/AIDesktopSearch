@@ -18,7 +18,7 @@ const {
   fetchIndexStatus,
   postIndexScan,
   deleteIndexRoot,
-  patchRootAutoWatch,
+    patchRootAutoWatch,
   postIndexWipe,
   postEmbeddingsSmoke,
   postEmbeddingsBackfill,
@@ -27,6 +27,7 @@ const {
   fetchSearch,
   ensureBackend,
   stopBackend,
+  waitForChildExit,
 } = require('./backendProcess')
 const {
   DEFAULT_BOUNDS,
@@ -47,6 +48,8 @@ const ICON_PATH = path.join(__dirname, '..', 'resources', 'icon.ico')
 let mainWindow = null
 let tray = null
 let isQuitting = false
+/** True after before-quit has finished killing the backend (allows a second app.quit). */
+let quitCleanupDone = false
 /** Ignore a second Alt+Space handler within this window (system menu + globalShortcut). */
 let ignoreToggleUntil = 0
 
@@ -444,6 +447,17 @@ function registerLauncherShortcut() {
   return null
 }
 
+const gotLock = app.requestSingleInstanceLock()
+if (!gotLock) {
+  app.quit()
+} else {
+  app.on('second-instance', () => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      showLauncher()
+    }
+  })
+}
+
 app.whenReady().then(async () => {
   clearSavedWindowSize()
   installApplicationMenu()
@@ -466,14 +480,20 @@ app.whenReady().then(async () => {
   })
 })
 
-app.on('before-quit', () => {
+app.on('before-quit', async (event) => {
+  // Tray Quit sets isQuitting so the window close handler does not hide-to-tray.
   isQuitting = true
+  if (quitCleanupDone) return
+  event.preventDefault()
   clearSavedWindowSize()
   if (tray) {
     tray.destroy()
     tray = null
   }
   stopBackend()
+  await waitForChildExit(5000)
+  quitCleanupDone = true
+  app.quit()
 })
 
 // Tray keeps the process alive while the window is hidden (not destroyed).

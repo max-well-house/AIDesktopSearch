@@ -215,6 +215,7 @@ function killProcessTree(pid) {
       execFileSync('taskkill', ['/pid', String(pid), '/t', '/f'], {
         stdio: 'ignore',
         windowsHide: true,
+        timeout: 10000,
       })
     } catch {
       // Process already gone.
@@ -227,6 +228,22 @@ function killProcessTree(pid) {
   } catch {
     // Process already gone.
   }
+}
+
+/**
+ * Wait for the owned child process to actually exit after kill.
+ * Returns a promise that resolves once the child is gone (or after timeout).
+ */
+function waitForChildExit(timeoutMs = 5000) {
+  const child = state.child
+  if (!child || child.exitCode != null) return Promise.resolve()
+  return new Promise((resolve) => {
+    const timer = setTimeout(resolve, timeoutMs)
+    child.once('exit', () => {
+      clearTimeout(timer)
+      resolve()
+    })
+  })
 }
 
 function stopBackend() {
@@ -380,5 +397,6 @@ module.exports = {
   fetchSearch,
   ensureBackend,
   stopBackend,
+  waitForChildExit,
   getBackendState,
 }

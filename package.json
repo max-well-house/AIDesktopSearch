@@ -1,6 +1,6 @@
 {
   "name": "aidesktopsearch",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Local-first desktop search that finds files by meaning and keyword",
   "keywords": [
     "electron",
