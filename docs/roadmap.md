@@ -199,32 +199,79 @@ Must-ship (board):
 - **#85** Performance (narrow: mosaic idle, embed load, startup) — **done**
 - **#88–#90** Installation guide / User guide / Release notes — **done**
 
-**v1.0.0 Daily Driver complete** (board must-ship closed 2026-07-28).
-
-Demoted from v1.0 → nice to have: #81 history, #82 favorites, #84 recent files, #87 UI icons.
+**v1.0.0 Daily Driver complete** (board must-ship closed 2026-07-28). Patches continue as **1.0.x** / **Up next**.
 
 ---
 
-# Version 1.1.0
+# Long-term eras (post-1.0)
 
-Local AI (was v0.8)
+**Milestone = one shippable release** (1.1, 1.2, …). **Era = product chapter** (1.x Find → 2.x Act → 3.x Expand → 4.x Connect). **2.0** starts Era 2 — not “when the 1.x backlog is empty.”
 
-RAG answers + citations (GPU-preferred; AI optional if Ollama down). Issues #70–#75.
+**Unplanned** (GitHub milestone): parking only for ideas not ready to milestone yet.
 
----
-
-# Version 1.2.0
-
-Images (was v0.9)
-
-OCR / screenshot search. Issues #76–#79.
+When closing a versioned milestone: update `docs/release-notes.md` and publish the GitHub Release (see `.cursor/rules/close-out-milestone.mdc`).
 
 ---
 
-# Version 2.0.0
+## Era 1.x — Find
 
-Later product era (TBD) — not “RAG exists.” Plan when 1.x foundation is solid.
+Same product as 1.0: local files, search-first, AI optional.
+
+### Up next (1.0.x polish)
+
+Quick ships between numbered releases: #136 exe identity, #116 reset window, #128 supported types, #119 dismissible banners, #137 check for updates, #138 custom shortcut.
+
+### Version 1.1.0 — Local AI
+
+RAG answers + citations; guided Ollama setup (no terminal).
+
+- **Must-ship:** #70, #71, #72, #133, #75
+- **Stretch:** #73 conversation history, #74 better prompts, #99 chat model pick (after core RAG)
+
+### Version 1.2.0 — Images
+
+OCR / screenshot search. #76–#79.
+
+### Version 1.3.0 — Search UX
+
+#81 history + idle cards, #117 zero-hit recovery, #129 snippets, #132 preview research→build, #139 user excludes.
 
 ---
 
-See also: [board audit 2026-07-15](./audit-2026-07-15.md)
+## Era 2.x — Act
+
+Confirm-gated writes; index stays honest.
+
+### Version 2.1.0 — Actions + reconcile
+
+#104 confirm move/rename, #134 reconcile external moves.
+
+### Version 2.2.0 — Suggest organize
+
+#106 suggest folders → confirm → move + index update.
+
+---
+
+## Era 3.x — Expand
+
+New kinds of understanding — **research-gated** (no fake implementation commitment).
+
+### Version 3.1.0 — Audio/video search
+
+#135 research → impl only after go (speech-first north star).
+
+### Version 3.2.0 — Connection map
+
+#110 research → impl only after go.
+
+---
+
+## Era 4.x — Connect
+
+### Version 4.1.0 — Opt-in sync
+
+#103 settings/index sync; never silent file upload; off by default.
+
+---
+
+See also: [ideas.md](./ideas.md), [board audit 2026-07-15](./audit-2026-07-15.md)

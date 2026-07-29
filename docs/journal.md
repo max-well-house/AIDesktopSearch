@@ -493,3 +493,23 @@ Next:
 1. **#124** product slim code
 2. #80 / #125 version line when Settings lands
 
+## 2026-07-29 — Post-1.0 backlog → eras
+
+Goal:
+Turn the dump milestone into real issues and a long-term era/milestone roadmap.
+
+What I did:
+- Triaged **To be planned** — fleshed, merged, or closed (voice/email/calendar/browser/plugins host/favorites/etc.)
+- Eras on the board: **1.x Find** (Up next, 1.1–1.3) → **2.x Act** (2.1–2.2) → **3.x Expand** (3.1–3.2 research-gated) → **4.x Connect** (4.1 sync)
+- Renamed dump → **Unplanned** (empty open); added #133–#139 (Ollama setup, AV research, packaging identity, updates, shortcut, excludes)
+- Cursor rule: **close-out-milestone** → release notes + GitHub Release when a milestone ships
+- `docs/roadmap.md` / `docs/ideas.md` synced
+
+What I learned:
+- Milestone = shippable version; era = product chapter; 2.0 starts Era 2, not “1.x backlog empty”
+- “Plugin” meant parsers/previews/capabilities — not a third-party host
+
+Next:
+1. **Up next** polish (#136 exe identity first is fine)
+2. Then **v1.1** Local AI must-ship (#70–#72, #133, #75)
+

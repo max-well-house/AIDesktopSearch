@@ -1,31 +1,19 @@
 # Future Ideas
 
-Tracked on GitHub as **nice to have** issues (unmilestoned — not MVP). Build these **after v1.0 and v2.x**. See board audit `docs/audit-2026-07-15.md`.
+Long-term work lives on **GitHub milestones by era** (see [roadmap.md](./roadmap.md)). Use **Unplanned** only for ideas that are not ready to milestone yet.
 
-| Idea | Issue |
-|------|-------|
-| Custom model selection | #99 |
-| Voice assistant | #100 |
-| Email integration | #101 |
-| Calendar integration | #102 |
-| Cloud sync | #103 |
-| AI agents that perform actions | #104 |
-| Browser history search | #105 |
-| Automatic file organization | #106 |
-| Multi-user support | #107 |
-| Mobile companion app | #108 |
-| Plugin system | #109 |
-| Knowledge graph visualization | #110 |
-| Tray “Reset window size” without Quit | #116 |
-| Zero-hit suggestions / fuzzy “did you mean” / idle recents | #117 |
-| Error handling / notification center | #119 |
-| Mapped schema view | #123 |
-| Search history | #81 (demoted from v1.0) |
-| Favorites | #82 (demoted from v1.0) |
-| Recent files | #84 (demoted from v1.0) |
-| Better UI icons (beyond packaged app icon) | #87 (demoted from v1.0) |
-| System Status diagnostics UX (fewer lab buttons, live copy) | #122 done (v0.7); product slim follow-up **#124** on v1.0 |
+| Idea | Issue | Home |
+|------|-------|------|
+| Check for updates | #137 | Up next |
+| Custom global shortcut | #138 | Up next |
+| Shorter Windows exe identity | #136 | Up next |
+| User-defined excludes | #139 | v1.3 |
+| Search history + idle cards | #81 | v1.3 |
+| Guided Ollama setup | #133 | v1.1 |
+| Opt-in multi-PC sync | #103 | v4.1 |
+| AV speech search (research) | #135 | v3.1 |
+| Connection map (research) | #110 | v3.2 |
 
-**Versioning:** v1.0 search → v1.1 Local AI → v1.2 Images → v2.0 later (TBD). Nice to Haves after the 1.x foundation.
+Closed as not planned / merged during post-1.0 triage: favorites (#82), voice (#100), email (#101), calendar (#102), browser history (#105), multi-user (#107), mobile (#108), plugin host (#109), search groups (#130), etc.
 
-Add new ideas here first; promote to a milestone only when a daily-driver gap appears.
+**Eras:** 1.x Find → 2.x Act → 3.x Expand → 4.x Connect. See roadmap for milestone detail.

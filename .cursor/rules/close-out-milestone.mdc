@@ -1,0 +1,43 @@
+---
+description: When closing a GitHub milestone/release — update release notes and publish the GitHub Release
+alwaysApply: true
+---
+
+# Close out this milestone / cut a release
+
+When the user says **"close out this milestone"**, **"ship this milestone"**, **"cut the release"**, **"close milestone vX.Y"**, or clearly asks to finish a versioned milestone as a release, do **all** of the following (do not skip):
+
+## 1. Confirm the milestone
+
+- Identify which GitHub milestone (e.g. `v1.1.0 - Local AI`) and version from `app.config.json` / agreed tag (`v1.1.0`).
+- Ensure must-ship issues are closed (or the user explicitly ships with known stretch left open).
+- Working tree: commit any remaining release-related doc/code changes first (follow normal commit protocol; no secrets).
+
+## 2. Update `docs/release-notes.md`
+
+- Add a **new top section** for this version (match existing style: title, short pitch, bullets, docs links).
+- Summarize what users get — not a dump of every commit. Link install/user guide when relevant.
+- Do **not** invent features that did not ship.
+
+## 3. Bump version if needed
+
+- `app.config.json` (and synced `package.json` via `npm run` sync / existing scripts) matches the release version.
+- README / install asset names only if they hardcode the old version.
+
+## 4. GitHub Release
+
+- Tag and publish with `gh release create` (or create/update the release for that tag) on the commit that is the release.
+- Title/body aligned with `docs/release-notes.md` for that version (short summary + highlights).
+- Attach portable/build artifacts the project normally ships (e.g. Windows portable `.exe`) when they exist and the user expects them; do not upload secrets or local-only junk.
+- If packaging failed, stop and report — do not claim the release is done without the agreed artifacts (unless the user says notes/tag only).
+
+## 5. Close the GitHub milestone
+
+- `gh api` / milestone close when all must-ship issues are done (or user accepts stretch remaining).
+- Update `docs/roadmap.md` milestone status to done / dated.
+
+## 6. Hand off
+
+Reply with: version tag, release URL, release-notes path, milestone closed, and any intentional leftovers.
+
+If push, tag, or release upload fails, stop and report — do not mark the milestone closed as fully shipped.
