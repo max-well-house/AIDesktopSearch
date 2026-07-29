@@ -10,7 +10,7 @@
 
 ## Goal
 
-Choose how MosAIq should extract text from PDFs so Phase 5 can search inside documents without thrashing the machine (Decision #003) and without pulling embeddings or OCR into the critical path (Decision #002).
+Choose how Meshen should extract text from PDFs so Phase 5 can search inside documents without thrashing the machine (Decision #003) and without pulling embeddings or OCR into the critical path (Decision #002).
 
 This issue is **research only**. No PDF parsing code ships here.
 

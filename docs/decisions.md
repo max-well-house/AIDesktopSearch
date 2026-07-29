@@ -126,7 +126,7 @@ July 2026
 
 ## Why
 
-MosAIq is a desktop search engine, not a chatbot. The launcher is the application; search is always the primary interaction. A subtle file-tile mosaic communicates the product metaphor on open ("your digital life as one connected mosaic") and gracefully fades when the user types so the workflow stays as fast and uncluttered as Raycast / Spotlight / PowerToys Run.
+Meshen is a desktop search engine, not a chatbot. The launcher is the application; search is always the primary interaction. A subtle file-tile mosaic communicates the product metaphor on open ("your digital life as one connected mosaic") and gracefully fades when the user types so the workflow stays as fast and uncluttered as Raycast / Spotlight / PowerToys Run.
 
 AI belongs inside search (and later results), not as a separate chat surface.
 
@@ -285,7 +285,7 @@ July 2026
 
 ## Why
 
-- MosAIq already owns corpus state in SQLite; vectors should join to `files` / pages without a second source of truth.
+- Meshen already owns corpus state in SQLite; vectors should join to `files` / pages without a second source of truth.
 - Opt-in personal corpora (Decision #003) fit exact k-NN; we do not need a server or cloud vector DB for v0.7.
 - Hybrid search (#69) is simpler when classic FTS5 and vectors share one engine.
 - Matches Decision #001 process model (FastAPI = brain; no extra daemon beside optional Ollama).

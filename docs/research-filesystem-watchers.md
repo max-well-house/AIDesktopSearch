@@ -9,7 +9,7 @@
 
 ## Goal
 
-Choose how MosAIq should detect file creates, edits, deletes, and renames so Phase 4 can keep the search index fresh without thrashing the machine (Decision #003).
+Choose how Meshen should detect file creates, edits, deletes, and renames so Phase 4 can keep the search index fresh without thrashing the machine (Decision #003).
 
 This milestone issue is **research only**. No watcher code ships here.
 

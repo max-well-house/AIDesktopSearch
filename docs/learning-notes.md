@@ -77,7 +77,7 @@ Why it matters: AMD/Intel/CPU-only machines must share the same code path.
 
 What I learned: Keep display name, company, and version in one `app.config.json`; Electron, Vite HTML title, and electron-builder all read it (with a small `sync-app-config` into `package.json`). For desktop icons, bake a dark background into a multi-resolution `.ico`  PNG alone and light plates look wrong on Windows.
 
-Why it matters: Renaming away from a working title (e.g. MosAIq) is one config edit + repackage, and the shortcut looks intentional.
+Why it matters: Renaming away from a working title (e.g. Meshen) is one config edit + repackage, and the shortcut looks intentional.
 
 ### 07/23/2026 ? Launcher shell UX (tray, login item, session size)
 
@@ -114,7 +114,7 @@ Why it matters: Decision #006 keeps #54–#57 on rails (FastAPI-only parse, soft
 
 ### 07/27/2026 — Embeddings: generate vs query
 
-What I learned: For MosAIq, embeddings are a second index over **chunks** of already-extracted text — not a replacement for FTS and not the same as RAG. Building vectors needs a live embedder (usually Ollama). **Query-time semantic search also needs a live query embed today** (audit 2026-07-28); if Ollama is down, auto soft-falls to classic while stored chunks wait in sqlite-vec. Local-by-default fits Decision #003; cloud APIs are explicit opt-in. Embedding models are much smaller than chat LLMs, so Phase 7 should not wait on a chat-sized model.
+What I learned: For Meshen, embeddings are a second index over **chunks** of already-extracted text — not a replacement for FTS and not the same as RAG. Building vectors needs a live embedder (usually Ollama). **Query-time semantic search also needs a live query embed today** (audit 2026-07-28); if Ollama is down, auto soft-falls to classic while stored chunks wait in sqlite-vec. Local-by-default fits Decision #003; cloud APIs are explicit opt-in. Embedding models are much smaller than chat LLMs, so Phase 7 should not wait on a chat-sized model.
 
 Why it matters: Keeps #63 notes honest for #65–#69 (and the architecture “vectors ready” mode) without locking Chroma or a model SKU before #64/#66.
 

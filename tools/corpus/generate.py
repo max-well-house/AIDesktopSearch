@@ -29,7 +29,7 @@ DEFAULT_SEED = 42
 MANIFEST_NAME = "manifest.json"
 CORPUS_VERSION = 1
 # Outside the repo on purpose — see tools/corpus/README.md
-DEFAULT_CORPUS_DIRNAME = "MosAIq-TestCorpus"
+DEFAULT_CORPUS_DIRNAME = "Meshen-TestCorpus"
 
 # Filename search control set — milestone success: "Search Invoice finds invoice.pdf"
 INVOICE_REL_PATHS = (

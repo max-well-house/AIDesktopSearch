@@ -9,7 +9,7 @@
 
 ## Goal
 
-Understand how embeddings enable meaning search for MosAIq’s local desktop corpus, and capture local vs cloud implications under Decisions [#002](./decisions.md) and [#003](./decisions.md).
+Understand how embeddings enable meaning search for Meshen’s local desktop corpus, and capture local vs cloud implications under Decisions [#002](./decisions.md) and [#003](./decisions.md).
 
 This issue is **research only**. No embedding models, chunkers, or vector tables land here.
 
@@ -38,11 +38,11 @@ Example:
 | Query: “quarterly revenue summary” | Needs those words (or stems) in the file | Can match a doc titled `Q3-P&L-notes.md` that talks about “earnings for the third quarter” |
 | Query: `invoice.pdf` | Filename / exact tokens win in milliseconds | Unnecessary — classic should answer (Decision #002) |
 
-MosAIq already stores searchable body text. Embeddings add a **second index** over chunks of that text (and later, optionally, over queries at search time). They do **not** replace FTS or filenames.
+Meshen already stores searchable body text. Embeddings add a **second index** over chunks of that text (and later, optionally, over queries at search time). They do **not** replace FTS or filenames.
 
 ---
 
-## Pipeline for MosAIq
+## Pipeline for Meshen
 
 Text already exists from the indexer (`file_content` / pages). Semantic path:
 
@@ -175,7 +175,7 @@ Decision #002 order stays: classic → semantic when needed → LLM when reasoni
 
 ### Learn / notes (#63) — this doc
 
-- [x] How embeddings work for MosAIq (chunk → vector → k-NN → file)
+- [x] How embeddings work for Meshen (chunk → vector → k-NN → file)
 - [x] Local vs cloud implications under #002 / #003
 
 ### Vector store (#64)

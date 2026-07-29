@@ -476,7 +476,7 @@ export default function Settings({ onBack }) {
     }
     const confirmed = window.confirm(
       'Wipe the search index?\n\n' +
-        'This deletes MosAIq’s index database (folder list, filenames, document text, embeddings). ' +
+        'This deletes Meshen’s index database (folder list, filenames, document text, embeddings). ' +
         'Your original files on disk are not deleted.\n\n' +
         'This is stronger than removing one folder (VACUUM), but not a forensic erase of old disk pages.',
     )

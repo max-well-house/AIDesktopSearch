@@ -2,7 +2,7 @@
 
 Regenerable control set for **filename indexing**, folder scan, and ignore rules (`#40`–`#46`).
 
-The **generator** lives in this repo. The **generated files** are written to your local machine **outside the project** so pointing MosAIq at the corpus behaves like a normal user folder — not like indexing the repo (which could hide bugs or create false positives).
+The **generator** lives in this repo. The **generated files** are written to your local machine **outside the project** so pointing Meshen at the corpus behaves like a normal user folder — not like indexing the repo (which could hide bugs or create false positives).
 
 Later milestones should add sibling issues to extend this tool (real PDFs, Office docs, semantic stories, etc.). This version only writes **stub** files with realistic names/extensions — not parseable Office/PDF binaries.
 
@@ -17,21 +17,21 @@ python tools/corpus/generate.py
 Default output (Windows):
 
 ```text
-%USERPROFILE%\Documents\MosAIq-TestCorpus
+%USERPROFILE%\Documents\Meshen-TestCorpus
 ```
 
-(macOS/Linux: `~/Documents/MosAIq-TestCorpus`, or `~/MosAIq-TestCorpus` if Documents is missing.)
+(macOS/Linux: `~/Documents/Meshen-TestCorpus`, or `~/Meshen-TestCorpus` if Documents is missing.)
 
 Useful flags:
 
 ```powershell
 python tools/corpus/generate.py --seed 42 --clean
-python tools/corpus/generate.py --out D:\Other\MosAIq-TestCorpus --clean
+python tools/corpus/generate.py --out D:\Other\Meshen-TestCorpus --clean
 ```
 
 | Flag | Default | Meaning |
 |------|---------|---------|
-| `--out` | `Documents/MosAIq-TestCorpus` | Corpus root (**outside** the repo) |
+| `--out` | `Documents/Meshen-TestCorpus` | Corpus root (**outside** the repo) |
 | `--seed` | `42` | Deterministic filler; same seed → same tree |
 | `--clean` | off | Delete `--out` before writing |
 
@@ -42,7 +42,7 @@ Generated files are **not** committed to GitHub. Only this tool is.
 When folder pickers land (`#40`):
 
 1. Generate the corpus (above).
-2. Add **only** `Documents\MosAIq-TestCorpus` (absolute path) as an index root — do **not** add the AIDesktopSearch repo folder.
+2. Add **only** `Documents\Meshen-TestCorpus` (absolute path) as an index root — do **not** add the AIDesktopSearch repo folder.
 3. Do **not** treat `manifest.json` as a user document — it is test metadata in the corpus root. Prefer asserting against the `files` list in the manifest (or ignore `manifest.json` by name in tests).
 
 ## Manifest

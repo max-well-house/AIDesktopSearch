@@ -1,6 +1,6 @@
 # Brand assets
 
-Identity artwork and packaging icons.
+Identity artwork and packaging icons. Product display name is **Meshen** (`app.config.json`); filenames below may still say mosaiq from the earlier working title.
 
 | Asset | Purpose |
 |-------|---------|

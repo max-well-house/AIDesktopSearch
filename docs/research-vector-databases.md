@@ -9,7 +9,7 @@
 
 ## Goal
 
-Compare vector storage options for MosAIq as a **local desktop** app (Electron + FastAPI + existing SQLite), and pick a default that fits Decisions [#001](./decisions.md), [#002](./decisions.md), [#003](./decisions.md) and the embeddings notes in [research-embeddings.md](./research-embeddings.md) (#63).
+Compare vector storage options for Meshen as a **local desktop** app (Electron + FastAPI + existing SQLite), and pick a default that fits Decisions [#001](./decisions.md), [#002](./decisions.md), [#003](./decisions.md) and the embeddings notes in [research-embeddings.md](./research-embeddings.md) (#63).
 
 This issue is **research only**. No vector tables or extension loading land here.
 
@@ -67,7 +67,7 @@ SQLite extension (`vec0` virtual tables). Vectors live in (or beside) the same D
 - Younger project (v0.1.x) — pin versions; have a documented escape hatch
 - Less “RAG DX” sugar than Chroma (we own chunk metadata tables)
 
-**Fit:** Best primary store for MosAIq’s architecture.
+**Fit:** Best primary store for Meshen’s architecture.
 
 ### 2. Chroma (provisional tech-stack placeholder — demoted)
 

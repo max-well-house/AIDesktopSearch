@@ -1,6 +1,6 @@
 # User guide
 
-Daily use of MosAIq on Windows. For download/setup, see [install.md](./install.md).
+Daily use of Meshen on Windows. For download/setup, see [install.md](./install.md).
 
 ## Launch and hide
 

@@ -3,11 +3,11 @@
 **Supported:** Windows (portable app).  
 **Not yet:** macOS, Linux.
 
-MosAIq is a local desktop search app. You do not need to clone the repo or create a Python venv to use a release build.
+Meshen is a local desktop search app. You do not need to clone the repo or create a Python venv to use a release build.
 
 ## Get the app
 
-1. Download the portable build: `MosAIq 1.0.0.exe` (or the current `MosAIq <version>.exe` from a release / `release/` after packaging).
+1. Download the portable build: `Meshen 1.0.0.exe` (or the current `Meshen <version>.exe` from a release / `release/` after packaging).
 2. Put it somewhere you can find (e.g. Desktop or a tools folder). No installer required.
 3. Double-click to run.
 
@@ -34,9 +34,9 @@ For **semantic** (meaning) search:
 ollama pull nomic-embed-text
 ```
 
-4. In MosAIq Settings → **Details**, confirm Ollama and the embedding model look available. The footer **Semantic** light turns green when meaning search is ready.
+4. In Meshen Settings → **Details**, confirm Ollama and the embedding model look available. The footer **Semantic** light turns green when meaning search is ready.
 
-Ollama is never bundled with MosAIq and is never required for basic search.
+Ollama is never bundled with Meshen and is never required for basic search.
 
 ## Verify
 
@@ -52,7 +52,7 @@ Ollama is never bundled with MosAIq and is never required for basic search.
 | Problem | What to try |
 |---------|-------------|
 | Backend offline / Settings empty | Quit via tray and relaunch the portable exe. Re-download if the build is corrupt. |
-| Alt+Space does nothing | Another app may own the hotkey. MosAIq falls back to **Ctrl+Shift+Space**. |
+| Alt+Space does nothing | Another app may own the hotkey. Meshen falls back to **Ctrl+Shift+Space**. |
 | Semantic never goes green | Install/start Ollama, `ollama pull nomic-embed-text`, add/rescan folders, wait for embed queue (Pause if the machine is busy). |
 | SmartScreen / antivirus warning | Portable Electron builds are often unsigned; allow the file if you trust the source. |
 

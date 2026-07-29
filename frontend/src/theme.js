@@ -1,7 +1,7 @@
 import { createTheme } from '@mui/material/styles'
 
 /**
- * MosAIq brand palette (from identity guide).
+ * Meshen brand palette (from identity guide).
  * Single source of truth — do not scatter hex values in components.
  */
 export const colors = {

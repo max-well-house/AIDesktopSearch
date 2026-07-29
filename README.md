@@ -104,7 +104,7 @@ Expect JSON with a `version`. If connection fails, start **Ollama** from the Sta
 ollama pull nomic-embed-text
 ```
 
-Bare `ollama` may open an interactive menu — Esc out; MosAIq only needs the background server on `127.0.0.1:11434`.
+Bare `ollama` may open an interactive menu — Esc out; Meshen only needs the background server on `127.0.0.1:11434`.
 
 **Generate vs query:** Building vectors (**generate**) happens automatically when content is indexed (Pause if the machine bogs down). Searching by meaning (**query**) embeds the search box text at query time (needs Ollama + `nomic-embed-text`); stored chunks alone are not enough if the embedder is down.
 
@@ -131,7 +131,7 @@ For indexer/search work, generate a **control folder outside this repo** so test
 python tools/corpus/generate.py
 ```
 
-Writes to `%USERPROFILE%\Documents\MosAIq-TestCorpus` by default (**not** committed). Use `--clean` to wipe and recreate; `--out` for another path. Details: [`tools/corpus/README.md`](./tools/corpus/README.md). In System Status, add **only** that folder as a root — not the AIDesktopSearch repo.
+Writes to `%USERPROFILE%\Documents\Meshen-TestCorpus` by default (**not** committed). Use `--clean` to wipe and recreate; `--out` for another path. Details: [`tools/corpus/README.md`](./tools/corpus/README.md). In System Status, add **only** that folder as a root — not the AIDesktopSearch repo.
 
 ## Packaged app
 
