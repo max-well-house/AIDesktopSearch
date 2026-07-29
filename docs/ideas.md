@@ -13,6 +13,7 @@ Long-term work lives on **GitHub milestones by era** (see [roadmap.md](./roadmap
 | Opt-in multi-PC sync | #103 | v4.1 |
 | AV speech search (research) | #135 | v3.1 |
 | Connection map (research) | #110 | v3.2 |
+| Corpus expected-hit packs | #140–#144 | per milestone (1.1 must-ship #140) |
 
 Closed as not planned / merged during post-1.0 triage: favorites (#82), voice (#100), email (#101), calendar (#102), browser history (#105), multi-user (#107), mobile (#108), plugin host (#109), search groups (#130), etc.
 

@@ -511,5 +511,17 @@ What I learned:
 
 Next:
 1. **Up next** polish (#136 exe identity first is fine)
-2. Then **v1.1** Local AI must-ship (#70–#72, #133, #75)
+2. Then **v1.1** Local AI must-ship (#70–#72, #133, #75, **#140** corpus eval)
+
+## 2026-07-29 — Corpus companions + expected hits
+
+Goal:
+Keep regenerable test corpus outside the repo; each milestone that needs new fixture kinds gets a Corpus issue with query → must_include paths (fail otherwise).
+
+What I did:
+- Opened #140–#144 (1.1 / 1.2 / 1.3 / 2.1 / 3.1); #140 is 1.1 must-ship
+- Updated `tools/corpus/README.md` + roadmap corpus policy
+
+Next:
+Implement #140 when starting Local AI / deeper search work — not before Up next if polishing first.
 

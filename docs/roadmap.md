@@ -211,6 +211,18 @@ Must-ship (board):
 
 When closing a versioned milestone: update `docs/release-notes.md` and publish the GitHub Release (see `.cursor/rules/close-out-milestone.mdc`).
 
+### Test corpus (keep fixtures in sync)
+
+Regenerable corpus via `tools/corpus/` — **outside the repo**, never personal Documents as the official set. Each capability milestone that needs new fixture kinds has a **Corpus:** companion with **expected-hit** checks (query → these paths must appear, else fail). See [tools/corpus/README.md](../tools/corpus/README.md).
+
+| Milestone | Corpus issue |
+|-----------|----------------|
+| v1.1 | #140 content + RAG/semantic/classic eval pack (**must-ship**) |
+| v1.2 | #141 image/OCR fixtures |
+| v1.3 | #142 Search UX fixtures |
+| v2.1 | #143 move/rename reconcile fixtures |
+| v3.1 | #144 AV speech fixtures (after research go) |
+
 ---
 
 ## Era 1.x — Find
@@ -225,16 +237,16 @@ Quick ships between numbered releases: #136 exe identity, #116 reset window, #12
 
 RAG answers + citations; guided Ollama setup (no terminal).
 
-- **Must-ship:** #70, #71, #72, #133, #75
+- **Must-ship:** #70, #71, #72, #133, #75, **#140** corpus eval pack
 - **Stretch:** #73 conversation history, #74 better prompts, #99 chat model pick (after core RAG)
 
 ### Version 1.2.0 — Images
 
-OCR / screenshot search. #76–#79.
+OCR / screenshot search. #76–#79 + **#141** corpus images.
 
 ### Version 1.3.0 — Search UX
 
-#81 history + idle cards, #117 zero-hit recovery, #129 snippets, #132 preview research→build, #139 user excludes.
+#81 history + idle cards, #117 zero-hit recovery, #129 snippets, #132 preview research→build, #139 user excludes, **#142** corpus UX fixtures.
 
 ---
 
@@ -244,7 +256,7 @@ Confirm-gated writes; index stays honest.
 
 ### Version 2.1.0 — Actions + reconcile
 
-#104 confirm move/rename, #134 reconcile external moves.
+#104 confirm move/rename, #134 reconcile external moves, **#143** corpus fixtures.
 
 ### Version 2.2.0 — Suggest organize
 
@@ -258,7 +270,7 @@ New kinds of understanding — **research-gated** (no fake implementation commit
 
 ### Version 3.1.0 — Audio/video search
 
-#135 research → impl only after go (speech-first north star).
+#135 research → impl only after go; **#144** AV corpus fixtures after go.
 
 ### Version 3.2.0 — Connection map
 

@@ -1,30 +1,37 @@
-# Test corpus generator (v0.3)
+# Test corpus generator
 
-Regenerable control set for **filename indexing**, folder scan, and ignore rules (`#40`–`#46`).
+Regenerable **control set** for Meshen. The **generator** lives in this repo. **Generated files** are written **outside the project** (default: `%USERPROFILE%\Documents\Meshen-TestCorpus`) so indexing behaves like a normal user folder — never commit real personal docs or the generated tree to git.
 
-The **generator** lives in this repo. The **generated files** are written to your local machine **outside the project** so pointing Meshen at the corpus behaves like a normal user folder — not like indexing the repo (which could hide bugs or create false positives).
+## Policy (post-1.0)
 
-Later milestones should add sibling issues to extend this tool (real PDFs, Office docs, semantic stories, etc.). This version only writes **stub** files with realistic names/extensions — not parseable Office/PDF binaries.
+Each major product milestone that needs new fixture *kinds* gets a **Corpus:** companion issue. Test data must keep up with the app.
+
+| Milestone | Issue | Focus |
+|-----------|-------|--------|
+| v0.3 (done) | #113 | Filename stubs + ignore rules |
+| v1.1 Local AI | #140 | Real text bodies + classic/semantic/RAG **expected hits** |
+| v1.2 Images | #141 | OCR/description fixtures + expected hits |
+| v1.3 Search UX | #142 | Snippets, fuzzy/zero-hit, excludes |
+| v2.1 Actions | #143 | Move/rename reconcile |
+| v3.1 AV | #144 | Speech phrases → files (after research go) |
+
+### Expected-hit contract
+
+`manifest.json` must support control queries where we assert:
+
+- **must_include** — these relative paths must appear in results (the “these N files” bar)
+- optional **must_exclude** / **top_k**
+
+If a control search does not return the required files → **fail** (script or pytest). Same `--seed` → same tree and same expectations.
+
+Implement / harden that contract in **#140**; later corpus issues extend it.
 
 ## Generate
 
-From the repo root (Python 3; no extra deps):
+From the repo root (Python 3; no extra deps for the v0.3 stub generator):
 
 ```powershell
 python tools/corpus/generate.py
-```
-
-Default output (Windows):
-
-```text
-%USERPROFILE%\Documents\Meshen-TestCorpus
-```
-
-(macOS/Linux: `~/Documents/Meshen-TestCorpus`, or `~/Meshen-TestCorpus` if Documents is missing.)
-
-Useful flags:
-
-```powershell
 python tools/corpus/generate.py --seed 42 --clean
 python tools/corpus/generate.py --out D:\Other\Meshen-TestCorpus --clean
 ```
@@ -32,39 +39,30 @@ python tools/corpus/generate.py --out D:\Other\Meshen-TestCorpus --clean
 | Flag | Default | Meaning |
 |------|---------|---------|
 | `--out` | `Documents/Meshen-TestCorpus` | Corpus root (**outside** the repo) |
-| `--seed` | `42` | Deterministic filler; same seed → same tree |
+| `--seed` | `42` | Deterministic; same seed → same tree |
 | `--clean` | off | Delete `--out` before writing |
-
-Generated files are **not** committed to GitHub. Only this tool is.
 
 ## Point the app at it
 
-When folder pickers land (`#40`):
+1. Generate the corpus.
+2. In Meshen Settings, add **only** that corpus folder as an index root — **not** the git repo.
+3. Prefer asserting against `manifest.json` `files` / `expected_search` (treat `manifest.json` as test metadata, not a user doc).
 
-1. Generate the corpus (above).
-2. Add **only** `Documents\Meshen-TestCorpus` (absolute path) as an index root — do **not** add the AIDesktopSearch repo folder.
-3. Do **not** treat `manifest.json` as a user document — it is test metadata in the corpus root. Prefer asserting against the `files` list in the manifest (or ignore `manifest.json` by name in tests).
+## Manifest (today + direction)
 
-## Manifest
+Today (v0.3 / #113): `files[]`, `expected_search`, `control.invoice_paths` / `phoenix_paths`, `counts`.
 
-`<out>/manifest.json` includes:
+Target (from #140): richer bodies + explicit **must_include** lists per control query for classic, semantic, and RAG, plus an automated check that fails on miss.
 
-- `files[]` — relative `path`, `name`, `extension`, `size`, `tags`, `should_ignore`
-- `expected_search` — e.g. query `invoice` → paths whose **names** contain `invoice` and are not ignore-tagged
-- `control.invoice_paths` / `control.phoenix_paths` — fixed control lists for the milestone check (“Search Invoice finds invoice.pdf”)
-- `counts` — total / should_index / should_ignore
+## What’s in the tree (v0.3 stubs)
 
-Same `--seed` should produce the same relative paths and content (timestamps in `generated_at` will differ).
+- Nested projects, documents, code, images (stub), archives, logs, CSV/JSON/XML/HTML
+- Filename hits: `invoice.pdf`, `Invoice-Acme.pdf`, …
+- Ignore candidates: `.hidden/`, `node_modules/`, `.git/`, extensibility `IgnoreMe/`
 
-## What’s in the tree
+Stub files may use realistic extensions **without** real Office/PDF binaries until #140+.
 
-- Nested projects (`Projects/Phoenix/…`), documents, code, images, archives, logs, CSV/JSON/XML/HTML
-- Filename hits: `invoice.pdf`, `Invoice-Acme.pdf`, `phoenix-budget.xlsx`, …
-- Edge cases: `Empty/`, `Duplicates/`, `Unicode/` (incl. emoji), deep `Nested/a/b/c/d/e/`
-- Ignore candidates (`should_ignore: true` in the manifest):
-  - Default scanner: `.hidden/`, `node_modules/` (any depth), `.git/` — see `backend/indexer/ignore.py`
-  - Extensibility fixture: `IgnoreMe/` — not in defaults; pass `extra_skip_dirs=["IgnoreMe"]` (or add to `DEFAULT_SKIP_DIR_NAMES`) to exclude it
+## Out of scope
 
-## Out of scope (this milestone)
-
-Real PDF/DOCX/XLSX/PPTX bytes, OCR, emails, stress-size corpora, cross-format semantic story bodies. Add those when the matching product milestone needs them.
+- Personal Documents as the official fixture set
+- Committing generated corpus bytes to GitHub
