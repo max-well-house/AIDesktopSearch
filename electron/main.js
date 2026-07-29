@@ -43,7 +43,14 @@ const {
 const RENDERER_DEV_URL = process.env.ELECTRON_RENDERER_URL || 'http://127.0.0.1:5173'
 const LAUNCHER_SHORTCUT = 'Alt+Space'
 const LAUNCHER_SHORTCUT_FALLBACK = 'Control+Shift+Space'
-const ICON_PATH = path.join(__dirname, '..', 'resources', 'icon.ico')
+
+/** Packaged: next to app.asar via extraResources. Dev: repo resources/. */
+function getIconPath() {
+  if (app.isPackaged) {
+    return path.join(process.resourcesPath, 'icon.ico')
+  }
+  return path.join(__dirname, '..', 'resources', 'icon.ico')
+}
 
 let mainWindow = null
 let tray = null
@@ -339,8 +346,13 @@ function rebuildTrayMenu() {
 function createTray() {
   if (tray) return
 
-  const icon = nativeImage.createFromPath(ICON_PATH)
-  tray = new Tray(icon.isEmpty() ? ICON_PATH : icon)
+  const iconPath = getIconPath()
+  const icon = nativeImage.createFromPath(iconPath)
+  if (icon.isEmpty()) {
+    console.error('[tray] icon missing or empty at', iconPath)
+    return
+  }
+  tray = new Tray(icon)
   tray.setToolTip(appConfig.name)
   rebuildTrayMenu()
   tray.on('click', () => {
@@ -395,7 +407,7 @@ function createWindow({ show = true } = {}) {
       height: 32,
     },
     title: appConfig.name,
-    icon: ICON_PATH,
+    icon: getIconPath(),
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -464,7 +476,12 @@ app.whenReady().then(async () => {
   await ensureBackend()
   const startHidden = shouldStartHidden()
   createWindow({ show: !startHidden })
-  createTray()
+  // Shortcut must register even if tray icon fails — otherwise hide is one-way.
+  try {
+    createTray()
+  } catch (err) {
+    console.error('[tray] failed to create:', err)
+  }
   registerLauncherShortcut()
 
   if (startHidden) {

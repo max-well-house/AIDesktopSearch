@@ -15,9 +15,11 @@ module.exports = {
   },
   files: ['electron/**/*', 'frontend/dist/**/*', 'app.config.json', 'package.json'],
   // Staged by scripts/stage-backend-runtime.js (#111) — FastAPI sidecar, no developer .venv.
+  // icon.ico must be outside asar — Tray cannot load icons from inside app.asar on Windows.
   extraResources: [
     { from: '.packaging/backend', to: 'backend' },
     { from: '.packaging/runtime', to: 'runtime' },
+    { from: 'resources/icon.ico', to: 'icon.ico' },
   ],
   win: {
     icon: 'resources/icon.ico',

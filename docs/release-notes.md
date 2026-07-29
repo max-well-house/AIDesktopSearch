@@ -1,5 +1,17 @@
 # Release notes
 
+## v1.0.2 — Tray packaging fix
+
+Critical fix for the Windows portable build.
+
+- **System tray** works again in packaged builds — `icon.ico` is now shipped via `extraResources` (it was missing from 1.0.1, so tray creation failed and Alt+Space hide became one-way)
+- Shortcut registration no longer depends on tray succeeding
+
+### Docs
+
+- [Installation](./install.md)
+- [User guide](./user-guide.md)
+
 ## v1.0.1 — Hotfix
 
 Patch release for the Windows portable build.
