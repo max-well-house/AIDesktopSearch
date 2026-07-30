@@ -4,6 +4,8 @@ Long-term work lives on **GitHub milestones by era** (see [roadmap.md](./roadmap
 
 | Idea | Issue | Home |
 |------|-------|------|
+| Settings declutter | #145 | Up next (1.0.5-class) |
+| First-run empty state (zero roots) | #146 | Up next (1.0.5-class) |
 | User-defined excludes | #139 | v1.3 |
 | Search history + idle cards | #81 | v1.3 |
 | Guided Ollama setup | #133 | v1.1 |

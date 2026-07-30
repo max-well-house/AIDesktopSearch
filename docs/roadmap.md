@@ -233,7 +233,7 @@ Same product as 1.0: local files, search-first, AI optional.
 
 **Shipped in 1.0.3:** #136 exe identity, #116 reset window, #128 supported types.  
 **Shipped in 1.0.4:** #137 check for updates, #138 custom shortcut, #119 dismissible banners.  
-Up next milestone is drained — next Find work is **v1.1 Local AI**.
+**Queued for 1.0.5-class:** #145 Settings declutter, #146 first-run empty state (zero-roots Add folder CTA).
 
 
 ### Version 1.1.0 — Local AI

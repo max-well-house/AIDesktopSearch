@@ -7,7 +7,7 @@ Meshen is a local desktop search app. You do not need to clone the repo or creat
 
 ## Get the app
 
-1. Download the Windows portable build from the [GitHub Releases](https://github.com/max-well-house/AIDesktopSearch/releases) page (`Meshen 1.0.4.exe`, or the current `Meshen <version>.exe`).
+1. Download the Windows portable build from the [GitHub Releases](https://github.com/max-well-house/AIDesktopSearch/releases) page (`Meshen 1.0.4.exe` / `Meshen.1.0.4.exe`, or the current `Meshen <version>.exe` — GitHub may replace spaces in the asset name with dots).
 2. Put it somewhere you can find (e.g. Desktop or a tools folder). No installer required.
 3. Double-click to run.
 

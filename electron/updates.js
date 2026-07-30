@@ -26,9 +26,10 @@ function compareSemver(a, b) {
 
 function pickMeshenExeAsset(assets) {
   if (!Array.isArray(assets)) return null
+  // GitHub may sanitize spaces in asset names (`Meshen 1.0.4.exe` → `Meshen.1.0.4.exe`).
   const hit = assets.find((asset) => {
     const name = String(asset?.name || '')
-    return /^Meshen .+\.exe$/i.test(name) || /^Meshen[- ].*\.exe$/i.test(name)
+    return /^Meshen[\s._-].+\.exe$/i.test(name)
   })
   return hit?.browser_download_url || null
 }
