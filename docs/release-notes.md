@@ -1,5 +1,19 @@
 # Release notes
 
+## v1.0.3 — Identity + Settings polish
+
+Patch release for the Windows portable build.
+
+- **Shorter Windows identity** — portable artifact stays `Meshen <version>.exe`; File description is **Desktop search**; company **Meshen** (#136)
+- **Tray → Reset window size** — restore default 720×480 without Quit (#116)
+- **Supported types** documented in Settings / add-folder — content search for TXT, Markdown, DOCX, PDF; other files filename-only (#128)
+
+### Docs
+
+- [Installation](./install.md)
+- [User guide](./user-guide.md)
+- [Brand identity fields](./brand/README.md)
+
 ## v1.0.2 — Tray packaging fix
 
 Critical fix for the Windows portable build.

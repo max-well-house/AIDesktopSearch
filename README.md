@@ -10,7 +10,7 @@ Local-first desktop search that finds your files by meaning and keyword.
 
 ![Launcher searching](docs/screenshots/launcher-searching.png)
 
-Tray: left-click show/hide; right-click for Show, Start with Windows, and Quit. Escape dismisses and clears; Alt+Space toggles and keeps the query.
+Tray: left-click show/hide; right-click for Show, Start with Windows, Reset window size, and Quit. Escape dismisses and clears; Alt+Space toggles and keeps the query.
 
 ## For users
 
@@ -52,7 +52,7 @@ React → Electron (IPC) → FastAPI → Electron → React
 1. Launcher opens with the search field focused — type a filename substring (classic search; no Ollama required).
 2. Top-right mark opens **Settings** — add / rescan / remove opt-in folder roots, preferences, plus backend / Ollama health under Details.
 3. **Alt+Space** show/focus (falls back to **Ctrl+Shift+Space** if Alt+Space is taken). Remapping later via Settings.
-4. Tray: left-click show/hide; right-click Show, optional **Start with Windows**, Quit. Window size sticks for the session; **Quit** resets to the default size next launch.
+4. Tray: left-click show/hide; right-click Show, optional **Start with Windows**, **Reset window size**, Quit. Window size sticks for the session; **Reset window size** or **Quit** (next cold start) restores the default.
 5. Quit Electron → if Electron spawned the backend, port 8000 should be free again.
 
 ### Optional: manual uvicorn (debug / hot reload)

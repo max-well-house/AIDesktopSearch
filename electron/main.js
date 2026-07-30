@@ -312,6 +312,37 @@ function setOpenAtLogin(enabled) {
   app.setLoginItemSettings(loginItemOptions(enabled))
 }
 
+function resetWindowSize() {
+  if (!mainWindow || mainWindow.isDestroyed()) {
+    createWindow()
+    return
+  }
+  // Caption maximize / fullscreen must clear before setBounds sticks on Windows.
+  if (mainWindow.isFullScreen()) {
+    mainWindow.setFullScreen(false)
+  }
+  if (mainWindow.isMaximized()) {
+    mainWindow.unmaximize()
+  }
+
+  const { width, height } = DEFAULT_BOUNDS
+  const display = screen.getDisplayMatching(mainWindow.getBounds())
+  const area = display.workArea
+  const bounds = {
+    width,
+    height,
+    x: Math.round(area.x + (area.width - width) / 2),
+    y: Math.round(area.y + (area.height - height) / 2),
+  }
+
+  // Defer one tick so unmaximize/fullscreen settle before applying defaults.
+  setImmediate(() => {
+    if (!mainWindow || mainWindow.isDestroyed()) return
+    mainWindow.setBounds(bounds)
+    showLauncher()
+  })
+}
+
 function rebuildTrayMenu() {
   if (!tray) return
 
@@ -330,6 +361,10 @@ function rebuildTrayMenu() {
           // Rebuild so checked state is re-read with matching path/args.
           rebuildTrayMenu()
         },
+      },
+      {
+        label: 'Reset window size',
+        click: () => resetWindowSize(),
       },
       { type: 'separator' },
       {

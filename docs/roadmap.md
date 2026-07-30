@@ -231,7 +231,7 @@ Same product as 1.0: local files, search-first, AI optional.
 
 ### Up next (1.0.x polish)
 
-Quick ships between numbered releases: #136 exe identity, #116 reset window, #128 supported types, #119 dismissible banners, #137 check for updates, #138 custom shortcut.
+Quick ships between numbered releases. **Shipped in 1.0.3:** #136 exe identity, #116 reset window, #128 supported types. Still open: #119 dismissible banners, #137 check for updates, #138 custom shortcut.
 
 ### Version 1.1.0 — Local AI
 

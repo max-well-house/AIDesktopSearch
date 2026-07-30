@@ -1,7 +1,7 @@
 {
   "name": "aidesktopsearch",
-  "version": "1.0.2",
-  "description": "Local-first desktop search that finds files by meaning and keyword",
+  "version": "1.0.3",
+  "description": "Desktop search",
   "keywords": [
     "electron",
     "desktop",
@@ -18,7 +18,7 @@
     "url": "git+https://github.com/max-well-house/AIDesktopSearch.git"
   },
   "license": "ISC",
-  "author": "Max Wallace",
+  "author": "Meshen",
   "type": "commonjs",
   "main": "electron/main.js",
   "scripts": {
@@ -45,6 +45,7 @@
     "electron": "^43.1.1",
     "electron-builder": "^26.15.3",
     "png-to-ico": "^3.0.2",
+    "rcedit": "^5.0.2",
     "vite": "^7.1.2",
     "wait-on": "^8.0.5"
   },

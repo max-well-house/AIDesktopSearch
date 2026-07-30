@@ -14,7 +14,9 @@ const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'))
 
 pkg.name = config.slug || pkg.name
 pkg.version = config.version
-pkg.description = config.description
+// Portable NSIS File description comes from package.json description — use the short
+// fileDescription when set. Keep app.config.json `description` as the longer pitch.
+pkg.description = config.fileDescription || config.description
 pkg.author = config.company
 
 fs.writeFileSync(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`)

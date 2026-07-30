@@ -10,9 +10,10 @@ Daily use of Meshen on Windows. For download/setup, see [install.md](./install.m
 | **Alt+Space** | Show / focus (falls back to **Ctrl+Shift+Space** if Alt+Space is taken) |
 | **Escape** | Dismiss launcher and clear the query; app stays in the tray |
 | Tray left-click | Show / hide (keeps the query) |
+| Tray → Reset window size | Restore default 720×480 and center (no Quit) |
 | Tray → Quit | Exit app and stop the owned backend |
 
-Window size sticks for the session; **Quit** resets to the default size next cold start.
+Window size sticks for the session. **Tray → Reset window size** restores 720×480 without quitting; **Quit** still cold-starts at the default next launch.
 
 ## Search
 
@@ -30,7 +31,7 @@ Open via the top-right **AppMark** (tooltip: Settings).
 
 | Area | What you can do |
 |------|------------------|
-| Folders | Add / rescan / remove opt-in roots only — nothing is indexed until you choose it |
+| Folders | Add / rescan / remove opt-in roots only — nothing is indexed until you choose it. Content search covers TXT, Markdown, DOCX, PDF; other files are filename-only; hidden / junk dirs are skipped |
 | Auto-watch | Per-root toggle: watch for changes vs scan-only |
 | Start with Windows | Launch at login (also on the tray menu) |
 | Prefer semantic | Footer / routing preference when meaning search is available |

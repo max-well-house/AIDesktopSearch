@@ -11,6 +11,10 @@ import Box from '@mui/material/Box'
 import AppMark from './brand/AppMark'
 import { colors } from '../theme'
 import appConfig from '@app-config'
+import {
+  ADD_FOLDER_TYPES_NOTE,
+  CONTENT_TYPES_CAPTION,
+} from '../supportedContentTypes'
 
 function formatCheckedAt(iso) {
   if (!iso) return null
@@ -631,6 +635,10 @@ export default function Settings({ onBack }) {
             embeddings follow in the background (Pause if the machine bogs down).
           </Typography>
 
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
+            {CONTENT_TYPES_CAPTION}
+          </Typography>
+
           <Typography
             variant="subtitle2"
             sx={{ mb: 1, color: colors.textPrimary, fontWeight: 600 }}
@@ -761,6 +769,9 @@ export default function Settings({ onBack }) {
               </Button>
             ) : null}
           </Box>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+            {ADD_FOLDER_TYPES_NOTE}
+          </Typography>
           {corpusMessage ? (
             <Typography
               variant="body2"

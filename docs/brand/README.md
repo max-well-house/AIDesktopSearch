@@ -23,4 +23,15 @@ Regenerate after changing the source mark:
 npm run icons
 ```
 
-**Product name / company / version** live in root `app.config.json` — not in these files.
+**Product identity** lives in root `app.config.json` (not in these image files):
+
+| Field | Controls |
+|-------|----------|
+| `name` | Display / product name (`Meshen`); portable artifact `Meshen <version>.exe` |
+| `company` | Windows CompanyName + copyright |
+| `fileDescription` | Windows File description (short). Synced into `package.json` description for the **portable** NSIS wrapper; also applied to unpacked `Meshen.exe` via `afterSign` + rcedit. **Never** rcedit the sealed portable `.exe` (NSIS integrity check fails). |
+| `version` | Semver; also shown in Settings — not required in the Explorer description |
+| `description` | Longer product pitch in `app.config.json`; not what Explorer shows when `fileDescription` is set |
+| `appId` | electron-builder app id (do not change lightly) |
+
+Upload GitHub Release assets as the builder emits them (`Meshen <version>.exe`) — do not rename with a `-windows-portable` suffix.

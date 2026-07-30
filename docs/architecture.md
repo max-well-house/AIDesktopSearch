@@ -62,7 +62,7 @@ Override project root with `AIDESKTOP_ROOT` when the working directory is unusua
 | Built in-repo | `npm start` | `frontend/dist` via `loadFile` | Electron attach or spawn project `.venv` |
 | Packaged | `npm run package` / `package:portable` | asar `frontend/dist` | Attach, or spawn staged runtime under `resources/` (Decision #009) |
 
-Packaging: electron-builder → `release/win-unpacked/` or portable `release/<productName> <version>.exe`. Config: `electron-builder.config.js` (reads `app.config.json`). `extraResources` ships staged `backend/` + `runtime/` from `.packaging/` (#111 / Decision #009). Packaged `AIDESKTOP_DB` → Electron `userData/index.db`.
+Packaging: electron-builder → `release/win-unpacked/` or portable `release/<productName> <version>.exe` (e.g. `Meshen 1.0.3.exe`). Config: `electron-builder.config.js` (reads `app.config.json`). Identity: `name` → product/artifact, `company` → CompanyName/copyright, `fileDescription` → Windows File description (`package.json` description for the portable NSIS stub; `afterSign` + rcedit for unpacked `Meshen.exe` only — do **not** rcedit the sealed portable or NSIS integrity fails). `extraResources` ships staged `backend/` + `runtime/` from `.packaging/` (#111 / Decision #009). Packaged `AIDESKTOP_DB` → Electron `userData/index.db`.
 
 ---
 
@@ -179,9 +179,9 @@ AIDesktopSearch/
 
 **Escape (#33):** Dismiss — main sends `launcher:dismiss`; renderer `flushSync`-clears/remounts the search box, paints one frame, then hides. Next Alt+Space shows at opacity 0, scrubs again, then opacity 1 so reopen never flashes stale text. App stays running in the tray.
 
-**System tray (#34 / #35):** `Tray` in `electron/main.js` with `resources/icon.ico`. Left-click toggles show/hide (keep query). Context menu: Show, **Start with Windows** (checkbox via `app.setLoginItemSettings` / `openAsHidden`), Quit. Window close (X) hides to tray; only Quit (or `app.quit`) exits and stops the backend. Login / `--hidden` starts with the window hidden (tray + Alt+Space ready). Works best when packaged; unpackaged registers the Electron binary with the app path and `--hidden`.
+**System tray (#34 / #35 / #116):** `Tray` in `electron/main.js` with `resources/icon.ico`. Left-click toggles show/hide (keep query). Context menu: Show, **Start with Windows** (checkbox via `app.setLoginItemSettings` / `openAsHidden`), **Reset window size** (720×480 + center, no Quit), Quit. Window close (X) hides to tray; only Quit (or `app.quit`) exits and stops the backend. Login / `--hidden` starts with the window hidden (tray + Alt+Space ready). Works best when packaged; unpackaged registers the Electron binary with the app path and `--hidden`.
 
-**Window size (#36):** Session-only. Esc / Alt+Space / tray hide keep the live window size; tray Quit (cold start) resets to 720×480 (min 480×360). No cross-session file.
+**Window size (#36 / #116):** Session-only. Esc / Alt+Space / tray hide keep the live window size; tray **Reset window size** restores 720×480 + center without quitting; tray Quit (cold start) also resets to 720×480 (min 480×360). No cross-session file.
 
 **Packaged FastAPI (#111 / Decision #009):** Staged Windows venv + backend sources in `extraResources`; Electron spawns uvicorn from `process.resourcesPath`. GPU detection shipped (#112).
 
