@@ -1,5 +1,18 @@
 # Release notes
 
+## v1.0.4 — Updates, shortcut, status banner
+
+Patch release for the Windows portable build.
+
+- **Check for updates** in Settings — compares to GitHub Releases; opens the release/download page (no silent overwrite) (#137)
+- **Custom launcher shortcut** in Settings — change or reset; conflict feedback; persists across restarts (#138)
+- **Dismissible status banner** on the launcher for search/open failures and index/embed warnings (#119)
+
+### Docs
+
+- [Installation](./install.md)
+- [User guide](./user-guide.md)
+
 ## v1.0.3 — Identity + Settings polish
 
 Patch release for the Windows portable build.

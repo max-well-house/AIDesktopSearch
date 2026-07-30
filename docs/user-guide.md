@@ -7,13 +7,24 @@ Daily use of Meshen on Windows. For download/setup, see [install.md](./install.m
 | Action | Result |
 |--------|--------|
 | Start the portable exe | Launcher opens (or stays in tray if started hidden with Windows) |
-| **Alt+Space** | Show / focus (falls back to **Ctrl+Shift+Space** if Alt+Space is taken) |
+| **Launcher shortcut** (default **Alt+Space**) | Show / focus. Change or reset in Settings → Preferences. Falls back to **Ctrl+Shift+Space** if registration fails |
 | **Escape** | Dismiss launcher and clear the query; app stays in the tray |
 | Tray left-click | Show / hide (keeps the query) |
 | Tray → Reset window size | Restore default 720×480 and center (no Quit) |
 | Tray → Quit | Exit app and stop the owned backend |
 
 Window size sticks for the session. **Tray → Reset window size** restores 720×480 without quitting; **Quit** still cold-starts at the default next launch.
+
+## Status banner
+
+One dismissible strip on the launcher (explicit **×**). It is not a notification inbox.
+
+| Shown for | Not shown for |
+|-----------|----------------|
+| Search failure, open-file failure | Soft per-file extract warnings |
+| Live watch paused; last embedding error | Routine progress / success toasts |
+
+Settings → Details remains the place for full diagnostics.
 
 ## Search
 
@@ -34,11 +45,12 @@ Open via the top-right **AppMark** (tooltip: Settings).
 | Folders | Add / rescan / remove opt-in roots only — nothing is indexed until you choose it. Content search covers TXT, Markdown, DOCX, PDF; other files are filename-only; hidden / junk dirs are skipped |
 | Auto-watch | Per-root toggle: watch for changes vs scan-only |
 | Start with Windows | Launch at login (also on the tray menu) |
+| Launcher shortcut | View / change / reset to **Alt+Space**; conflicts show as an error in Settings |
 | Prefer semantic | Footer / routing preference when meaning search is available |
 | Pause / Resume | Shown while the embedding queue is active (or paused) |
 | Privacy | Wipe the search index (recreates `index.db`; your original files are untouched) |
 | Details | Lab health: API, Ollama, GPU, vector store, embed model |
-| Version | Product name + version at the bottom of Settings |
+| Version / updates | Product name + version; **Check for updates** opens the GitHub release (download and replace the portable yourself — Quit first) |
 
 ## Footer lights
 

@@ -29,6 +29,19 @@ contextBridge.exposeInMainWorld('api', {
     return () =>
       ipcRenderer.removeListener('prefs:prefer-semantic-changed', handler)
   },
+  checkForUpdates: () => ipcRenderer.invoke('updates:check'),
+  openExternal: (url) => ipcRenderer.invoke('shell:open-external', url),
+  getLauncherShortcut: () => ipcRenderer.invoke('prefs:get-launcher-shortcut'),
+  setLauncherShortcut: (accelerator) =>
+    ipcRenderer.invoke('prefs:set-launcher-shortcut', accelerator),
+  resetLauncherShortcut: () =>
+    ipcRenderer.invoke('prefs:reset-launcher-shortcut'),
+  onLauncherShortcutChanged: (callback) => {
+    const handler = (_event, accelerator) => callback(accelerator)
+    ipcRenderer.on('prefs:launcher-shortcut-changed', handler)
+    return () =>
+      ipcRenderer.removeListener('prefs:launcher-shortcut-changed', handler)
+  },
   hideLauncher: (opts) => ipcRenderer.invoke('launcher:hide', opts),
   notifyShowPrepared: () => ipcRenderer.invoke('launcher:show-prepared'),
   onDismiss: (callback) => {

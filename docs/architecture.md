@@ -62,7 +62,8 @@ Override project root with `AIDESKTOP_ROOT` when the working directory is unusua
 | Built in-repo | `npm start` | `frontend/dist` via `loadFile` | Electron attach or spawn project `.venv` |
 | Packaged | `npm run package` / `package:portable` | asar `frontend/dist` | Attach, or spawn staged runtime under `resources/` (Decision #009) |
 
-Packaging: electron-builder → `release/win-unpacked/` or portable `release/<productName> <version>.exe` (e.g. `Meshen 1.0.3.exe`). Config: `electron-builder.config.js` (reads `app.config.json`). Identity: `name` → product/artifact, `company` → CompanyName/copyright, `fileDescription` → Windows File description (`package.json` description for the portable NSIS stub; `afterSign` + rcedit for unpacked `Meshen.exe` only — do **not** rcedit the sealed portable or NSIS integrity fails). `extraResources` ships staged `backend/` + `runtime/` from `.packaging/` (#111 / Decision #009). Packaged `AIDESKTOP_DB` → Electron `userData/index.db`.
+Packaging: electron-builder → `release/win-unpacked/` or portable `release/<productName> <version>.exe` (e.g. `Meshen 1.0.4.exe`). Config: `electron-builder.config.js` (reads `app.config.json`). Identity: `name` → product/artifact, `company` → CompanyName/copyright, `fileDescription` → Windows File description (`package.json` description for the portable NSIS stub; `afterSign` + rcedit for unpacked `Meshen.exe` only — do **not** rcedit the sealed portable or NSIS integrity fails). Updates: Settings checks GitHub Releases (`electron/updates.js`) and opens the browser — no silent overwrite (#137). `extraResources` ships staged `backend/` + `runtime/` from `.packaging/` (#111 / Decision #009). Packaged `AIDESKTOP_DB` → Electron `userData/index.db`.
+
 
 ---
 
@@ -175,7 +176,7 @@ AIDesktopSearch/
 
 **In place (v0.2.0):** native window, React + Material UI launcher (mosaic idle), hot reload, electron-builder packaging, System Status over IPC, Electron-managed FastAPI lifecycle (#96), Alt+Space toggle, Escape dismiss, system tray, Start with Windows, session window size.
 
-**Global shortcut (#30 / #33):** `Alt+Space` toggles the launcher (`Control+Shift+Space` if registration fails). When focused → hide and **keep** the query (pause). Otherwise → show/focus. Registered in `electron/main.js` via Electron `globalShortcut`; cleared on `will-quit`. Remapping belongs with Settings (#80).
+**Global shortcut (#30 / #33 / #138):** Default `Alt+Space` toggles the launcher (`Control+Shift+Space` if registration fails). User can change or reset in Settings (persisted in `prefs.json`). When focused → hide and **keep** the query (pause). Otherwise → show/focus. Registered in `electron/main.js` via Electron `globalShortcut`; cleared on `will-quit`. Windows Alt+Space system-menu handler only when the active shortcut is still Alt+Space.
 
 **Escape (#33):** Dismiss — main sends `launcher:dismiss`; renderer `flushSync`-clears/remounts the search box, paints one frame, then hides. Next Alt+Space shows at opacity 0, scrubs again, then opacity 1 so reopen never flashes stale text. App stays running in the tray.
 

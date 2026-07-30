@@ -7,7 +7,7 @@ Meshen is a local desktop search app. You do not need to clone the repo or creat
 
 ## Get the app
 
-1. Download the Windows portable build from the [GitHub Releases](https://github.com/max-well-house/AIDesktopSearch/releases) page (`Meshen 1.0.3.exe`, or the current `Meshen <version>.exe`).
+1. Download the Windows portable build from the [GitHub Releases](https://github.com/max-well-house/AIDesktopSearch/releases) page (`Meshen 1.0.4.exe`, or the current `Meshen <version>.exe`).
 2. Put it somewhere you can find (e.g. Desktop or a tools folder). No installer required.
 3. Double-click to run.
 
@@ -52,7 +52,7 @@ Ollama is never bundled with Meshen and is never required for basic search.
 | Problem | What to try |
 |---------|-------------|
 | Backend offline / Settings empty | Quit via tray and relaunch the portable exe. Re-download if the build is corrupt. |
-| Alt+Space does nothing | Another app may own the hotkey. Meshen falls back to **Ctrl+Shift+Space**. |
+| Alt+Space does nothing | Another app may own the hotkey. Change the shortcut in Settings, or use the **Ctrl+Shift+Space** fallback. |
 | Semantic never goes green | Install/start Ollama, `ollama pull nomic-embed-text`, add/rescan folders, wait for embed queue (Pause if the machine is busy). |
 | SmartScreen / antivirus warning | Portable Electron builds are often unsigned; allow the file if you trust the source. |
 

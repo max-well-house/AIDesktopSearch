@@ -1,13 +1,16 @@
 /**
- * Tiny JSON prefs in Electron userData (Wave 2 #120).
+ * Tiny JSON prefs in Electron userData.
  * Keep keys small; open-at-login stays on Electron login-item APIs.
  */
 const fs = require('node:fs')
 const path = require('node:path')
 const { app } = require('electron')
 
+const DEFAULT_LAUNCHER_SHORTCUT = 'Alt+Space'
+
 const DEFAULTS = {
   preferSemanticSearch: true,
+  launcherShortcut: DEFAULT_LAUNCHER_SHORTCUT,
 }
 
 function prefsPath() {
@@ -41,7 +44,23 @@ function setPreferSemanticSearch(enabled) {
   return writePrefs({ preferSemanticSearch: Boolean(enabled) }).preferSemanticSearch
 }
 
+function getLauncherShortcut() {
+  const value = readPrefs().launcherShortcut
+  return typeof value === 'string' && value.trim() ? value.trim() : DEFAULT_LAUNCHER_SHORTCUT
+}
+
+function setLauncherShortcut(accelerator) {
+  const next =
+    typeof accelerator === 'string' && accelerator.trim()
+      ? accelerator.trim()
+      : DEFAULT_LAUNCHER_SHORTCUT
+  return writePrefs({ launcherShortcut: next }).launcherShortcut
+}
+
 module.exports = {
+  DEFAULT_LAUNCHER_SHORTCUT,
   getPreferSemanticSearch,
   setPreferSemanticSearch,
+  getLauncherShortcut,
+  setLauncherShortcut,
 }

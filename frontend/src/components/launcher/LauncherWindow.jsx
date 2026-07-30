@@ -9,9 +9,11 @@ import MosaicCanvas from './MosaicCanvas'
 import EmptyState from './EmptyState'
 import ResultsList, { resultOptionId } from './ResultsList'
 import Footer from './Footer'
+import StatusBanner from './StatusBanner'
 import AppMark from '../brand/AppMark'
 import { colors } from '../../theme'
 import appConfig from '@app-config'
+import { DEFAULT_LAUNCHER_SHORTCUT_LABEL } from '../../shortcutAccelerator'
 
 const SEARCH_DEBOUNCE_MS = 200
 /** Light status poll while a query is open — refresh hits when the index fingerprint changes (v0.4). */
@@ -60,13 +62,32 @@ export default function LauncherWindow({ onOpenSettings, settingsOpen = false })
   const [hits, setHits] = useState([])
   const [status, setStatus] = useState('idle')
   const [selectedIndex, setSelectedIndex] = useState(0)
-  const [openError, setOpenError] = useState(null)
+  const [launcherShortcut, setLauncherShortcut] = useState(DEFAULT_LAUNCHER_SHORTCUT_LABEL)
+  const [banner, setBanner] = useState(null)
+  const dismissedBannerIdsRef = useRef(new Set())
   const isIdle = query.trim().length === 0
 
   hitsRef.current = hits
   selectedIndexRef.current = selectedIndex
   preferSemanticRef.current = preferSemantic
   settingsOpenRef.current = settingsOpen
+
+  function showBanner(id, message, tone = 'error') {
+    if (!message) return
+    if (dismissedBannerIdsRef.current.has(id)) return
+    setBanner({ id, message, tone })
+  }
+
+  function dismissBanner() {
+    if (banner?.id) {
+      dismissedBannerIdsRef.current.add(banner.id)
+    }
+    setBanner(null)
+  }
+
+  function clearBannerDismissal(id) {
+    dismissedBannerIdsRef.current.delete(id)
+  }
 
   function deriveSemanticFooter(data, prefer) {
     if (!prefer) {
@@ -114,6 +135,30 @@ export default function LauncherWindow({ onOpenSettings, settingsOpen = false })
     setIndexSnapshot(data)
     setSemanticFooter(deriveSemanticFooter(data, preferSemanticRef.current))
     indexFpRef.current = indexFingerprint(data)
+
+    // Index / embed attention path (#119) — one warning, dismissible for the session.
+    if (data.embed_last_error) {
+      showBanner(
+        'index-embed-error',
+        `Embedding needs attention: ${String(data.embed_last_error).slice(0, 120)}`,
+        'warning',
+      )
+    } else if (data.watch_paused) {
+      clearBannerDismissal('index-embed-error')
+      showBanner(
+        'index-watch-paused',
+        'Live watching is paused — the index may fall behind until you resume in Settings.',
+        'warning',
+      )
+    } else {
+      clearBannerDismissal('index-embed-error')
+      clearBannerDismissal('index-watch-paused')
+      setBanner((prev) =>
+        prev?.id === 'index-embed-error' || prev?.id === 'index-watch-paused'
+          ? null
+          : prev,
+      )
+    }
   }
 
   async function runSearch(q, { resetSelection, isCancelled } = {}) {
@@ -121,6 +166,8 @@ export default function LauncherWindow({ onOpenSettings, settingsOpen = false })
       if (isCancelled?.()) return
       setHits([])
       setStatus('error')
+      clearBannerDismissal('search-error')
+      showBanner('search-error', 'Search unavailable — backend did not respond.', 'error')
       return
     }
     const result = await window.api.search(q, undefined, 'auto')
@@ -129,8 +176,16 @@ export default function LauncherWindow({ onOpenSettings, settingsOpen = false })
       setHits([])
       setStatus('error')
       setSelectedIndex(0)
+      clearBannerDismissal('search-error')
+      showBanner(
+        'search-error',
+        result.error || 'Search unavailable — try again in a moment.',
+        'error',
+      )
       return
     }
+    clearBannerDismissal('search-error')
+    setBanner((prev) => (prev?.id === 'search-error' ? null : prev))
     const next = result.data?.results ?? []
     if (resetSelection) {
       setHits(next)
@@ -167,10 +222,23 @@ export default function LauncherWindow({ onOpenSettings, settingsOpen = false })
     const unsubPrefer = window.api?.onPreferSemanticChanged?.((enabled) => {
       setPreferSemantic(enabled)
     })
+    async function loadShortcut() {
+      if (!window.api?.getLauncherShortcut) return
+      const result = await window.api.getLauncherShortcut()
+      if (cancelled || !result?.ok) return
+      setLauncherShortcut(
+        result.accelerator || result.preferred || DEFAULT_LAUNCHER_SHORTCUT_LABEL,
+      )
+    }
+    void loadShortcut()
+    const unsubShortcut = window.api?.onLauncherShortcutChanged?.((accel) => {
+      setLauncherShortcut(accel || DEFAULT_LAUNCHER_SHORTCUT_LABEL)
+    })
     return () => {
       cancelled = true
       clearInterval(idlePoll)
       unsubPrefer?.()
+      unsubShortcut?.()
     }
   }, [])
 
@@ -183,7 +251,6 @@ export default function LauncherWindow({ onOpenSettings, settingsOpen = false })
   // Debounced classic filename search (#43).
   useEffect(() => {
     const q = query.trim()
-    setOpenError(null)
     if (!q) {
       setHits([])
       setStatus('idle')
@@ -249,7 +316,6 @@ export default function LauncherWindow({ onOpenSettings, settingsOpen = false })
         setHits([])
         setStatus('idle')
         setSelectedIndex(0)
-        setOpenError(null)
       })
     }
 
@@ -280,16 +346,17 @@ export default function LauncherWindow({ onOpenSettings, settingsOpen = false })
   async function openHit(hit, index) {
     if (!hit?.path) return
     if (typeof index === 'number') setSelectedIndex(index)
-    setOpenError(null)
+    clearBannerDismissal('open-error')
+    setBanner((prev) => (prev?.id === 'open-error' ? null : prev))
 
     if (!window.api?.openPath) {
-      setOpenError('Open unavailable')
+      showBanner('open-error', 'Open unavailable', 'error')
       return
     }
 
     const result = await window.api.openPath(hit.path)
     if (!result.ok) {
-      setOpenError(result.error || 'Could not open file')
+      showBanner('open-error', result.error || 'Could not open file', 'error')
       return
     }
 
@@ -299,7 +366,6 @@ export default function LauncherWindow({ onOpenSettings, settingsOpen = false })
       setHits([])
       setStatus('idle')
       setSelectedIndex(0)
-      setOpenError(null)
     })
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
@@ -323,15 +389,16 @@ export default function LauncherWindow({ onOpenSettings, settingsOpen = false })
     }
   }
 
+  const toggleKeys = launcherShortcut || DEFAULT_LAUNCHER_SHORTCUT_LABEL
   const footerShortcuts = isIdle
     ? [
-        { keys: 'Alt+Space', action: 'Toggle' },
+        { keys: toggleKeys, action: 'Toggle' },
         { keys: 'Esc', action: 'Dismiss' },
       ]
     : [
         { keys: '↑↓', action: 'Select' },
         { keys: 'Enter', action: 'Open' },
-        { keys: 'Alt+Space', action: 'Toggle' },
+        { keys: toggleKeys, action: 'Toggle' },
         { keys: 'Esc', action: 'Dismiss' },
       ]
 
@@ -372,24 +439,21 @@ export default function LauncherWindow({ onOpenSettings, settingsOpen = false })
     )
   } else if (hits.length > 0) {
     resultsBody = (
-      <>
-        {openError ? (
-          <Typography
-            variant="body2"
-            sx={{ color: colors.textSecondary, px: 0.5, pb: 1 }}
-            role="alert"
-          >
-            {openError}
-          </Typography>
-        ) : null}
-        <ResultsList
-          hits={hits}
-          selectedIndex={selectedIndex}
-          onActivate={openHit}
-        />
-      </>
+      <ResultsList
+        hits={hits}
+        selectedIndex={selectedIndex}
+        onActivate={openHit}
+      />
     )
   }
+
+  const statusBanner = banner ? (
+    <StatusBanner
+      message={banner.message}
+      tone={banner.tone}
+      onDismiss={dismissBanner}
+    />
+  ) : null
 
   return (
     <Box
@@ -515,6 +579,19 @@ export default function LauncherWindow({ onOpenSettings, settingsOpen = false })
           {isIdle ? <EmptyState /> : null}
         </Box>
 
+        {isIdle ? (
+          <Box
+            sx={{
+              position: 'relative',
+              zIndex: 3,
+              px: { xs: 2, sm: 3 },
+              pt: 1,
+            }}
+          >
+            <Box sx={{ maxWidth: 720, mx: 'auto' }}>{statusBanner}</Box>
+          </Box>
+        ) : null}
+
         {!isIdle ? (
           <Box
             sx={{
@@ -527,7 +604,10 @@ export default function LauncherWindow({ onOpenSettings, settingsOpen = false })
             }}
             aria-live="polite"
           >
-            <Box sx={{ maxWidth: 720, mx: 'auto', pt: 1 }}>{resultsBody}</Box>
+            <Box sx={{ maxWidth: 720, mx: 'auto', pt: 1 }}>
+              {statusBanner}
+              {resultsBody}
+            </Box>
           </Box>
         ) : null}
       </Box>

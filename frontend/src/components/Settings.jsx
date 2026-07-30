@@ -15,6 +15,10 @@ import {
   ADD_FOLDER_TYPES_NOTE,
   CONTENT_TYPES_CAPTION,
 } from '../supportedContentTypes'
+import {
+  DEFAULT_LAUNCHER_SHORTCUT_LABEL,
+  eventToAccelerator,
+} from '../shortcutAccelerator'
 
 function formatCheckedAt(iso) {
   if (!iso) return null
@@ -128,6 +132,10 @@ export default function Settings({ onBack }) {
   const [preferSemantic, setPreferSemanticState] = useState(null)
   const [labMessage, setLabMessage] = useState(null)
   const [labTone, setLabTone] = useState('online')
+  const [updateInfo, setUpdateInfo] = useState(null)
+  const [updateBusy, setUpdateBusy] = useState(false)
+  const [launcherShortcut, setLauncherShortcutState] = useState(null)
+  const [shortcutCapturing, setShortcutCapturing] = useState(false)
 
   async function refreshIndexStatus() {
     if (!window.api?.getIndexStatus) return
@@ -161,7 +169,90 @@ export default function Settings({ onBack }) {
         if (result?.ok) setPreferSemanticState(Boolean(result.enabled))
       })
     }
+    if (window.api?.getLauncherShortcut) {
+      void window.api.getLauncherShortcut().then((result) => {
+        if (result?.ok) {
+          setLauncherShortcutState(
+            result.accelerator || result.preferred || DEFAULT_LAUNCHER_SHORTCUT_LABEL,
+          )
+        }
+      })
+    }
   }, [])
+
+  useEffect(() => {
+    if (!shortcutCapturing) return undefined
+    function onKeyDown(event) {
+      event.preventDefault()
+      event.stopPropagation()
+      const accel = eventToAccelerator(event)
+      if (!accel) return
+      setShortcutCapturing(false)
+      void applyLauncherShortcut(accel)
+    }
+    window.addEventListener('keydown', onKeyDown, true)
+    return () => window.removeEventListener('keydown', onKeyDown, true)
+  }, [shortcutCapturing])
+
+  async function applyLauncherShortcut(accelerator) {
+    if (!window.api?.setLauncherShortcut) {
+      setCorpusFeedback('error', 'Electron bridge missing for shortcut.')
+      return
+    }
+    setBusyKey('shortcut')
+    try {
+      const result = await window.api.setLauncherShortcut(accelerator)
+      if (result?.accelerator) {
+        setLauncherShortcutState(result.accelerator)
+      }
+      if (!result?.ok) {
+        setCorpusFeedback(
+          'error',
+          result?.error || `Could not register ${accelerator}`,
+        )
+        return
+      }
+      if (result.error) {
+        setCorpusFeedback('error', result.error)
+        return
+      }
+      setCorpusFeedback('online', `Launcher shortcut set to ${result.accelerator}.`)
+    } catch (err) {
+      setCorpusFeedback('error', err?.message || String(err))
+    } finally {
+      setBusyKey(null)
+    }
+  }
+
+  async function resetLauncherShortcut() {
+    if (!window.api?.resetLauncherShortcut) {
+      setCorpusFeedback('error', 'Electron bridge missing for shortcut reset.')
+      return
+    }
+    setShortcutCapturing(false)
+    setBusyKey('shortcut')
+    try {
+      const result = await window.api.resetLauncherShortcut()
+      if (result?.accelerator) {
+        setLauncherShortcutState(result.accelerator)
+      }
+      if (!result?.ok) {
+        setCorpusFeedback(
+          'error',
+          result?.error || 'Could not reset launcher shortcut',
+        )
+        return
+      }
+      setCorpusFeedback(
+        'online',
+        `Launcher shortcut reset to ${result.accelerator || DEFAULT_LAUNCHER_SHORTCUT_LABEL}.`,
+      )
+    } catch (err) {
+      setCorpusFeedback('error', err?.message || String(err))
+    } finally {
+      setBusyKey(null)
+    }
+  }
 
   async function toggleOpenAtLogin(next) {
     if (!window.api?.setOpenAtLogin) {
@@ -506,6 +597,48 @@ export default function Settings({ onBack }) {
     }
   }
 
+  async function runCheckForUpdates() {
+    if (!window.api?.checkForUpdates) {
+      setUpdateInfo({
+        status: 'error',
+        message: 'Electron bridge missing for update check.',
+      })
+      return
+    }
+    setUpdateBusy(true)
+    setUpdateInfo(null)
+    try {
+      const result = await window.api.checkForUpdates()
+      setUpdateInfo(result || { status: 'error', message: 'Update check failed.' })
+    } catch (err) {
+      setUpdateInfo({
+        status: 'error',
+        message: err?.message || String(err),
+      })
+    } finally {
+      setUpdateBusy(false)
+    }
+  }
+
+  async function openUpdateLink(url) {
+    if (!url || !window.api?.openExternal) return
+    try {
+      const result = await window.api.openExternal(url)
+      if (!result?.ok) {
+        setUpdateInfo((prev) => ({
+          ...(prev || {}),
+          status: 'error',
+          message: result?.error || 'Could not open link.',
+        }))
+      }
+    } catch (err) {
+      setUpdateInfo({
+        status: 'error',
+        message: err?.message || String(err),
+      })
+    }
+  }
+
   let apiLabel = 'Not checked'
   if (phase === 'loading') apiLabel = 'Checking...'
   if (phase === 'online') apiLabel = 'Online'
@@ -590,6 +723,39 @@ export default function Settings({ onBack }) {
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5, ml: 0 }}>
             Footer light only — does not change how search runs. Preferred on but not ready shows yellow.
           </Typography>
+
+          <Typography variant="body2" color="text.primary" sx={{ mb: 0.5 }}>
+            Launcher shortcut:{' '}
+            <Box component="span" sx={{ fontFamily: 'ui-monospace, monospace' }}>
+              {shortcutCapturing
+                ? 'Press a new combo…'
+                : launcherShortcut || DEFAULT_LAUNCHER_SHORTCUT_LABEL}
+            </Box>
+          </Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+            Default is {DEFAULT_LAUNCHER_SHORTCUT_LABEL}. Conflicts show as an error below; use Reset if
+            registration fails.
+          </Typography>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 1.5 }}>
+            <Button
+              variant="outlined"
+              color="primary"
+              size="small"
+              disabled={busy}
+              onClick={() => setShortcutCapturing((v) => !v)}
+            >
+              {shortcutCapturing ? 'Cancel' : 'Change…'}
+            </Button>
+            <Button
+              variant="outlined"
+              color="primary"
+              size="small"
+              disabled={busy || shortcutCapturing}
+              onClick={() => void resetLauncherShortcut()}
+            >
+              Reset to default
+            </Button>
+          </Box>
 
           <p className={`status status-${indexStatus ? 'online' : 'idle'}`}>
             <span className="status-label">Index:</span>{' '}
@@ -988,9 +1154,56 @@ export default function Settings({ onBack }) {
           </Button>
         </Box>
 
-        <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
-          {appConfig.name} v{appConfig.version}
-        </Typography>
+        <Box sx={{ mb: 2 }}>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+            {appConfig.name} v{appConfig.version}
+          </Typography>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center', mb: 1 }}>
+            <Button
+              variant="outlined"
+              color="primary"
+              size="small"
+              onClick={() => void runCheckForUpdates()}
+              disabled={updateBusy || busy}
+            >
+              {updateBusy ? 'Checking…' : 'Check for updates'}
+            </Button>
+            {updateInfo?.status === 'newer' && updateInfo.releaseUrl ? (
+              <Button
+                variant="contained"
+                color="primary"
+                size="small"
+                onClick={() => void openUpdateLink(updateInfo.releaseUrl)}
+              >
+                Open release
+              </Button>
+            ) : null}
+            {updateInfo?.status === 'newer' && updateInfo.downloadUrl ? (
+              <Button
+                variant="outlined"
+                color="primary"
+                size="small"
+                onClick={() => void openUpdateLink(updateInfo.downloadUrl)}
+              >
+                Download
+              </Button>
+            ) : null}
+          </Box>
+          {updateInfo ? (
+            <Typography
+              variant="body2"
+              color={updateInfo.status === 'error' ? 'error' : 'text.secondary'}
+              sx={{ m: 0 }}
+            >
+              {updateInfo.status === 'newer'
+                ? `${updateInfo.notes || `Meshen ${updateInfo.latest} is available.`} (you have ${updateInfo.current}). Quit Meshen, then replace the portable exe.`
+                : updateInfo.message ||
+                  (updateInfo.status === 'current'
+                    ? `You're on the latest version (${updateInfo.current || appConfig.version}).`
+                    : 'Update check failed.')}
+            </Typography>
+          ) : null}
+        </Box>
 
         {onBack ? (
           <Button variant="outlined" color="primary" onClick={onBack}>

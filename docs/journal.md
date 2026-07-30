@@ -525,3 +525,22 @@ What I did:
 Next:
 Implement #140 when starting Local AI / deeper search work — not before Up next if polishing first.
 
+## 2026-07-30 — 1.0.3 + 1.0.4 polish; Up next drained
+
+Goal:
+Finish Up next (1.0.x) polish and ship patch releases before Local AI.
+
+What I did:
+- **1.0.3:** #136 Windows identity, #116 tray reset window, #128 supported-types copy; portable NSIS must not be rcedit’d after seal
+- **1.0.4:** #137 Check for updates (GitHub Releases), #138 custom launcher shortcut, #119 dismissible launcher status banner
+- Roadmap / ideas / release notes synced; Up next milestone drained → next is **v1.1 Local AI**
+- Signing / Smart App Control deferred (unsigned portable; cert later)
+
+What I learned:
+- electron-builder `afterPack` FileDescription is overwritten by winPackager; portable NSIS integrity fails if you rcedit the sealed `.exe`
+- Smart App Control often has no “Run anyway” — signing is the real fix for downloaders
+
+Next:
+1. **v1.1** Local AI must-ship (#70–#72, #133, #75, **#140**)
+2. Code signing when ready for wider distribution
+

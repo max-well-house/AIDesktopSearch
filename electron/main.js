@@ -36,13 +36,19 @@ const {
   clearSavedWindowSize,
 } = require('./windowState')
 const {
+  DEFAULT_LAUNCHER_SHORTCUT,
   getPreferSemanticSearch,
   setPreferSemanticSearch,
+  getLauncherShortcut,
+  setLauncherShortcut,
 } = require('./prefs')
+const { checkForUpdates } = require('./updates')
 
 const RENDERER_DEV_URL = process.env.ELECTRON_RENDERER_URL || 'http://127.0.0.1:5173'
-const LAUNCHER_SHORTCUT = 'Alt+Space'
 const LAUNCHER_SHORTCUT_FALLBACK = 'Control+Shift+Space'
+
+/** Currently registered accelerator (may differ from preferred if registration failed). */
+let activeLauncherShortcut = null
 
 /** Packaged: next to app.asar via extraResources. Dev: repo resources/. */
 function getIconPath() {
@@ -145,6 +151,79 @@ ipcMain.handle('prefs:set-prefer-semantic', async (_event, enabled) => {
       mainWindow.webContents.send('prefs:prefer-semantic-changed', next)
     }
     return { ok: true, enabled: next }
+  } catch (err) {
+    return { ok: false, error: err?.message || String(err) }
+  }
+})
+ipcMain.handle('updates:check', async () => {
+  try {
+    return await checkForUpdates()
+  } catch (err) {
+    return {
+      status: 'error',
+      message: err?.message || String(err) || 'Update check failed.',
+    }
+  }
+})
+ipcMain.handle('shell:open-external', async (_event, url) => {
+  if (!url || typeof url !== 'string') {
+    return { ok: false, error: 'URL required' }
+  }
+  let parsed
+  try {
+    parsed = new URL(url)
+  } catch {
+    return { ok: false, error: 'Invalid URL' }
+  }
+  if (parsed.protocol !== 'https:') {
+    return { ok: false, error: 'Only https links are allowed' }
+  }
+  try {
+    await shell.openExternal(parsed.toString())
+    return { ok: true }
+  } catch (err) {
+    return { ok: false, error: err?.message || String(err) }
+  }
+})
+ipcMain.handle('prefs:get-launcher-shortcut', async () => {
+  try {
+    return {
+      ok: true,
+      accelerator: activeLauncherShortcut || getLauncherShortcut(),
+      preferred: getLauncherShortcut(),
+      defaultAccelerator: DEFAULT_LAUNCHER_SHORTCUT,
+    }
+  } catch (err) {
+    return { ok: false, error: err?.message || String(err) }
+  }
+})
+ipcMain.handle('prefs:set-launcher-shortcut', async (_event, accelerator) => {
+  try {
+    if (!accelerator || typeof accelerator !== 'string') {
+      return { ok: false, error: 'Shortcut required' }
+    }
+    const result = applyLauncherShortcut(accelerator.trim())
+    return {
+      ok: result.ok,
+      accelerator: result.accelerator,
+      preferred: result.preferred,
+      defaultAccelerator: DEFAULT_LAUNCHER_SHORTCUT,
+      error: result.error,
+    }
+  } catch (err) {
+    return { ok: false, error: err?.message || String(err) }
+  }
+})
+ipcMain.handle('prefs:reset-launcher-shortcut', async () => {
+  try {
+    const result = applyLauncherShortcut(DEFAULT_LAUNCHER_SHORTCUT)
+    return {
+      ok: result.ok,
+      accelerator: result.accelerator,
+      preferred: result.preferred,
+      defaultAccelerator: DEFAULT_LAUNCHER_SHORTCUT,
+      error: result.error,
+    }
   } catch (err) {
     return { ok: false, error: err?.message || String(err) }
   }
@@ -256,6 +335,8 @@ function toggleLauncher() {
  */
 function handleSystemContextMenu(event, point) {
   if (process.platform !== 'win32' || !mainWindow || mainWindow.isDestroyed()) return
+  // Only intercept when the active launcher shortcut is still Alt+Space.
+  if (activeLauncherShortcut !== DEFAULT_LAUNCHER_SHORTCUT) return
 
   let dip = point
   try {
@@ -473,25 +554,69 @@ function createWindow({ show = true } = {}) {
   }
 }
 
-function registerLauncherShortcut() {
-  const registered = globalShortcut.register(LAUNCHER_SHORTCUT, toggleLauncher)
-  if (registered) {
-    console.log(`Global shortcut registered: ${LAUNCHER_SHORTCUT}`)
-    return LAUNCHER_SHORTCUT
+function broadcastLauncherShortcut(accelerator) {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('prefs:launcher-shortcut-changed', accelerator)
   }
+}
 
-  const fallbackOk = globalShortcut.register(LAUNCHER_SHORTCUT_FALLBACK, toggleLauncher)
-  if (fallbackOk) {
-    console.warn(
-      `Failed to register ${LAUNCHER_SHORTCUT}; using fallback ${LAUNCHER_SHORTCUT_FALLBACK}`,
-    )
-    return LAUNCHER_SHORTCUT_FALLBACK
+/**
+ * Register preferred shortcut; on failure try default then Control+Shift+Space.
+ * @returns {{ ok: boolean, accelerator: string | null, preferred: string, error?: string }}
+ */
+function registerLauncherShortcut(preferredIn) {
+  const preferred =
+    typeof preferredIn === 'string' && preferredIn.trim()
+      ? preferredIn.trim()
+      : getLauncherShortcut()
+
+  globalShortcut.unregisterAll()
+  activeLauncherShortcut = null
+
+  const candidates = []
+  const pushUnique = (accel) => {
+    if (accel && !candidates.includes(accel)) candidates.push(accel)
+  }
+  pushUnique(preferred)
+  pushUnique(DEFAULT_LAUNCHER_SHORTCUT)
+  pushUnique(LAUNCHER_SHORTCUT_FALLBACK)
+
+  for (const accel of candidates) {
+    try {
+      if (globalShortcut.register(accel, toggleLauncher)) {
+        activeLauncherShortcut = accel
+        console.log(`Global shortcut registered: ${accel}`)
+        broadcastLauncherShortcut(accel)
+        const ok = accel === preferred
+        return {
+          ok,
+          accelerator: accel,
+          preferred,
+          error: ok
+            ? undefined
+            : `Could not register ${preferred}; using ${accel} instead.`,
+        }
+      }
+    } catch (err) {
+      console.warn(`Failed to register ${accel}:`, err?.message || err)
+    }
   }
 
   console.warn(
-    `Failed to register global shortcuts ${LAUNCHER_SHORTCUT} and ${LAUNCHER_SHORTCUT_FALLBACK}`,
+    `Failed to register global shortcuts (tried ${candidates.join(', ')})`,
   )
-  return null
+  broadcastLauncherShortcut(null)
+  return {
+    ok: false,
+    accelerator: null,
+    preferred,
+    error: `Could not register ${preferred} (or fallbacks). Try another combo.`,
+  }
+}
+
+function applyLauncherShortcut(accelerator) {
+  const preferred = setLauncherShortcut(accelerator)
+  return registerLauncherShortcut(preferred)
 }
 
 const gotLock = app.requestSingleInstanceLock()

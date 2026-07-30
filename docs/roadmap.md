@@ -231,7 +231,10 @@ Same product as 1.0: local files, search-first, AI optional.
 
 ### Up next (1.0.x polish)
 
-Quick ships between numbered releases. **Shipped in 1.0.3:** #136 exe identity, #116 reset window, #128 supported types. Still open: #119 dismissible banners, #137 check for updates, #138 custom shortcut.
+**Shipped in 1.0.3:** #136 exe identity, #116 reset window, #128 supported types.  
+**Shipped in 1.0.4:** #137 check for updates, #138 custom shortcut, #119 dismissible banners.  
+Up next milestone is drained — next Find work is **v1.1 Local AI**.
+
 
 ### Version 1.1.0 — Local AI
 
