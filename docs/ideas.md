@@ -4,8 +4,6 @@ Long-term work lives on **GitHub milestones by era** (see [roadmap.md](./roadmap
 
 | Idea | Issue | Home |
 |------|-------|------|
-| Settings declutter | #145 | Up next (1.0.5-class) |
-| First-run empty state (zero roots) | #146 | Up next (1.0.5-class) |
 | User-defined excludes | #139 | v1.3 |
 | Search history + idle cards | #81 | v1.3 |
 | Guided Ollama setup | #133 | v1.1 |
@@ -14,7 +12,7 @@ Long-term work lives on **GitHub milestones by era** (see [roadmap.md](./roadmap
 | Connection map (research) | #110 | v3.2 |
 | Corpus expected-hit packs | #140–#144 | per milestone (1.1 must-ship #140) |
 
-Shipped 1.0.x polish: #136 exe identity, #116 reset window, #128 supported types (1.0.3); #137 updates, #138 shortcut, #119 banners (1.0.4).
+Shipped 1.0.x polish: #136 exe identity, #116 reset window, #128 supported types (1.0.3); #137 updates, #138 shortcut, #119 banners (1.0.4); #145 Settings declutter, #146 first-run empty state (1.0.5).
 
 Closed as not planned / merged during post-1.0 triage: favorites (#82), voice (#100), email (#101), calendar (#102), browser history (#105), multi-user (#107), mobile (#108), plugin host (#109), search groups (#130), etc.
 

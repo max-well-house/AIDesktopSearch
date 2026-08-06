@@ -2,6 +2,10 @@
 
 Daily use of Meshen on Windows. For download/setup, see [install.md](./install.md).
 
+## First run
+
+With **no indexed folders**, the idle launcher shows **Add folder…** instead of “start typing.” Pick a folder to begin indexing; search-first idle guidance returns once at least one root exists. Manage folders anytime via Settings → Indexed folders (top-right AppMark).
+
 ## Launch and hide
 
 | Action | Result |
@@ -42,15 +46,14 @@ Open via the top-right **AppMark** (tooltip: Settings).
 
 | Area | What you can do |
 |------|------------------|
-| Folders | Add / rescan / remove opt-in roots only — nothing is indexed until you choose it. Content search covers TXT, Markdown, DOCX, PDF; other files are filename-only; hidden / junk dirs are skipped |
+| Preferences | Start with Windows; Prefer semantic (footer); Launcher shortcut change/reset |
+| Indexed folders | Add / rescan / remove opt-in roots only — nothing is indexed until you choose it. Content search covers TXT, Markdown, DOCX, PDF; other files are filename-only; hidden / junk dirs are skipped |
+| Corpus status | Short Index / Search summary and last saved / live watching |
 | Auto-watch | Per-root toggle: watch for changes vs scan-only |
-| Start with Windows | Launch at login (also on the tray menu) |
-| Launcher shortcut | View / change / reset to **Alt+Space**; conflicts show as an error in Settings |
-| Prefer semantic | Footer / routing preference when meaning search is available |
 | Pause / Resume | Shown while the embedding queue is active (or paused) |
-| Privacy | Wipe the search index (recreates `index.db`; your original files are untouched) |
 | Details | Lab health: API, Ollama, GPU, vector store, embed model |
-| Version / updates | Product name + version; **Check for updates** opens the GitHub release (download and replace the portable yourself — Quit first) |
+| Privacy | Wipe the search index (recreates `index.db`; your original files are untouched) |
+| About | Product name + version; **Check for updates** opens the GitHub release (download and replace the portable yourself — Quit first) |
 
 ## Footer lights
 

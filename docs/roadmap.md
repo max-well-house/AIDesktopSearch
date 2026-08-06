@@ -231,9 +231,11 @@ Same product as 1.0: local files, search-first, AI optional.
 
 ### Up next (1.0.x polish)
 
+**Done** (drained 2026-08-06 with v1.0.5).
+
 **Shipped in 1.0.3:** #136 exe identity, #116 reset window, #128 supported types.  
 **Shipped in 1.0.4:** #137 check for updates, #138 custom shortcut, #119 dismissible banners.  
-**Queued for 1.0.5-class:** #145 Settings declutter, #146 first-run empty state (zero-roots Add folder CTA).
+**Shipped in 1.0.5:** #145 Settings declutter, #146 first-run empty state (zero-roots Add folder CTA).
 
 
 ### Version 1.1.0 — Local AI

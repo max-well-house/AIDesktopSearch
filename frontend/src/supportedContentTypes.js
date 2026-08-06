@@ -12,7 +12,3 @@ export const CONTENT_TYPE_LABELS = ['TXT', 'Markdown', 'DOCX', 'PDF']
 /** Short standing caption for Settings corpus section. */
 export const CONTENT_TYPES_CAPTION =
   `Content search: ${CONTENT_TYPE_LABELS.join(', ')}. Other files: filename only. Hidden folders and common junk dirs are skipped.`
-
-/** One-liner next to Add folder (same facts, slightly tighter). */
-export const ADD_FOLDER_TYPES_NOTE =
-  `Indexes ${CONTENT_TYPE_LABELS.join(', ')} for content; everything else is filename-only.`

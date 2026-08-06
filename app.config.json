@@ -1,7 +1,7 @@
 {
   "name": "Meshen",
   "company": "Meshen",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Local-first desktop search that finds files by meaning and keyword",
   "fileDescription": "Desktop search",
   "appId": "com.maxwallace.aidesktopsearch",

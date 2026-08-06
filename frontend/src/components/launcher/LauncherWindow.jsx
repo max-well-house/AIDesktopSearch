@@ -64,8 +64,13 @@ export default function LauncherWindow({ onOpenSettings, settingsOpen = false })
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [launcherShortcut, setLauncherShortcut] = useState(DEFAULT_LAUNCHER_SHORTCUT_LABEL)
   const [banner, setBanner] = useState(null)
+  const [addingFolder, setAddingFolder] = useState(false)
   const dismissedBannerIdsRef = useRef(new Set())
   const isIdle = query.trim().length === 0
+  // Status unknown → keep search-first copy; only flip when we know root_count is 0 (#146).
+  const zeroRoots =
+    indexSnapshot != null &&
+    (indexSnapshot.root_count ?? indexSnapshot.roots?.length ?? 0) === 0
 
   hitsRef.current = hits
   selectedIndexRef.current = selectedIndex
@@ -197,6 +202,45 @@ export default function LauncherWindow({ onOpenSettings, settingsOpen = false })
       setSelectedIndex(keep >= 0 ? keep : 0)
     }
     setStatus('ready')
+  }
+
+  async function addFolderFromIdle() {
+    if (!window.api?.pickFolder || !window.api?.scanFolder) {
+      showBanner(
+        'add-folder-error',
+        'Folder picker unavailable — open Settings to add a folder.',
+        'error',
+      )
+      return
+    }
+
+    const picked = await window.api.pickFolder()
+    if (picked.canceled || !picked.ok || !picked.path) return
+
+    setAddingFolder(true)
+    try {
+      const result = await window.api.scanFolder(picked.path)
+      if (!result.ok) {
+        showBanner(
+          'add-folder-error',
+          result.error || 'Could not add that folder — try again from Settings.',
+          'error',
+        )
+        return
+      }
+      clearBannerDismissal('add-folder-error')
+      setBanner((prev) => (prev?.id === 'add-folder-error' ? null : prev))
+      const statusResult = await window.api.getIndexStatus()
+      if (statusResult.ok) applyIndexStatus(statusResult.data)
+    } catch (err) {
+      showBanner(
+        'add-folder-error',
+        err?.message || 'Could not add that folder — try again from Settings.',
+        'error',
+      )
+    } finally {
+      setAddingFolder(false)
+    }
   }
 
   useEffect(() => {
@@ -576,7 +620,14 @@ export default function LauncherWindow({ onOpenSettings, settingsOpen = false })
             pointerEvents: isIdle ? 'auto' : 'none',
           }}
         >
-          {isIdle ? <EmptyState /> : null}
+          {isIdle ? (
+            <EmptyState
+              zeroRoots={zeroRoots}
+              addingFolder={addingFolder}
+              onAddFolder={() => void addFolderFromIdle()}
+              onOpenSettings={onOpenSettings}
+            />
+          ) : null}
         </Box>
 
         {isIdle ? (

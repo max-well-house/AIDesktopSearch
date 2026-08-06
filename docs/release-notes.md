@@ -1,5 +1,17 @@
 # Release notes
 
+## v1.0.5 — Settings declutter + first-run
+
+Patch release for the Windows portable build.
+
+- **Settings declutter** — clear section rhythm (Preferences → Indexed folders → Corpus status → Details → Privacy → About); folders high; supported-types copy once (#145)
+- **First-run empty state** — with zero indexed folders, idle shows **Add folder…** (same pick/scan as Settings); search-first guidance returns once a root exists (#146)
+
+### Docs
+
+- [Installation](./install.md)
+- [User guide](./user-guide.md)
+
 ## v1.0.4 — Updates, shortcut, status banner
 
 Patch release for the Windows portable build.

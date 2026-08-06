@@ -11,10 +11,7 @@ import Box from '@mui/material/Box'
 import AppMark from './brand/AppMark'
 import { colors } from '../theme'
 import appConfig from '@app-config'
-import {
-  ADD_FOLDER_TYPES_NOTE,
-  CONTENT_TYPES_CAPTION,
-} from '../supportedContentTypes'
+import { CONTENT_TYPES_CAPTION } from '../supportedContentTypes'
 import {
   DEFAULT_LAUNCHER_SHORTCUT_LABEL,
   eventToAccelerator,
@@ -736,7 +733,7 @@ export default function Settings({ onBack }) {
             Default is {DEFAULT_LAUNCHER_SHORTCUT_LABEL}. Conflicts show as an error below; use Reset if
             registration fails.
           </Typography>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 1.5 }}>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
             <Button
               variant="outlined"
               color="primary"
@@ -756,55 +753,9 @@ export default function Settings({ onBack }) {
               Reset to default
             </Button>
           </Box>
+        </Box>
 
-          <p className={`status status-${indexStatus ? 'online' : 'idle'}`}>
-            <span className="status-label">Index:</span>{' '}
-            {formatIndexed(indexStatus?.file_count)}
-            {indexStatus?.root_count
-              ? ` · ${indexStatus.root_count} folder${indexStatus.root_count === 1 ? '' : 's'}`
-              : ''}
-          </p>
-          <p className={`status status-${semanticTone}`} style={{ marginBottom: '0.5rem' }}>
-            <span className="status-label">Search:</span> {semanticSummary}
-            {indexStatus?.embedding_chunk_count != null && embedQueueDepth === 0 && !embedPaused
-              ? ` · ${indexStatus.embedding_chunk_count.toLocaleString()} chunk${
-                  indexStatus.embedding_chunk_count === 1 ? '' : 's'
-                }`
-              : ''}
-          </p>
-          {indexStatus?.last_indexed_at ? (
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-              Last saved {formatCheckedAt(indexStatus.last_indexed_at)}
-            </Typography>
-          ) : (
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-              No folders indexed yet — add one below.
-            </Typography>
-          )}
-
-          {indexStatus?.watched_roots > 0 ? (
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-              {indexStatus.watch_paused
-                ? 'Live watching paused'
-                : indexStatus.watching
-                  ? `Live watching ${indexStatus.watched_roots} folder${indexStatus.watched_roots === 1 ? '' : 's'}`
-                  : `Watchers attached (${indexStatus.watched_roots})`}
-              {indexStatus.queue_depth > 0
-                ? ` · ${indexStatus.queue_depth} pending`
-                : ''}
-            </Typography>
-          ) : null}
-
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
-            Only folders you add are indexed. Whole-PC / whole-disk crawling is out
-            of scope for defaults. New and changed files update the index automatically;
-            embeddings follow in the background (Pause if the machine bogs down).
-          </Typography>
-
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
-            {CONTENT_TYPES_CAPTION}
-          </Typography>
-
+        <Box sx={{ mb: 2 }}>
           <Typography
             variant="subtitle2"
             sx={{ mb: 1, color: colors.textPrimary, fontWeight: 600 }}
@@ -936,7 +887,7 @@ export default function Settings({ onBack }) {
             ) : null}
           </Box>
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-            {ADD_FOLDER_TYPES_NOTE}
+            {CONTENT_TYPES_CAPTION}
           </Typography>
           {corpusMessage ? (
             <Typography
@@ -952,6 +903,51 @@ export default function Settings({ onBack }) {
               }}
             >
               {corpusMessage}
+            </Typography>
+          ) : null}
+        </Box>
+
+        <Box sx={{ mb: 2 }}>
+          <Typography
+            variant="subtitle2"
+            sx={{ mb: 1, color: colors.textPrimary, fontWeight: 600 }}
+          >
+            Corpus status
+          </Typography>
+          <p className={`status status-${indexStatus ? 'online' : 'idle'}`}>
+            <span className="status-label">Index:</span>{' '}
+            {formatIndexed(indexStatus?.file_count)}
+            {indexStatus?.root_count
+              ? ` · ${indexStatus.root_count} folder${indexStatus.root_count === 1 ? '' : 's'}`
+              : ''}
+          </p>
+          <p className={`status status-${semanticTone}`} style={{ marginBottom: '0.5rem' }}>
+            <span className="status-label">Search:</span> {semanticSummary}
+            {indexStatus?.embedding_chunk_count != null && embedQueueDepth === 0 && !embedPaused
+              ? ` · ${indexStatus.embedding_chunk_count.toLocaleString()} chunk${
+                  indexStatus.embedding_chunk_count === 1 ? '' : 's'
+                }`
+              : ''}
+          </p>
+          {indexStatus?.last_indexed_at ? (
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+              Last saved {formatCheckedAt(indexStatus.last_indexed_at)}
+            </Typography>
+          ) : (
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+              No folders indexed yet — add one above.
+            </Typography>
+          )}
+          {indexStatus?.watched_roots > 0 ? (
+            <Typography variant="body2" color="text.secondary">
+              {indexStatus.watch_paused
+                ? 'Live watching paused'
+                : indexStatus.watching
+                  ? `Live watching ${indexStatus.watched_roots} folder${indexStatus.watched_roots === 1 ? '' : 's'}`
+                  : `Watchers attached (${indexStatus.watched_roots})`}
+              {indexStatus.queue_depth > 0
+                ? ` · ${indexStatus.queue_depth} pending`
+                : ''}
             </Typography>
           ) : null}
         </Box>
@@ -1140,9 +1136,8 @@ export default function Settings({ onBack }) {
             Privacy
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-            Removing a folder clears its rows and runs VACUUM (light reclaim). Wipe
-            deletes and recreates the whole index database. Neither deletes your
-            original files on disk.
+            Remove a folder to drop its index rows. Wipe recreates the whole search
+            database. Your original files on disk are never deleted.
           </Typography>
           <Button
             variant="outlined"
@@ -1155,7 +1150,13 @@ export default function Settings({ onBack }) {
         </Box>
 
         <Box sx={{ mb: 2 }}>
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+          <Typography
+            variant="subtitle2"
+            sx={{ mb: 1, color: colors.textPrimary, fontWeight: 600 }}
+          >
+            About
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
             {appConfig.name} v{appConfig.version}
           </Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, alignItems: 'center', mb: 1 }}>
