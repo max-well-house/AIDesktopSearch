@@ -68,6 +68,16 @@ function embeddingTone(models) {
   return models.embedding ? 'online' : 'off'
 }
 
+function chatLabel(models) {
+  if (!models) return 'Unknown'
+  return models.chat ? 'Available (llama3.2:3b)' : 'Unavailable — pull llama3.2:3b'
+}
+
+function chatTone(models) {
+  if (!models) return 'idle'
+  return models.chat ? 'online' : 'off'
+}
+
 function gpuLabel(gpu) {
   if (!gpu) return 'Unknown'
   if (gpu.available === true) {
@@ -1016,6 +1026,9 @@ export default function Settings({ onBack }) {
                 <p className={`status status-${embeddingTone(models)}`}>
                   <span className="status-label">Embedding model:</span>{' '}
                   {embeddingLabel(models)}
+                </p>
+                <p className={`status status-${chatTone(models)}`}>
+                  <span className="status-label">Chat model:</span> {chatLabel(models)}
                 </p>
                 <p className={`status status-${gpuTone(gpu)}`}>
                   <span className="status-label">GPU:</span> {gpuLabel(gpu)}

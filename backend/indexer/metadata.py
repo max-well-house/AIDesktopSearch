@@ -569,6 +569,14 @@ def index_status() -> dict:
         and embed_model_ok
     )
 
+    chat_ready = False
+    try:
+        from llm.client import DEFAULT_CHAT_MODEL, chat_model_available
+
+        chat_ready = bool(chat_model_available(DEFAULT_CHAT_MODEL))
+    except Exception:
+        chat_ready = False
+
     return {
         "file_count": file_count,
         "root_count": root_count,
@@ -577,5 +585,6 @@ def index_status() -> dict:
         "embedding_chunk_count": embedding_chunk_count,
         "vector_store_available": vector_store_available,
         "semantic_query_ready": semantic_query_ready,
+        "chat_ready": chat_ready,
         "embedded_files": embedded_files,
     }

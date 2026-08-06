@@ -34,6 +34,8 @@ class IndexStatusResponse(BaseModel):
     vector_store_available: bool = False
     # True when chunks exist and nomic-embed-text is reachable for query embed.
     semantic_query_ready: bool = False
+    # True when Ollama is up and the default chat model is pulled (#70).
+    chat_ready: bool = False
     # Embedding generate (#66)
     embed_queue_depth: int = 0
     embed_paused: bool = False

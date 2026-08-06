@@ -31,6 +31,8 @@ from embeddings.store import run_store_smoke
 from embeddings.queue import get_embed_queue
 from embeddings.generate import list_pending_embed_file_ids
 from embeddings.store import DEFAULT_EMBED_MODEL
+from llm.client import DEFAULT_CHAT_MODEL, ChatClientError, chat
+from llm.schemas import ChatRequest, ChatResponse
 
 APP_VERSION = "0.0.4"
 
@@ -308,3 +310,23 @@ async def get_search(
         mode=payload["mode"],
         stages_skipped=payload["stages_skipped"],
     )
+
+
+@app.post("/llm/chat", response_model=ChatResponse)
+async def post_llm_chat(body: ChatRequest):
+    """
+    Send a prompt to the local Ollama chat model (#70).
+
+    Soft-fails with 503 when Ollama or the default chat model is unavailable;
+    classic/semantic search remain usable (Decision #003).
+    """
+    try:
+        reply = await asyncio.to_thread(
+            chat,
+            body.prompt,
+            system=body.system,
+            model=DEFAULT_CHAT_MODEL,
+        )
+    except ChatClientError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    return ChatResponse(reply=reply, model=DEFAULT_CHAT_MODEL)

@@ -17,18 +17,25 @@ Each major product milestone that needs new fixture *kinds* gets a **Corpus:** c
 
 ### Expected-hit contract
 
-`manifest.json` must support control queries where we assert:
+`manifest.json` entries under `expected_search` / `expected_rag`:
 
-- **must_include** — these relative paths must appear in results (the “these N files” bar)
-- optional **must_exclude** / **top_k**
+```json
+"sourdough": {
+  "must_include": ["Documents/Shopping List.txt"],
+  "mode": "classic",
+  "must_exclude": [],
+  "top_k": 10
+}
+```
 
-If a control search does not return the required files → **fail** (script or pytest). Same `--seed` → same tree and same expectations.
+- **must_include** — these relative paths must appear in results
+- optional **must_exclude** / **top_k** / **mode** (`classic` | `semantic` | `rag`)
 
-Implement / harden that contract in **#140**; later corpus issues extend it.
+Same `--seed` → same tree and same expectations. Missing required files → eval **fails**.
 
 ## Generate
 
-From the repo root (Python 3; no extra deps for the v0.3 stub generator):
+From the repo root (Python 3; stdlib only):
 
 ```powershell
 python tools/corpus/generate.py
@@ -42,27 +49,44 @@ python tools/corpus/generate.py --out D:\Other\Meshen-TestCorpus --clean
 | `--seed` | `42` | Deterministic; same seed → same tree |
 | `--clean` | off | Delete `--out` before writing |
 
+v1.1 bodies: real TXT/MD content with distinctive control phrases (shopping list, chipotle chili, Phoenix telemetry, Amalfi notes). PDF/DOCX remain filename stubs until a later corpus drop needs extractable binaries.
+
 ## Point the app at it
 
 1. Generate the corpus.
 2. In Meshen Settings, add **only** that corpus folder as an index root — **not** the git repo.
-3. Prefer asserting against `manifest.json` `files` / `expected_search` (treat `manifest.json` as test metadata, not a user doc).
+3. Wait for index (and embeddings if testing semantic).
+4. Prefer asserting against `manifest.json` (treat it as test metadata, not a user doc).
 
-## Manifest (today + direction)
+## Eval
 
-Today (v0.3 / #113): `files[]`, `expected_search`, `control.invoice_paths` / `phoenix_paths`, `counts`.
+With the backend running and the corpus root indexed:
 
-Target (from #140): richer bodies + explicit **must_include** lists per control query for classic, semantic, and RAG, plus an automated check that fails on miss.
+```powershell
+python tools/corpus/eval_search.py
+python tools/corpus/eval_search.py --modes classic
+python tools/corpus/eval_search.py --include-rag
+```
 
-## What’s in the tree (v0.3 stubs)
+| Flag | Meaning |
+|------|---------|
+| `--manifest` | Path to `manifest.json` (default under Documents) |
+| `--base-url` | API base (default `http://127.0.0.1:8000`) |
+| `--modes` | Comma list: `classic`, `semantic` (default both) |
+| `--include-rag` | Also run `expected_rag` (after #71/#72) |
 
-- Nested projects, documents, code, images (stub), archives, logs, CSV/JSON/XML/HTML
-- Filename hits: `invoice.pdf`, `Invoice-Acme.pdf`, …
-- Ignore candidates: `.hidden/`, `node_modules/`, `.git/`, extensibility `IgnoreMe/`
+Semantic rows are skipped when `semantic_query_ready` is false. RAG rows are skipped unless `--include-rag`.
 
-Stub files may use realistic extensions **without** real Office/PDF binaries until #140+.
+## Manifest fields
+
+- `version` — `2` for v1.1 content + structured expectations
+- `expected_search` — classic + semantic control queries
+- `expected_rag` — question → grounded files (assert after RAG ships)
+- `control.invoice_paths` / `phoenix_paths` — filename control sets
+- `files[]` — inventory with tags
 
 ## Out of scope
 
 - Personal Documents as the official fixture set
 - Committing generated corpus bytes to GitHub
+- Image/OCR fixtures (#141), AV fixtures (#144)

@@ -35,7 +35,7 @@ function formatIndexedLabel(count, lastIndexedAt) {
 /** Cheap signal that SQLite changed — not a hot search loop (#52-friendly). */
 function indexFingerprint(data) {
   if (!data) return ''
-  return `${data.file_count ?? 0}|${data.last_indexed_at ?? ''}|${data.queue_depth ?? 0}|${data.embedding_chunk_count ?? 0}|${data.semantic_query_ready ? 1 : 0}|${data.embed_queue_depth ?? 0}|${data.embed_paused ? 1 : 0}`
+  return `${data.file_count ?? 0}|${data.last_indexed_at ?? ''}|${data.queue_depth ?? 0}|${data.embedding_chunk_count ?? 0}|${data.semantic_query_ready ? 1 : 0}|${data.chat_ready ? 1 : 0}|${data.embed_queue_depth ?? 0}|${data.embed_paused ? 1 : 0}`
 }
 
 /**
@@ -56,6 +56,11 @@ export default function LauncherWindow({ onOpenSettings, settingsOpen = false })
     value: 'Disabled',
     tone: 'off',
     title: 'Semantic search is not ready',
+  })
+  const [aiFooter, setAiFooter] = useState({
+    value: 'Offline',
+    tone: 'degraded',
+    title: 'Local AI needs Ollama and a chat model (llama3.2:3b)',
   })
   const [preferSemantic, setPreferSemantic] = useState(true)
   const [indexSnapshot, setIndexSnapshot] = useState(null)
@@ -132,6 +137,22 @@ export default function LauncherWindow({ onOpenSettings, settingsOpen = false })
     }
   }
 
+  function deriveAiFooter(data) {
+    if (data?.chat_ready === true) {
+      return {
+        value: 'Ready',
+        tone: 'on',
+        title: 'Local chat model ready (llama3.2:3b) — answers ship with RAG in v1.1',
+      }
+    }
+    return {
+      value: 'Offline',
+      tone: 'degraded',
+      title:
+        'Local AI needs Ollama running with llama3.2:3b — classic and semantic search still work',
+    }
+  }
+
   function applyIndexStatus(data) {
     if (!data) return
     const count = data.file_count ?? 0
@@ -139,6 +160,7 @@ export default function LauncherWindow({ onOpenSettings, settingsOpen = false })
     setIndexedLabel(formatIndexedLabel(count, lastIndexedAt))
     setIndexSnapshot(data)
     setSemanticFooter(deriveSemanticFooter(data, preferSemanticRef.current))
+    setAiFooter(deriveAiFooter(data))
     indexFpRef.current = indexFingerprint(data)
 
     // Index / embed attention path (#119) — one warning, dismissible for the session.
@@ -456,9 +478,9 @@ export default function LauncherWindow({ onOpenSettings, settingsOpen = false })
     },
     {
       label: 'AI',
-      value: 'Offline',
-      tone: 'degraded',
-      title: 'Local AI answers ship in v1.1 — chat is not available yet',
+      value: aiFooter.value,
+      tone: aiFooter.tone,
+      title: aiFooter.title,
     },
   ]
 

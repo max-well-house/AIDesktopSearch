@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate a deterministic developer corpus for v0.3 filename indexing.
+"""Generate a deterministic developer corpus for classic / semantic / RAG eval.
 
 Default output is **outside the repo** (under the user Documents folder) so
 indexer/search tests mirror real opt-in roots and avoid false confidence from
@@ -8,9 +8,7 @@ scanning the project tree.
 Usage (from repo root):
   python tools/corpus/generate.py
   python tools/corpus/generate.py --seed 42 --clean
-  python tools/corpus/generate.py --out D:\\Other\\Corpus --clean
-
-Later milestones can extend this script; keep v0.3 stubs (fake extensions, no real PDFs).
+  python tools/corpus/eval_search.py
 """
 
 from __future__ import annotations
@@ -27,7 +25,7 @@ from pathlib import Path
 
 DEFAULT_SEED = 42
 MANIFEST_NAME = "manifest.json"
-CORPUS_VERSION = 1
+CORPUS_VERSION = 2
 # Outside the repo on purpose — see tools/corpus/README.md
 DEFAULT_CORPUS_DIRNAME = "Meshen-TestCorpus"
 
@@ -46,6 +44,45 @@ PHOENIX_REL_PATHS = (
     "Projects/Phoenix/architecture.png",
     "Projects/Phoenix/phoenix-invoice-2024.pdf",
 )
+
+# Distinctive phrases for content / semantic control queries (#140).
+SHOPPING_BODY = """Shopping list for weekend groceries
+- milk
+- eggs
+- sourdough bread
+- unsalted butter
+"""
+
+RECIPES_BODY = """Family chili recipe
+Use smoked chipotle peppers and black beans.
+Simmer for two hours until thick.
+"""
+
+PHOENIX_README = """# Project Phoenix
+
+Phoenix is an internal ops dashboard for warehouse telemetry.
+Key modules: inventory sync, alert routing, and nightly reports.
+Codename token for eval: aurora-warehouse-telemetry.
+"""
+
+VACATION_BODY = """Amalfi coast travel notes
+
+We stayed near Positano and took the ferry to Capri.
+Pack light linen and a good camera for the cliff paths.
+Eval token: lemon-grove-terrace-sunset.
+"""
+
+TODO_BODY = """# TODO
+
+- finish Phoenix dashboard wiring
+- buy milk for the office fridge
+- schedule chipotle chili night
+"""
+
+APOLLO_NOTES = """Apollo launch checklist
+Verify thruster calibration and ground station handoff.
+Eval token: lunar-relay-handshake.
+"""
 
 
 @dataclass
@@ -73,6 +110,10 @@ def _stub(label: str, body: str = "") -> bytes:
     return text.encode("utf-8")
 
 
+def _text(body: str) -> bytes:
+    return (body.rstrip() + "\n").encode("utf-8")
+
+
 def _build_specs(rng: random.Random) -> list[FileSpec]:
     specs: list[FileSpec] = []
 
@@ -94,7 +135,7 @@ def _build_specs(rng: random.Random) -> list[FileSpec]:
             )
         )
 
-    # --- Documents (classic filename hits) ---
+    # --- Documents (classic filename + content hits) ---
     add(
         "Documents/invoice.pdf",
         content=_stub("pdf", "control: invoice"),
@@ -108,15 +149,32 @@ def _build_specs(rng: random.Random) -> list[FileSpec]:
     add("Documents/Resume.docx", content=_stub("docx"))
     add("Documents/Employee Handbook.pdf", content=_stub("pdf"))
     add("Documents/Meeting Notes.docx", content=_stub("docx"))
-    add("Documents/Shopping List.txt", content=_stub("txt", "- milk\n- eggs"))
-    add("Documents/TODO.md", content=_stub("md", "# TODO\n- index files"))
-    add("Documents/Recipes.txt", content=_stub("txt"))
+    add(
+        "Documents/Shopping List.txt",
+        content=_text(SHOPPING_BODY),
+        tags=["content:shopping", "control"],
+    )
+    add(
+        "Documents/TODO.md",
+        content=_text(TODO_BODY),
+        tags=["content:todo", "control"],
+    )
+    add(
+        "Documents/Recipes.txt",
+        content=_text(RECIPES_BODY),
+        tags=["content:recipes", "control"],
+    )
+    add(
+        "Documents/vacation-italy.md",
+        content=_text(VACATION_BODY),
+        tags=["content:vacation", "control", "semantic"],
+    )
 
-    # --- Projects / Phoenix (filename + later semantic stories) ---
+    # --- Projects / Phoenix ---
     add(
         "Projects/Phoenix/README.md",
-        content=_stub("md", "# Project Phoenix"),
-        tags=["project:phoenix", "filename_hit:phoenix"],
+        content=_text(PHOENIX_README),
+        tags=["project:phoenix", "filename_hit:phoenix", "content:phoenix", "control"],
     )
     add(
         "Projects/Phoenix/phoenix-budget.xlsx",
@@ -144,10 +202,14 @@ def _build_specs(rng: random.Random) -> list[FileSpec]:
         tags=["project:phoenix", "filename_hit:phoenix", "filename_hit:invoice", "control"],
     )
 
-    add("Projects/Apollo/notes.txt", content=_stub("txt", "Apollo notes"))
-    add("Projects/Apollo/README.md", content=_stub("md", "# Apollo"))
-    add("Projects/Atlas/plan.md", content=_stub("md", "# Atlas"))
-    add("Projects/Atlas/checklist.txt", content=_stub("txt"))
+    add(
+        "Projects/Apollo/notes.txt",
+        content=_text(APOLLO_NOTES),
+        tags=["content:apollo", "control"],
+    )
+    add("Projects/Apollo/README.md", content=_text("# Apollo\n\nSibling project to Phoenix.\n"))
+    add("Projects/Atlas/plan.md", content=_text("# Atlas\n\nMapping toolkit notes.\n"))
+    add("Projects/Atlas/checklist.txt", content=_text("Atlas checklist\n- survey\n- publish\n"))
 
     # --- Code samples ---
     add("Code/Python/hello.py", content=b'print("hello")\n')
@@ -176,29 +238,29 @@ def _build_specs(rng: random.Random) -> list[FileSpec]:
     add("Empty/empty.pdf", empty=True, tags=["empty"])
     add("Empty/empty.docx", empty=True, tags=["empty"])
 
-    # --- Duplicates (same content, different names) ---
-    dup_body = _stub("txt", "duplicate payload")
+    # --- Duplicates ---
+    dup_body = _text("duplicate payload for classic filename tests")
     add("Duplicates/duplicate.txt", content=dup_body, tags=["duplicate"])
     add("Duplicates/duplicate_copy.txt", content=dup_body, tags=["duplicate"])
     add("Duplicates/resume (copy).docx", content=_stub("docx"), tags=["duplicate"])
 
     # --- Unicode / awkward names ---
     add("Unicode/résumé.docx", content=_stub("docx"), tags=["unicode"])
-    add("Unicode/こんにちは.txt", content=_stub("txt", "hello"), tags=["unicode"])
-    add("Unicode/😀notes.md", content=_stub("md", "# notes"), tags=["unicode", "emoji"])
+    add("Unicode/こんにちは.txt", content=_text("hello from unicode fixture\n"), tags=["unicode"])
+    add("Unicode/😀notes.md", content=_text("# notes\n\nemoji filename fixture\n"), tags=["unicode", "emoji"])
     add(
         "Unicode/really_really_really_long_filename_that_goes_on_and_on.txt",
-        content=_stub("txt"),
+        content=_text("long name fixture\n"),
         tags=["long_name"],
     )
 
     # --- Deep nesting ---
-    add("Nested/a/b/c/d/e/deep-file.txt", content=_stub("txt", "deep"), tags=["deep"])
+    add("Nested/a/b/c/d/e/deep-file.txt", content=_text("deep nesting fixture\n"), tags=["deep"])
 
-    # --- Ignore candidates (#45 hidden, #46 node_modules, denylist noise) ---
+    # --- Ignore candidates ---
     add(
         ".hidden/secret.txt",
-        content=_stub("txt", "hidden"),
+        content=_text("hidden"),
         tags=["hidden"],
         should_ignore=True,
     )
@@ -234,7 +296,7 @@ def _build_specs(rng: random.Random) -> list[FileSpec]:
     )
     add(
         "IgnoreMe/noise.txt",
-        content=_stub("txt", "denylist noise"),
+        content=_text("denylist noise"),
         tags=["denylist"],
         should_ignore=True,
     )
@@ -245,18 +307,17 @@ def _build_specs(rng: random.Random) -> list[FileSpec]:
         should_ignore=True,
     )
 
-    # --- Seeded filler (extra variety; still deterministic) ---
+    # --- Seeded filler ---
     exts = [".txt", ".md", ".json", ".csv", ".log", ".py", ".js"]
     for i in range(12):
         ext = rng.choice(exts)
         name = f"filler_{i:02d}{ext}"
         add(
             f"Filler/{name}",
-            content=_stub(ext.lstrip("."), f"filler {i}"),
+            content=_text(f"filler {i} — neutral noise document"),
             tags=["filler"],
         )
 
-    # Stable order for identical manifests across platforms
     specs.sort(key=lambda s: s.rel_path.casefold())
     return specs
 
@@ -276,18 +337,90 @@ def _write_file(root: Path, spec: FileSpec) -> dict:
     }
 
 
-def _expected_search(files: list[dict]) -> dict[str, list[str]]:
-    """Map lowercase query → relative paths whose names contain the query."""
-    queries = ("invoice", "phoenix", "budget", "resume", "duplicate")
-    out: dict[str, list[str]] = {}
-    for q in queries:
-        hits = sorted(
+def _expectation(
+    must_include: list[str],
+    *,
+    must_exclude: list[str] | None = None,
+    top_k: int | None = None,
+    mode: str = "classic",
+    note: str | None = None,
+) -> dict:
+    entry: dict = {
+        "must_include": list(must_include),
+        "mode": mode,
+    }
+    if must_exclude:
+        entry["must_exclude"] = list(must_exclude)
+    if top_k is not None:
+        entry["top_k"] = top_k
+    if note:
+        entry["note"] = note
+    return entry
+
+
+def _expected_search(files: list[dict]) -> dict[str, dict]:
+    """Control queries → must_include (and optional exclude / mode)."""
+    by_name: dict[str, list[str]] = {}
+    for q in ("invoice", "phoenix", "budget", "resume", "duplicate"):
+        by_name[q] = sorted(
             f["path"]
             for f in files
             if q in f["name"].casefold() and not f["should_ignore"]
         )
-        out[q] = hits
-    return out
+
+    return {
+        "invoice": _expectation(by_name["invoice"], mode="classic", note="filename"),
+        "phoenix": _expectation(by_name["phoenix"], mode="classic", note="filename"),
+        "budget": _expectation(by_name["budget"], mode="classic", note="filename"),
+        "resume": _expectation(by_name["resume"], mode="classic", note="filename"),
+        "duplicate": _expectation(by_name["duplicate"], mode="classic", note="filename"),
+        "sourdough": _expectation(
+            ["Documents/Shopping List.txt"],
+            mode="classic",
+            note="classic FTS body",
+        ),
+        "chipotle peppers": _expectation(
+            ["Documents/Recipes.txt"],
+            mode="classic",
+            note="classic FTS body",
+        ),
+        "aurora-warehouse-telemetry": _expectation(
+            ["Projects/Phoenix/README.md"],
+            mode="classic",
+            note="classic FTS body",
+        ),
+        "Italian seaside trip notes": _expectation(
+            ["Documents/vacation-italy.md"],
+            mode="semantic",
+            note="semantic meaning — needs embeddings",
+        ),
+        "warehouse dashboard project": _expectation(
+            ["Projects/Phoenix/README.md"],
+            mode="semantic",
+            note="semantic meaning — needs embeddings",
+        ),
+    }
+
+
+def _expected_rag() -> dict[str, dict]:
+    """RAG control questions — asserted after #71/#72 (wave 3 / #140b)."""
+    return {
+        "What groceries are on the shopping list?": _expectation(
+            ["Documents/Shopping List.txt"],
+            mode="rag",
+            note="RAG — deferred until citations ship",
+        ),
+        "What is Project Phoenix about?": _expectation(
+            ["Projects/Phoenix/README.md"],
+            mode="rag",
+            note="RAG — deferred until citations ship",
+        ),
+        "Where did we stay on the Amalfi trip?": _expectation(
+            ["Documents/vacation-italy.md"],
+            mode="rag",
+            note="RAG — deferred until citations ship",
+        ),
+    }
 
 
 def generate(out_dir: Path, seed: int, clean: bool) -> dict:
@@ -303,8 +436,8 @@ def generate(out_dir: Path, seed: int, clean: bool) -> dict:
     ignore_count = sum(1 for f in files if f["should_ignore"])
     manifest = {
         "version": CORPUS_VERSION,
-        "milestone": "v0.3.0",
-        "purpose": "filename indexing / scan / ignore control set",
+        "milestone": "v1.1.0",
+        "purpose": "classic / semantic / RAG expected-hit control set",
         "seed": seed,
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "root": str(out_dir),
@@ -318,6 +451,7 @@ def generate(out_dir: Path, seed: int, clean: bool) -> dict:
             "phoenix_paths": list(PHOENIX_REL_PATHS),
         },
         "expected_search": _expected_search(files),
+        "expected_rag": _expected_rag(),
         "files": files,
     }
 
@@ -326,13 +460,12 @@ def generate(out_dir: Path, seed: int, clean: bool) -> dict:
         json.dumps(manifest, indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8",
     )
-    # Manifest is metadata for tests — not part of the indexed file list.
     return manifest
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p = argparse.ArgumentParser(
-        description="Generate a deterministic v0.3 test corpus for filename indexing.",
+        description="Generate a deterministic v1.1 test corpus (content + expected hits).",
     )
     p.add_argument(
         "--out",
@@ -369,8 +502,9 @@ def main(argv: list[str] | None = None) -> int:
         f"(index ~{counts['should_index']}, ignore ~{counts['should_ignore']})"
     )
     print(f"Manifest: {os.path.join(manifest['root'], MANIFEST_NAME)}")
-    invoice_hits = manifest["expected_search"].get("invoice", [])
-    print(f"expected_search['invoice']: {len(invoice_hits)} hit(s)")
+    invoice = manifest["expected_search"].get("invoice", {})
+    invoice_hits = invoice.get("must_include", []) if isinstance(invoice, dict) else invoice
+    print(f"expected_search['invoice'] must_include: {len(invoice_hits)} hit(s)")
     for rel in invoice_hits:
         print(f"  - {rel}")
     return 0

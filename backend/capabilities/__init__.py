@@ -31,10 +31,13 @@ async def build_capabilities() -> Capabilities:
     from embeddings.store import DEFAULT_EMBED_MODEL
 
     embedding_ready = bool(ollama.available) and model_available(DEFAULT_EMBED_MODEL)
+    from llm.client import DEFAULT_CHAT_MODEL, chat_model_available
+
+    chat_ready = bool(ollama.available) and chat_model_available(DEFAULT_CHAT_MODEL)
     return Capabilities(
         ollama=ollama,
         gpu=gpu,
-        models=ModelsCapability(chat=False, embedding=embedding_ready),
+        models=ModelsCapability(chat=chat_ready, embedding=embedding_ready),
         vector_store=VectorStoreCapability(
             available=bool(vs.get("available")),
             version=vs.get("version"),

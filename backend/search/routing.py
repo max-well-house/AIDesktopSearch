@@ -213,7 +213,7 @@ def run_semantic(query: str, *, limit: int = DEFAULT_LIMIT) -> list[dict]:
 
 
 def run_llm(query: str, *, limit: int = DEFAULT_LIMIT) -> None:
-    """Placeholder for RAG answers + citations (v0.8). Not called yet."""
+    """Placeholder for RAG answers + citations (#71). Chat client is #70."""
     _ = (query, limit)
     return None
 

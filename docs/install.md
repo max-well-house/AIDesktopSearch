@@ -20,21 +20,22 @@ On first launch, Electron starts the bundled FastAPI backend automatically. The 
 3. Wait for indexing (and optional embedding if Ollama is set up).
 4. Type a filename or phrase in the launcher and open a result.
 
-## Optional: Ollama (meaning search)
+## Optional: Ollama (meaning search + local AI)
 
 Classic filename/content search works **without** Ollama.
 
-For **semantic** (meaning) search:
+For **semantic** (meaning) search and upcoming **local AI answers**:
 
-1. Install Ollama separately ([ollama.com/download/windows](https://ollama.com/download/windows), or `winget install --id Ollama.Ollama -e`).
+1. Install Ollama separately ([ollama.com/download/windows](https://ollama.com/download/windows), or `winget install --id Ollama.Ollama -e`). In-app guided setup is planned (#133) — see [research-ollama-setup.md](./research-ollama-setup.md).
 2. Start Ollama from the Start menu / tray.
-3. Pull the embed model:
+3. Pull the models:
 
 ```powershell
 ollama pull nomic-embed-text
+ollama pull llama3.2:3b
 ```
 
-4. In Meshen Settings → **Details**, confirm Ollama and the embedding model look available. The footer **Semantic** light turns green when meaning search is ready.
+4. In Meshen Settings → **Details**, confirm Ollama, the embedding model, and the chat model look available. The footer **Semantic** light turns green when meaning search is ready; **AI** turns ready when the chat model is present.
 
 Ollama is never bundled with Meshen and is never required for basic search.
 
@@ -54,6 +55,7 @@ Ollama is never bundled with Meshen and is never required for basic search.
 | Backend offline / Settings empty | Quit via tray and relaunch the portable exe. Re-download if the build is corrupt. |
 | Alt+Space does nothing | Another app may own the hotkey. Change the shortcut in Settings, or use the **Ctrl+Shift+Space** fallback. |
 | Semantic never goes green | Install/start Ollama, `ollama pull nomic-embed-text`, add/rescan folders, wait for embed queue (Pause if the machine is busy). |
+| AI footer stays Offline | Install/start Ollama and `ollama pull llama3.2:3b`. Classic/semantic still work without it. |
 | SmartScreen / antivirus warning | Portable Electron builds are often unsigned; allow the file if you trust the source. |
 
 ## Developers
